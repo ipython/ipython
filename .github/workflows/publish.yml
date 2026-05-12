@@ -62,7 +62,7 @@ jobs:
 
       - name: Publish distribution to PyPI
         if: startsWith(github.ref, 'refs/tags/')
-        uses: pypa/gh-action-pypi-publish@v1.13.0
+        uses: pypa/gh-action-pypi-publish@v1.14.0
 
       - name: Send Zulip notification
         if: startsWith(github.ref, 'refs/tags/')
@@ -77,3 +77,4 @@ jobs:
           content: |
             IPython ${{ github.ref_name }} was just released on PyPI! 🎉
             https://pypi.org/project/ipython/${{ github.ref_name }}/
+            and what's new: https://ipython.readthedocs.io/en/stable/whatsnew/version9.html

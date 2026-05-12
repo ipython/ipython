@@ -8,6 +8,10 @@ from typing import Union as UnionType, Optional
 
 from IPython.core.async_helpers import get_asyncio_loop
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
+from IPython.core.kitty import (
+    display_formatter_default_active_types,
+    terminal_default_mime_renderers,
+)
 from IPython.utils.py3compat import input
 from IPython.utils.PyColorize import theme_table
 from IPython.utils.terminal import toggle_set_term_title, set_term_title, restore_term_title
@@ -771,7 +775,12 @@ class TerminalInteractiveShell(InteractiveShell):
             "DisplayFormatter" in config
             and "active_types" in config["DisplayFormatter"]
         ):
-            self.display_formatter.active_types = ["text/plain"]
+            self.display_formatter.active_types = display_formatter_default_active_types
+            if not (
+                "TerminalInteractiveShell" in config
+                and "mime_renderers" in config["TerminalInteractiveShell"]
+            ):
+                self.mime_renderers = terminal_default_mime_renderers
 
     def init_prompt_toolkit_cli(self):
         if self.simple_prompt:

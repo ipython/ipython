@@ -160,7 +160,9 @@ def test_capture_output_no_stderr():
 
 def test_capture_output_no_display():
     """test capture_output(display=False)"""
-    rich = capture.RichOutput(data=full_data)
+    data = full_data.copy()
+    del data["image/png"]
+    rich = capture.RichOutput(data=data)
     with capture.capture_output(display=False) as cap:
         print(hello_stdout, end="")
         print(hello_stderr, end="", file=sys.stderr)

@@ -8,6 +8,7 @@
 import io
 import gc
 import os
+import sqlite3
 import sys
 import tempfile
 from datetime import datetime
@@ -272,6 +273,72 @@ def test_hist_file_config(hmmax3):
             # delete it.  I have no clue why
             pass
             HistoryManager.__max_inst = 1
+
+
+def test_histmanager_memory_fallback_reopens_db(hmmax3, tmp_path, caplog):
+    hist_file = tmp_path / "history.sqlite"
+    ip = get_ipython()
+    hm1 = None
+    hm2 = None
+    lock = None
+    try:
+        hm1 = HistoryManager(shell=ip, hist_file=hist_file)
+        hm1.end_session()
+        hm1.save_thread.stop()
+        hm1.db.close()
+
+        lock = sqlite3.connect(hist_file)
+        lock.execute("BEGIN IMMEDIATE")
+
+        hm2 = HistoryManager(shell=ip, hist_file=hist_file)
+        assert hm2.hist_file == ":memory:"
+        assert hm2.db.execute("PRAGMA database_list").fetchall() == [(0, "main", "")]
+
+        hm2.store_inputs(1, "a = 1")
+        hm2.writeout_cache()
+        assert list(hm2.get_tail(1, include_latest=True)) == [
+            (hm2.session_number, 1, "a = 1")
+        ]
+    finally:
+        if hm2 is not None:
+            hm2.end_session()
+            hm2.db.close()
+        if lock is not None:
+            lock.rollback()
+            lock.close()
+        hm1 = None
+        hm2 = None
+        caplog.clear()
+        gc.collect()
+
+
+def test_histmanager_thread_start_failure_uses_memory(
+    hmmax2, tmp_path, monkeypatch, caplog
+):
+    def fail_start(self):
+        raise RuntimeError("thread unavailable")
+
+    monkeypatch.setattr("IPython.core.history.HistorySavingThread.start", fail_start)
+
+    hm = None
+    try:
+        hm = HistoryManager(shell=get_ipython(), hist_file=tmp_path / "history.sqlite")
+        assert hm.hist_file == ":memory:"
+        assert hm.db.execute("PRAGMA database_list").fetchall() == [(0, "main", "")]
+        assert hm.save_thread is None
+
+        hm.store_inputs(1, "a = 1")
+        hm.writeout_cache()
+        assert list(hm.get_tail(1, include_latest=True)) == [
+            (hm.session_number, 1, "a = 1")
+        ]
+    finally:
+        if hm is not None:
+            hm.end_session()
+            hm.db.close()
+        hm = None
+        caplog.clear()
+        gc.collect()
 
 
 def test_histmanager_disabled(hmmax2):

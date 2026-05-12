@@ -40,6 +40,6 @@ jobs:
       run: |
         coverage combine `find . -name .coverage\*` && coverage xml
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v6
       with:
         name: Docs

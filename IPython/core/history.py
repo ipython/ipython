@@ -47,7 +47,7 @@ from weakref import ref, WeakSet
 
 if TYPE_CHECKING:
     from IPython.core.interactiveshell import InteractiveShell
-    from IPython.config.Configuration import Configuration
+    from traitlets.config import Config as Configuration
 
 try:
     from sqlite3 import DatabaseError, OperationalError
@@ -696,7 +696,7 @@ class HistoryManager(HistoryAccessor):
                 self.hist_file,
                 exc_info=True,
             )
-            self.hist_file = ":memory:"
+            self._switch_to_memory_history()
 
         self.using_thread = False
         if self.enabled and self.hist_file != ":memory:":
@@ -708,7 +708,8 @@ class HistoryManager(HistoryAccessor):
                     "Failed to start history saving thread. History will not be saved.",
                     exc_info=True,
                 )
-                self.hist_file = ":memory:"
+                self._switch_to_memory_history()
+                self.save_thread = None
             else:
                 self.using_thread = True
         self._instances.add(self)
@@ -716,6 +717,16 @@ class HistoryManager(HistoryAccessor):
             len(HistoryManager._instances),
             HistoryManager._max_inst,
         )
+
+    def _switch_to_memory_history(self) -> None:
+        """Switch history storage to an in-memory SQLite database."""
+        try:
+            self.db.close()
+        except Exception:
+            pass
+        self.hist_file = ":memory:"
+        self.init_db()
+        self.new_session()
 
     def __del__(self) -> None:
         if self.save_thread is not None:
@@ -1176,7 +1187,7 @@ class HistorySavingThread(threading.Thread):
 
         self.save_flag.set()
         self._stopped = True
-        if self != threading.current_thread():
+        if self.ident is not None and self != threading.current_thread():
             self.join()
 
     def __del__(self) -> None:
