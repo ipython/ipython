@@ -1024,19 +1024,19 @@ class InteractiveShell(SingletonConfigurable):
 
     @property
     def banner(self):
-        if (when := os.environ.get("SOURCE_DATE_EPOCH", None)) is not None:
-            from datetime import datetime
-
-            date = datetime.fromtimestamp(int(when))
-            return textwrap.dedent(
-                f"""
-            Python 3.y.z | Packaged with love | (main, {date.strftime("%A, %d %B %Y")}) [Compiler]
-            Type 'copyright', 'credits' or 'license' for more information
-            IPython 9.y.z -- An enhanced Interactive Python. Type '?' for help.
-            Tip: unset SOURCE_DATE_EPOCH to restore dynamic banner.
-            """
-            ).lstrip()
         banner = self.banner1
+        # Only use SOURCE_DATE_EPOCH if the user hasn't set a custom banner (default starts with "Python")
+        if banner.startswith("Python") and (when := os.environ.get("SOURCE_DATE_EPOCH", None)) is not None:
+            from datetime import datetime
+            date = datetime.fromtimestamp(int(when))
+            banner = textwrap.dedent(
+                f"""
+                Python 3.y.z | Packaged with love | (main, {date.strftime("%A, %d %B %Y")}) [Compiler]
+                Type 'copyright', 'credits' or 'license' for more information
+                IPython 9.y.z -- An enhanced Interactive Python. Type '?' for help.
+                Tip: unset SOURCE_DATE_EPOCH to restore dynamic banner.
+                """
+            ).lstrip()
         if self.profile and self.profile != 'default':
             banner += '\nIPython profile: %s\n' % self.profile
         if self.banner2:
