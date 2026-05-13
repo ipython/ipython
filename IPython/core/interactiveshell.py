@@ -1026,7 +1026,7 @@ class InteractiveShell(SingletonConfigurable):
     def banner(self):
         banner = self.banner1
         # Only use SOURCE_DATE_EPOCH if the user hasn't set a custom banner (default starts with "Python")
-        if banner.startswith("Python") and (when := os.environ.get("SOURCE_DATE_EPOCH", None)) is not None:
+        if banner is self.banner1 and (when := os.environ.get("SOURCE_DATE_EPOCH", None)) is not None:
             from datetime import datetime
             date = datetime.fromtimestamp(int(when))
             banner = textwrap.dedent(
