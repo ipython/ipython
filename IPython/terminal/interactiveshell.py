@@ -400,8 +400,8 @@ class TerminalInteractiveShell(InteractiveShell):
     ).tag(config=True)
 
     term_title_format = Unicode("IPython: {cwd}",
-        help="Customize the terminal title format.  This is a python format string. " +
-             "Available substitutions are: {cwd}."
+        help="Customize the terminal title format.  This is a Python format string. " +
+             "The available substitution is {cwd}."
     ).tag(config=True)
 
     display_completions = Enum(('column', 'multicolumn','readlinelike'),
