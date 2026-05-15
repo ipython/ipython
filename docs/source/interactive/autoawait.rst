@@ -312,7 +312,7 @@ task is running, if and only if the foreground task is async::
    In [4]: await asyncio.sleep(3)
    background 4
    background 5
-   background 6g
+   background 6
 
 In a Notebook, QtConsole, or any other frontend using IPykernel, background
 tasks should behave as expected.

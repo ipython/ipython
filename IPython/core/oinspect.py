@@ -1093,7 +1093,7 @@ class Inspector(Configurable):
         """
         Check whether the source *src* contains the docstring *doc*.
 
-        This is is helper function to skip displaying the docstring if the
+        This is a helper function to skip displaying the docstring if the
         source already contains it, avoiding repetition of information.
         """
         try:

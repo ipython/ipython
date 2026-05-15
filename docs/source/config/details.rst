@@ -26,7 +26,7 @@ multiple configuration options to be set to properly work:
 
  - Configure said provider with models, API keys, etc – this will depend on the
    provider, and you will have to refer to Jupyter-AI documentation, and/or your
-   LLM documenatation.
+   LLM documentation.
 
 
 While setting up IPython to use a real LLM, you can refer to
@@ -88,7 +88,7 @@ by setting the ``llm_construction_kwargs`` traitlet.
 
     c.TerminalInteractiveShell.llm_constructor_kwargs = {"model": "skynet"}
 
-This will depdend on the provider you chose, and you will have to refer to
+This will depend on the provider you chose, and you will have to refer to
 the provider documentation.
 
 Extra configuration may be needed by setting environment variables, this will

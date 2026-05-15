@@ -46,7 +46,7 @@ Usage
     This file is typically installed in the `IPYTHONDIR` directory, and there
     is a separate configuration directory for each profile. The default profile
     directory will be located in $IPYTHONDIR/profile_default. IPYTHONDIR
-    defaults to to `$HOME/.ipython`.  For Windows users, $HOME resolves to
+    defaults to `$HOME/.ipython`.  For Windows users, $HOME resolves to
     C:\\Users\\YourUserName in most instances.
 
     To initialize a profile with the default configuration file, do::
