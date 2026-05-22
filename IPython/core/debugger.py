@@ -540,6 +540,18 @@ class Pdb(OldPdb):
             """
             return self.do_exceptions(arg)
 
+    def _cmdloop(self):
+        # Override to bypass Python 3.15's _maybe_use_pyrepl_as_stdin(), which
+        # sets use_rawinput=False and conflicts with IPython's own input handling.
+        while True:
+            try:
+                self.allow_kbdint = True
+                self.cmdloop()
+                self.allow_kbdint = False
+                break
+            except KeyboardInterrupt:
+                self.message("--KeyboardInterrupt--")
+
     def interaction(self, frame, tb_or_exc):
         try:
             if CHAIN_EXCEPTIONS:
