@@ -469,7 +469,7 @@ class Pdb(OldPdb):
                 self._chained_exceptions = tuple()
                 self._chained_exception_index = 0
 
-                def do_exceptions(self, arg):
+        def do_exceptions(self, arg):
             """exceptions [number]
             List or change current exception in an exception chain.
             Without arguments, list all the current exception in the exception
