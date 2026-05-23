@@ -279,6 +279,19 @@ def test_interruptible_core_debugger():
         sys.settrace(tracer_orig)
 
 
+@pytest.mark.skipif(
+    not debugger.CHAIN_EXCEPTIONS,
+    reason="chained exception navigation is not available",
+)
+def test_exception_command_aliases_exceptions():
+    ipdb = debugger.Pdb()
+
+    with patch.object(ipdb, "do_exceptions", return_value=True) as do_exceptions:
+        assert ipdb.onecmd("exception 0") is True
+
+    do_exceptions.assert_called_once_with("0")
+
+
 @skip_win32
 def test_xmode_skip():
     """that xmode skip frames
