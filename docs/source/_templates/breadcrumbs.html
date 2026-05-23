@@ -2,6 +2,8 @@
 
 {% block breadcrumbs_aside %}
 {% if not meta or meta.get('github_url') != 'hide' %}
-{{ super() }}
+  {% if not pagename.startswith('api/generated/') %}
+    {{ super() }}
+  {% endif %}
 {% endif %}
 {% endblock %}
