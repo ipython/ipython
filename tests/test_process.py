@@ -26,6 +26,7 @@ from IPython.utils.process import (
     find_cmd,
     FindCmdError,
     arg_split,
+    arg_split_with_quotes,
     system,
     getoutput,
     getoutputerror,
@@ -92,6 +93,47 @@ def test_arg_split(argstr, argv):
 def test_arg_split_win32(argstr, argv):
     """Ensure that argument lines are correctly split like in a shell."""
     assert arg_split(argstr) == argv
+
+
+@pytest.mark.parametrize(
+    "argstr,expected",
+    [
+        ("foo bar", [("foo", False), ("bar", False)]),
+        ('"*.txt"', [("*.txt", True)]),
+        ("'*.txt'", [("*.txt", True)]),
+        # The repro from #12726: bare, double-quoted and single-quoted
+        # versions of the same chars.
+        (
+            "p \"p\" 'p' * \"*\" '*'",
+            [
+                ("p", False),
+                ("p", True),
+                ("p", True),
+                ("*", False),
+                ("*", True),
+                ("*", True),
+            ],
+        ),
+        (
+            '-i demo.py "*.txt" *.txt',
+            [
+                ("-i", False),
+                ("demo.py", False),
+                ("*.txt", True),
+                ("*.txt", False),
+            ],
+        ),
+    ],
+)
+def test_arg_split_with_quotes(argstr, expected):
+    """``arg_split_with_quotes`` flags tokens that came from quoted segments."""
+    assert arg_split_with_quotes(argstr) == expected
+
+
+def test_arg_split_with_quotes_strict_false():
+    """Unbalanced quotes should not raise when ``strict=False``."""
+    result = arg_split_with_quotes('foo "unbalanced', strict=False)
+    assert ("foo", False) in result
 
 
 class SubProcessTestCase(tt.TempFileMixin):

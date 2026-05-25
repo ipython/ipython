@@ -221,3 +221,50 @@ def arg_split(commandline: str, posix: bool = False, strict: bool = True) -> lis
             break
 
     return tokens
+
+
+def arg_split_with_quotes(
+    commandline: str, strict: bool = True
+) -> list[tuple[str, bool]]:
+    """Split a command line and report which tokens were originally quoted.
+
+    Returns a list of ``(token, was_quoted)`` pairs. ``token`` is the unquoted
+    form, as ``shlex.split(posix=True)`` returns, and ``was_quoted`` is True
+    if that token had any single- or double-quote characters in ``commandline``.
+
+    Useful for callers like ``%run`` that want to honor shell quoting when
+    deciding wether to apply further expansion (glob, tilde) to a token.
+
+    Detection is shlex-based on both passes so the quote semantics are the
+    same on Posix and Windows. If ``strict`` is False, malformed input (e.g.
+    an unbalanced quote) returns whatever was parsed so far instead of raising.
+    """
+    def _tokenize(s: str, posix: bool) -> list[str]:
+        lex = shlex.shlex(s, posix=posix)
+        lex.whitespace_split = True
+        lex.commenters = ''
+        out = []
+        while True:
+            try:
+                out.append(next(lex))
+            except StopIteration:
+                break
+            except ValueError:
+                if strict:
+                    raise
+                out.append(lex.token)
+                break
+        return out
+
+    raw_tokens = _tokenize(commandline, posix=False)
+    clean_tokens = _tokenize(commandline, posix=True)
+
+    if len(raw_tokens) != len(clean_tokens):
+        # If the two passes disagree (exotic input) report nothing as quoted
+        # so callers get the legacy, non-quote-aware behavior.
+        return [(t, False) for t in clean_tokens]
+
+    return [
+        (clean, ("'" in raw) or ('"' in raw))
+        for clean, raw in zip(clean_tokens, raw_tokens)
+    ]

@@ -20,7 +20,12 @@ elif sys.platform == "emscripten":
 else:
     from ._process_posix import system, getoutput, arg_split, check_pid
 
-from ._process_common import getoutputerror, get_output_error_code, process_handler
+from ._process_common import (
+    arg_split_with_quotes,
+    getoutputerror,
+    get_output_error_code,
+    process_handler,
+)
 
 
 class FindCmdError(Exception):
