@@ -10,3 +10,4 @@ docrepr
 prompt_toolkit
 ipykernel
 intersphinx_registry
+sphinx_toml
