@@ -200,7 +200,7 @@ requests and 285 regular issues (:ref:`a full list with links
 pull requests are a fantastic mechanism for reviewing code and building a
 shared ownership of the project, and we are making enthusiastic use of it.
 
-.. Note::
+.. note::
 
    This undercounts the number of issues closed in this development cycle,
    since we only moved to github for issue tracking in May 2010, but we have no
