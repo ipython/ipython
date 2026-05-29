@@ -69,7 +69,7 @@ Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
 work on IPython.
 
 As usual, you can find the full list of PRs on GitHub under `the 9.14
-<https://github.com/ipython/ipython/milestone/163?closed=1>`__ milestone.
+<https://github.com/ipython/ipython/milestone/164?closed=1>`__ milestone.
 
 
 .. _version 9.13:
