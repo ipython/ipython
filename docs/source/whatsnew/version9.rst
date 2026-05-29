@@ -2,6 +2,76 @@
  9.x Series
 ============
 
+.. _version 9.14:
+
+IPython 9.14
+------------
+
+Summary
+~~~~~~~
+
+This release is mostly a maintenance release, with fixes for SQLite history
+handling, terminal image rendering, reproducible banner output, Pyodide
+support, and a number of documentation improvements.
+
+- :ghpull:`15204` Fix history memory fallback after SQLite lock
+- :ghpull:`15208` Fix banner customization when ``SOURCE_DATE_EPOCH`` is set
+- :ghpull:`15196` Handle stdout without ``isatty`` in kitty support check
+- :ghpull:`15190` Avoid ``psutil`` requirement on emscripten
+- :ghpull:`15206` Accept singular pdb exception command
+- :ghpull:`15203` Fix incorrect ``Configuration`` type import
+- :ghpull:`15179` Copyedit ``prompt_line_number_format`` description
+- :ghpull:`15209` Fix typos in user-facing documentation
+- :ghpull:`15211` Fix duplicated words in ``usage.py`` and ``oinspect.py`` docstrings
+- :ghpull:`15215` Fix terminal title config description
+- :ghpull:`15218` Fix broken 'Edit on GitHub' link for auto-generated API docs
+- :ghpull:`15224` Fix docstring formatting for ``prompt_line_number_format`` help text
+
+
+SQLite History Fallback Fix
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When file-backed SQLite history could not create a new session (for example
+because the ``history.sqlite`` file was locked by another running session), the
+fallback only changed ``hist_file`` to ``:memory:`` while the existing
+connection still pointed at the locked on-disk database. Later history writes
+could therefore keep raising ``sqlite3.OperationalError: database is locked``.
+The fallback now closes the current connection, switches to an in-memory
+database, and creates a fresh history session there (:ghpull:`15204`).
+
+
+Reproducible Banner Output
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Banner customization now honors the ``SOURCE_DATE_EPOCH`` environment variable,
+fixing reproducible-build setups that pin the date (:ghpull:`15208`).
+
+
+Terminal Image Rendering Robustness
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Kitty graphics protocol support check now handles the case where ``stdout``
+has no ``isatty`` method, avoiding an ``AttributeError`` in some embedded or
+redirected-output environments (:ghpull:`15196`).
+
+
+Pyodide / Emscripten Support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+IPython no longer requires ``psutil`` on the emscripten platform, where it is
+not available (:ghpull:`15190`).
+
+
+Thanks
+~~~~~~
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
+work on IPython.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.14
+<https://github.com/ipython/ipython/milestone/163?closed=1>`__ milestone.
+
+
 .. _version 9.13:
 
 IPython 9.13
