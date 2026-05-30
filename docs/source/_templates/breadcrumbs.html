@@ -2,7 +2,11 @@
 
 {% block breadcrumbs_aside %}
 {% if not meta or meta.get('github_url') != 'hide' %}
-  {% if not pagename.startswith('api/generated/') %}
+  {% if pagename.startswith('api/generated/') %}
+    {# For auto-generated API docs, link to the source .py file instead of non-existent .rst #}
+    {% set source_path = pagename.replace('api/generated/', '', 1).replace('.', '/') + '.py' %}
+    <a href="https://github.com/ipython/ipython/edit/main/{{ source_path }}" class="fa fa-github"> Edit on GitHub</a>
+  {% else %}
     {{ super() }}
   {% endif %}
 {% endif %}

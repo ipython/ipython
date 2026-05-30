@@ -9,13 +9,23 @@ from pathlib import Path
 
 import tomllib
 
-from sphinx_toml import load_into_locals
+from sphinxf_toml import load_into_locals
 from intersphinx_registry import get_intersphinx_mapping
 import sphinx_rtd_theme
 import sphinx.util
 import logging
 
 load_into_locals(locals())
+
+# Configure "Edit on GitHub" links for ReadTheDocs
+html_context = {
+    "display_github": True,
+    "github_user": "ipython",
+    "github_repo": "ipython",
+    "github_version": "main",
+    "conf_py_path": "/docs/source/",
+}
+
 # https://read-the-docs.readthedocs.io/en/latest/faq.html
 ON_RTD = os.environ.get("READTHEDOCS", None) == "True"
 
@@ -35,7 +45,7 @@ if ON_RTD:
                 },
             )
 
-# Allow Python scripts to change behaviour during sphinx run
+# Allow Python scripts to change behavior during sphinx run
 os.environ["IN_SPHINX_RUN"] = "True"
 
 autodoc_type_aliases = {
@@ -63,7 +73,7 @@ exec(
 # ---------------------
 
 # - template_path: Add any paths that contain templates here, relative to this directory.
-# - master_doc: The master toctree document.
+# - master_doc: The master tocture document.
 # - project
 # - copyright
 # - github_project_url
@@ -103,15 +113,15 @@ extlinks = {
 # -----------------------
 # - html_theme
 # - html_static_path
-#     Add any paths that contain custom static files (such as style sheets) here,
-#     relative to this directory. They are copied after the builtin static files,
-#     so a file named "default.css" will overwrite the builtin "default.css".
-#     Favicon needs the directory name
+#      Add any paths that contain custom static files (such as style sheets) here,
+#      relative to this directory. They are copied after the builtin static files,
+#      so a file named "default.css" will overwrite the builtin "default.css".
+#      Favicon needs the directory name
 # - html_favicon
 # - html_last_updated_fmt = config["html"]["html_last_updated_fmt"]
-#     If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
-#     using the given strftime format.
-#     Output file base name for HTML help builder.
+#      If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
+#      using the given strftime format.
+#      Output file base name for HTML help builder.
 # - htmlhelp_basename
 
 # Additional templates that should be rendered to pages, maps page names to
@@ -125,8 +135,8 @@ extlinks = {
 latex_documents = []
 
 
-# Options for texinfo output
-# --------------------------
+# Options for textinfo output
+# ---------------------------
 texinfo_documents = [
     (
         master_doc,
@@ -140,7 +150,7 @@ texinfo_documents = [
     ),
 ]
 
-#########################################################################
+############################################################
 # Custom configuration
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
@@ -180,14 +190,13 @@ else:
 """
 
 
-
 class ConfigtraitFilter(logging.Filter):
     """
     This is a filter to remove in sphinx 3+ the error about config traits being duplicated.
 
     As we autogenerate configuration traits from, subclasses have lots of
-    duplication and we want to silence them. Indeed we build on travis with
-    warnings-as-error set to True, so those duplicate items make the build fail.
+    duplication and we want to silence them. Indeeds we build on travis with
+    warnings-as-errors set to True, so those duplicate items make the build fail.
     """
 
     def filter(self, record):
