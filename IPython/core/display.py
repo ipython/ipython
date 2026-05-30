@@ -461,6 +461,9 @@ class HTML(TextDisplayObject):
 
 class Markdown(TextDisplayObject):
 
+    def __repr__(self):
+        return self.data
+
     def _repr_markdown_(self):
         return self._data_and_metadata()
 
@@ -639,6 +642,9 @@ class JSON(DisplayObject):
 
     def _data_and_metadata(self):
         return self.data, self.metadata
+
+    def __repr__(self):
+        return json.dumps(self.data, indent=2)
 
     def _repr_json_(self):
         return self._data_and_metadata()
