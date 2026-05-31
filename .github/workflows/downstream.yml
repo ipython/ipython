@@ -13,7 +13,7 @@ on:
       - '**.rst'
   # Run weekly on Monday at 1:23 UTC
   schedule:
-  - cron:  '23 1 * * 1'
+    - cron:  '23 1 * * 1'
   workflow_dispatch:
 
 permissions:
@@ -81,7 +81,7 @@ jobs:
     - name: Test sagemath-repl
       run: |
         # cd ../sage/
-        # # From https://github.com/sagemath/sage/blob/develop/pkgs/sagemath-repl/tox.ini
+        # From https://github.com/sagemath/sage/blob/develop/pkgs/sagemath-repl/tox.ini
         # sage-runtests -p --environment=sage.all__sagemath_repl --baseline-stats-path=pkgs/sagemath-repl/known-test-failures.json --initial --optional=sage src/sage/repl src/sage/doctest src/sage/misc/sage_input.py src/sage/misc/sage_eval.py
     - name: Install pyflyby
       run: |
@@ -93,6 +93,13 @@ jobs:
         pip install --no-build-isolation -ve .[test]
         pip install 'pytest<=8'
         cd ..
+    - name: Patch pyflyby test expectations for suggestions
+      shell: python3
+      run: |
+        content = open('../pyflyby/tests/test_interactive.py', 'rb').read()
+        content = content.replace(b"AttributeError: module 'os' has no attribute 'foo27817796'", b"AttributeError: module 'os' has no attribute 'foo27817796'\n    ...")
+        content = content.replace(b"AttributeError: 'function' object has no attribute 'xyz'", b"AttributeError: 'function' object has no attribute 'xyz'\n    ...")
+        open('../pyflyby/tests/test_interactive.py', 'wb').write(content)
     - name: Test pyflyby (IPython integration only)
       run: |
         cd ../pyflyby
