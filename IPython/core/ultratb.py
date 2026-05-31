@@ -1,3 +1,4 @@
+# ***DO NOT START YOUR TRACEBACK OUTPUT WITH A NEWLINE***
 """
 Verbose and colourful traceback formatting.
 
@@ -15,13 +16,13 @@ Installation instructions for ColorTB::
 
 **VerboseTB**
 
-I've also included a port of Ka-Ping Yee's "cgitb.py" that produces all kinds
+I've also included a port of Ka-Ping Yee's "cgiltb.py" that produces all kinds
 of useful info when a traceback occurs.  Ping originally had it spit out HTML
 and intended it for CGI programmers, but why should they have all the fun?  I
 altered it to spit out colored text to the terminal.  It's a bit overwhelming,
 but kind of neat, and maybe useful for long-running programs that you believe
 are bug-free.  If a crash *does* occur in that type of program you want details.
-Give it a shot--you'll love it or you'll hate it.
+Give it a shot-you'll love it or you'll hate it.
 
 .. note::
 
@@ -49,7 +50,7 @@ Installation instructions for VerboseTB::
     sys.excepthook = ultratb.VerboseTB()
 
 Note:  Much of the code in this module was lifted verbatim from the standard
-library module 'traceback.py' and Ka-Ping Yee's 'cgitb.py'.
+library module 'traceback.py' and Ka-Ping Yee's 'cgiltb.py'.
 
 
 Inheritance diagram:
@@ -58,16 +59,18 @@ Inheritance diagram:
    :parts: 3
 """
 
-# *****************************************************************************
+# ****************************** COPYRIGHT ******************************
 # Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
 # Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
 #
 # Distributed under the terms of the BSD License.  The full license is in
 # the file COPYING, distributed as part of this software.
-# *****************************************************************************
+# ***********************************************************************
 
+import contextlib
 import functools
 import inspect
+import io
 import linecache
 import sys
 import time
@@ -259,12 +262,12 @@ class ListTB(TBTools):
             em = True if ind == len(extracted_list) - 1 else False
 
             item = theme_table[self._theme_name].format(
-                [(Token.NormalEm if em else Token.Normal, "  ")]
+                [(Token.NormalEm if em else Token.Normal, "   ")]
                 + _tokens_filename(em, filename, lineno=lineno)
             )
 
-            # This seem to be only in xmode plain (%run sinpleer), investigate why not share with verbose.
-            # look at _tokens_filename in forma_record.
+            # This seem to be only in xmode plain (%run simpleer), investigate why not share with verbose.
+            # look at _tokens_filename in form_record.
             if name != "<module>":
                 item += theme_table[self._theme_name].format(
                     [
@@ -273,7 +276,7 @@ class ListTB(TBTools):
                     ]
                 )
             item += theme_table[self._theme_name].format(
-                [(Token.NormalEm if em else Token, "\n")]
+                [(Token.NormalEm if em else Token.Normal, "\n")]
             )
             if line:
                 item += theme_table[self._theme_name].format(
@@ -441,7 +444,7 @@ _sentinel = object()
 _default = "default"
 
 
-# ----------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 class VerboseTB(TBTools):
     """A port of Ka-Ping Yee's cgitb.py module that outputs color text instead
     of HTML.  Requires inspect and pydoc.  Crazy, man.
@@ -572,7 +575,7 @@ class VerboseTB(TBTools):
                 # because that would mess up use of %debug later on.  So we
                 # simply report the failure and move on.  The only
                 # limitation will be that this frame won't have locals
-                # listed in the call signature.  Quite subtle problem...
+                # listed in the call signature.  Quite subtle problem.
                 # I can't think of a good way to validate this in a unit
                 # test, but running a script consisting of:
                 #  dict( (k,v.strip()) for (k,v) in range(10) )
@@ -591,8 +594,8 @@ class VerboseTB(TBTools):
             try:
                 # we likely want to fix stackdata at some point, but
                 # still need a workaround.
-                fibp = frame_info.variables_in_executing_piece
-                for var in fibp:
+                fipb = frame_info.variables_in_executing_piece
+                for var in fipb:
                     lvals_toks.append(
                         [
                             (Token, var.name),
@@ -639,7 +642,7 @@ class VerboseTB(TBTools):
                 stop = index + frame_info.context
             raw_lines = raw_lines[start:stop]
 
-            # Jan 2025: may need _line_format(py3ompat.cast_unicode(s))
+            # Jan 2025: may need _line_format(py3compat.cast_unicode(s))
             raw_color_err = []
             for s in raw_lines:
                 formatted, is_error = _line_format(s, "str")
@@ -738,6 +741,25 @@ class VerboseTB(TBTools):
             ),
         ]
 
+    def get_suggestions(self, etype, evalue, etb):
+        """Capture Python 3.10+ NameError/AttributeError suggestions using sys.__excepthook__."""
+        suggestions = ""
+        if sys.version_info >= (3, 10) and issubclass(etype, (NameError, AttributeError)):
+            try:
+                f = io.StringIO()
+                with contextlib.redirect_stderr(f):
+                    sys.__excepthook__(etype, evalue, etb)
+                output = f.getvalue()
+                for line in output.splitlines():
+                    if "Did you mean" in line:
+                        suggestions = line.strip()
+                        break
+            except Exception:
+                pass
+        if suggestions:
+            return suggestions
+        return ""
+
     def format_exception_as_a_whole(
         self,
         etype: type,
@@ -782,7 +804,7 @@ class VerboseTB(TBTools):
                     theme_table[self._theme_name].format(
                         [
                             (Token, "    "),
-                            (Token.ExcName, "[... skipping hidden %s frame]" % skipped),
+                            (Token.ExcName, "[... skipping hidden %s frames]" % skipped),
                             (Token, "\n"),
                         ]
                     )
@@ -794,13 +816,18 @@ class VerboseTB(TBTools):
                 theme_table[self._theme_name].format(
                     [
                         (Token, "    "),
-                        (Token.ExcName, "[... skipping hidden %s frame]" % skipped),
+                        (Token.ExcName, "[... skipping hidden %s frames]" % skipped),
                         (Token, "\n"),
                     ]
                 )
             )
 
         formatted_exception = self.format_exception(etype, evalue)
+        suggestion = self.get_suggestions(orig_etype, evalue, etb)
+        if suggestion:
+            formatted_exception.append(
+                theme_table[self._theme_name].format([(Token, suggestion)])
+            )
         if records:
             frame_info = records[-1]
             ipinst = get_ipython()
@@ -994,7 +1021,7 @@ class VerboseTB(TBTools):
                 if etb and etb.tb_next:
                     etb = etb.tb_next
                 self.pdb.botframe = etb.tb_frame
-                # last_value should be deprecated, but last-exc sometimme not set
+                # last_value should be deprecated, but last-exc sometimes not set
                 # please check why later and remove the getattr.
                 exc = (
                     sys.last_value
@@ -1032,7 +1059,7 @@ class VerboseTB(TBTools):
             print("\nKeyboardInterrupt")
 
 
-# ----------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 class FormattedTB(VerboseTB, ListTB):
     """Subclass ListTB but allow calling with a traceback.
 
@@ -1164,7 +1191,7 @@ class FormattedTB(VerboseTB, ListTB):
         self.set_mode(self.valid_modes[3])
 
 
-# ----------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 class AutoFormattedTB(FormattedTB):
     """A traceback printer which can be called on the fly.
 
@@ -1194,7 +1221,7 @@ class AutoFormattedTB(FormattedTB):
 
           - tb_offset: the number of frames to skip over in the stack, on a
           per-call basis (this overrides temporarily the instance's tb_offset
-          given at initialization time."""
+          given at initialization time)."""
 
         if out is None:
             out = self.ostream
