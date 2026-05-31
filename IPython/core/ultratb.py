@@ -1,5 +1,4 @@
-# ***DO NOT START YOUR TRACEBACK OUTPUT WITH A NEWLINE***
-"""
+"""**DO NOT START YOUR TRACEBACK OUTPUT WITH A NEWLINE***
 Verbose and colourful traceback formatting.
 
 **ColorTB**
@@ -9,20 +8,20 @@ ColorTB class is a solution to that problem.  It colors the different parts of a
 traceback in a manner similar to what you would expect from a syntax-highlighting
 text editor.
 
-Installation instructions for ColorTB::
+Installation instructions for ColorTB:
 
     import sys,ultratb
     sys.excepthook = ultratb.ColorTB()
 
 **VerboseTB**
 
-I've also included a port of Ka-Ping Yee's "cgiltb.py" that produces all kinds
+I've also included a port of Ka-Ping Yee's "cgitb.py" that produces all kinds
 of useful info when a traceback occurs.  Ping originally had it spit out HTML
 and intended it for CGI programmers, but why should they have all the fun?  I
 altered it to spit out colored text to the terminal.  It's a bit overwhelming,
 but kind of neat, and maybe useful for long-running programs that you believe
 are bug-free.  If a crash *does* occur in that type of program you want details.
-Give it a shot-you'll love it or you'll hate it.
+Give it a shot-you'll love it or hate it.
 
 .. note::
 
@@ -44,13 +43,13 @@ Give it a shot-you'll love it or you'll hate it.
   potentially leak sensitive information like access keys, or unencrypted
   password.
 
-Installation instructions for VerboseTB::
+Installation instructions for VerboseTB:
 
     import sys,ultratb
     sys.excepthook = ultratb.VerboseTB()
 
 Note:  Much of the code in this module was lifted verbatim from the standard
-library module 'traceback.py' and Ka-Ping Yee's 'cgiltb.py'.
+library module 'traceback.py' and Ka-Ping Yee's 'cgitb.py'.
 
 
 Inheritance diagram:
@@ -59,13 +58,13 @@ Inheritance diagram:
    :parts: 3
 """
 
-# ****************************** COPYRIGHT ******************************
-# Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
-# Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
+# *****************************************************************************
+#       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
+#       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
 #
-# Distributed under the terms of the BSD License.  The full license is in
-# the file COPYING, distributed as part of this software.
-# ***********************************************************************
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+# *****************************************************************************
 
 import contextlib
 import functools
@@ -266,7 +265,7 @@ class ListTB(TBTools):
                 + _tokens_filename(em, filename, lineno=lineno)
             )
 
-            # This seem to be only in xmode plain (%run simpleer), investigate why not share with verbose.
+            # This seems to be only in xmode plain (%run simpleer), investigate why not share with verbose.
             # look at _tokens_filename in form_record.
             if name != "<module>":
                 item += theme_table[self._theme_name].format(
@@ -600,7 +599,7 @@ class VerboseTB(TBTools):
                         [
                             (Token, var.name),
                             (Token, " "),
-                            (Token.ValEm, "= "),
+                            (Token.ValEm, " = "),
                             (Token.ValEm, repr(var.value)),
                         ]
                     )
@@ -745,6 +744,10 @@ class VerboseTB(TBTools):
         """Capture Python 3.10+ NameError/AttributeError suggestions using sys.__excepthook__."""
         suggestions = ""
         if sys.version_info >= (3, 10) and issubclass(etype, (NameError, AttributeError)):
+            # Check if the exception message already includes a suggestion
+            # (Python 3.10+ includes "Did you mean" in str(NameError/AttributeError))
+            if evalue is not None and ("Did you mean" in str(evalue)):
+                return ""
             try:
                 f = io.StringIO()
                 with contextlib.redirect_stderr(f):
@@ -809,7 +812,7 @@ class VerboseTB(TBTools):
                         ]
                     )
                 )
-                skipped = 0
+            skipped = 0
             frames.append(self.format_record(record))
         if skipped:
             frames.append(
