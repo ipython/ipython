@@ -71,10 +71,10 @@ jobs:
         # git clone --depth 1 https://github.com/sagemath/sage
         # cd sage
         # # We cloned it for the tests, but for simplicity we install the
-        # # wheels from PyPI.
-        # # (Avoid 10.3b6 because of https://github.com/sagemath/sage/pull/37178)
+        # # # wheels from PyPI.
+        # # # (Avoid 10.3b6 because of https://github.com/sagemath/sage/pull/37178)
         # pip install --pre sagemath-repl sagemath-environment
-        # # Install optionals that make more tests pass
+        # # # Install optionals that make more tests pass
         # pip install pillow
         # pip install --pre sagemath-categories
         # cd ..
@@ -93,13 +93,6 @@ jobs:
         pip install --no-build-isolation -ve .[test]
         pip install 'pytest<=8'
         cd ..
-    - name: Patch pyflyby test expectations for suggestions
-      shell: python3 {0}
-      run: |
-        content = open('../pyflyby/tests/test_interactive.py', 'rb').read()
-        content = content.replace(b"AttributeError: module 'os' has no attribute 'foo27817796'", b"AttributeError: module 'os' has no attribute 'foo27817796'\n ...")
-        content = content.replace(b"AttributeError: 'function' object has no attribute 'xyz'", b"AttributeError: 'function' object has no attribute 'xyz'\n ...")
-        open('../pyflyby/tests/test_interactive.py', 'wb').write(content)
     - name: Test pyflyby (IPython integration only)
       run: |
         cd ../pyflyby
