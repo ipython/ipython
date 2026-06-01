@@ -793,7 +793,7 @@ class Inspector(Configurable):
                 required_parameters = [
                     parameter
                     for parameter in inspect.signature(hook).parameters.values()
-                    if parameter.default != inspect.Parameter.default
+                    if parameter.default is inspect.Parameter.empty
                 ]
                 if len(required_parameters) == 1:
                     res = hook(hook_data)
@@ -886,7 +886,8 @@ class Inspector(Configurable):
         prelude = ""
         if info and info.parent is not None and hasattr(info.parent, HOOK_NAME):
             parents_docs_dict = getattr(info.parent, HOOK_NAME)
-            parents_docs = parents_docs_dict.get(att_name, None)
+            if isinstance(parents_docs_dict, dict):
+                parents_docs = parents_docs_dict.get(att_name, None)
         out: InfoDict = cast(
             InfoDict,
             {
