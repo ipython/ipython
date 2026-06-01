@@ -220,7 +220,7 @@ class Pdb(OldPdb):
 
     """
 
-    shell: InteractiveShell
+    shell: InteractiveShell | None
     _theme_name: str
     _context: int
 
