@@ -208,7 +208,8 @@ class TerminalInteractiveShell(InteractiveShell):
     mime_renderers = Dict().tag(config=True)
 
     min_elide = Integer(
-        30, help="minimum characters for filling with ellipsis in file completions"
+        30, help="minimum characters for filling with ellipsis in file completions. "
+                 "Set to 0 or less to completely disable elision."
     ).tag(config=True)
     space_for_menu = Integer(
         6,
