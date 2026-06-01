@@ -98,6 +98,19 @@ CLASSIC_PROMPT_STANDALONE_CONTINUATION = (
     "...     print(1)\n",
 )
 
+CLASSIC_PROMPT_ELLIPSIS_IN_TRIPLE_QUOTED_STRING = (
+    """\
+text = \"\"\"
+... keep this line
+\"\"\"
+""",
+    """\
+text = \"\"\"
+... keep this line
+\"\"\"
+""",
+)
+
 
 def test_classic_prompt():
     for sample, expected in [
@@ -108,6 +121,7 @@ def test_classic_prompt():
         CLASSIC_PROMPT_DEDENT_LEADING_WS,
         CLASSIC_PROMPT_MULTILINE_DOCTEST,
         CLASSIC_PROMPT_STANDALONE_CONTINUATION,
+        CLASSIC_PROMPT_ELLIPSIS_IN_TRIPLE_QUOTED_STRING,
     ]:
         assert ipt2.classic_prompt(
             sample.splitlines(keepends=True)
