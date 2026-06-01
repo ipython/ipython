@@ -1618,7 +1618,7 @@ class InteractiveShell(SingletonConfigurable):
             for name in vlist:
                 try:
                     vdict[name] = eval(name, cf.f_globals, cf.f_locals)
-                except:
+                except Exception:
                     print('Could not get variable %s from %s' %
                            (name,cf.f_code.co_name))
         else:
@@ -2274,7 +2274,7 @@ class InteractiveShell(SingletonConfigurable):
         if filename and issubclass(etype, SyntaxError):
             try:
                 value.filename = filename
-            except:
+            except AttributeError:
                 # Not the format we expect; leave it alone
                 pass
 
@@ -3483,7 +3483,7 @@ class InteractiveShell(SingletonConfigurable):
             if filename and isinstance(evalue, SyntaxError):
                 try:
                     evalue.filename = filename
-                except:
+                except AttributeError:
                     pass  # Keep the original filename if modification fails
 
             # Extract traceback if the error happened during compiled code execution

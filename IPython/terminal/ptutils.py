@@ -40,6 +40,8 @@ def _elide_point(string: str, *, min_elide) -> str:
     replaced by the equivalents HORIZONTAL ELLIPSIS or TWO DOT LEADER unicode
     equivalents
     """
+    if min_elide <= 0:
+        return string
     string = string.replace('...','\N{HORIZONTAL ELLIPSIS}')
     string = string.replace('..','\N{TWO DOT LEADER}')
     if len(string) < min_elide:
@@ -71,6 +73,8 @@ def _elide_typed(string: str, typed: str, *, min_elide: int) -> str:
     Elide the middle of a long string if the beginning has already been typed.
     """
 
+    if min_elide <= 0:
+        return string
     if len(string) < min_elide:
         return string
     cut_how_much = len(typed)-3
