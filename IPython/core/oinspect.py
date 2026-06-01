@@ -908,7 +908,7 @@ class Inspector(Configurable):
             if not callable(obj):
                 try:
                     ds = "Alias to the system command:\n  %s" % obj[1]
-                except:
+                except (TypeError, IndexError):
                     ds = "Alias: " + str(obj)
             else:
                 ds = "Alias to " + str(obj)
@@ -1052,7 +1052,7 @@ class Inspector(Configurable):
             if ds:
                 try:
                     cls = getattr(obj,'__class__')
-                except:
+                except AttributeError:
                     class_ds = None
                 else:
                     class_ds = getdoc(cls)
