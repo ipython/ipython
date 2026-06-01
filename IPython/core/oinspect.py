@@ -425,7 +425,7 @@ class Inspector(Configurable):
             return None
         try:
             return _render_signature(signature(obj), oname)
-        except:
+        except Exception:
             return None
 
     def __head(self, h: str) -> str:
