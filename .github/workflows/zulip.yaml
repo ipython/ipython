@@ -17,7 +17,7 @@ jobs:
     steps:
 
       - name: Send Zulip notification
-        uses: zulip/github-actions-zulip/send-message@v1
+        uses: zulip/github-actions-zulip/send-message@v2
         with:
           api-key: ${{ secrets.ORG_ZULIP_API_KEY }}
           email: ${{ secrets.ORG_ZULIP_EMAIL }}
