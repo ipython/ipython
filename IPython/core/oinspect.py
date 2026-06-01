@@ -938,7 +938,7 @@ class Inspector(Configurable):
         try:
             bclass = obj.__class__
             out['base_class'] = str(bclass)
-        except:
+        except AttributeError:
             pass
 
         # String form, but snip if too long in ? form (full in ??)
@@ -953,7 +953,7 @@ class Inspector(Configurable):
                         q.strip() for q in ostr.split("\n")
                     )
                 out["string_form"] = ostr
-            except:
+            except Exception:
                 pass
 
         if ospace:
