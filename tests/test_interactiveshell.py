@@ -12,6 +12,7 @@ recurring bugs we seem to encounter with high-level interaction.
 import asyncio
 import ast
 import os
+import shlex
 import signal
 import shutil
 import sys
@@ -657,7 +658,7 @@ class ExitCodeChecks(tt.TempFileMixin):
             "signal.setitimer(signal.ITIMER_REAL, 0.1)\n"
             "time.sleep(1)\n"
         )
-        self.system("%s %s" % (sys.executable, self.fname))
+        self.system("%s %s" % (shlex.quote(sys.executable), shlex.quote(self.fname)))
         self.assertEqual(ip.user_ns["_exit_code"], -signal.SIGALRM)
 
     @onlyif_cmds_exist("csh")

@@ -547,6 +547,30 @@ def test_pinfo_docstring_dynamic(capsys):
     assert re.search(r"Type:\s+NoneType", captured.out)
 
 
+def test_pinfo_getattr_object(capsys):
+    """Test that pinfo doesn't crash on objects with generic __getattr__.
+
+    Regression test for issue #15072: polars Expr objects have a generic
+    __getattr__ that returns a new Expr for any attribute name, which caused
+    TypeError when pinfo tried to call .get() on the returned Expr instead of
+    a dict.
+    """
+    obj_def = """class ExprLike:
+    '''A class that simulates polars.Expr behavior with generic __getattr__.'''
+    def __getattr__(self, name):
+        # Return self for any attribute, simulating polars Expr behavior
+        return self
+    """
+    ip.run_cell(obj_def)
+    ip.run_cell("expr_like = ExprLike()")
+
+    # This should not raise TypeError
+    ip.run_cell("expr_like.some_attr?")
+    captured = capsys.readouterr()
+    # Should get some output without crashing
+    assert "ExprLike" in captured.out or "Class" in captured.out
+
+
 def test_pinfo_magic():
     with AssertPrints("Docstring:"):
         ip._inspect("pinfo", "lsmagic", detail_level=0)
