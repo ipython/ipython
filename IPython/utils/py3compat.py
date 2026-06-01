@@ -51,6 +51,7 @@ def input(prompt=""):
 
 
 def execfile(fname, glob, loc=None, compiler=None):
+    __tracebackhide__ = "__ipython_bottom__"
     loc = loc if (loc is not None) else glob
     with open(fname, "rb") as f:
         compiler = compiler or compile
