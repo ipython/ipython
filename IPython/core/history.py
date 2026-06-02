@@ -37,11 +37,9 @@ from traitlets.config.configurable import LoggingConfigurable
 
 from IPython.paths import locate_profile
 from IPython.utils.decorators import undoc
-from typing import Tuple, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, cast
 from collections.abc import Iterable
-import typing
 import typing as t
-from typing import cast
 from warnings import warn
 from weakref import ref, WeakSet
 
@@ -68,7 +66,7 @@ except ModuleNotFoundError:
         pass
 
 
-InOrInOut = typing.Union[str, tuple[str, Optional[str]]]
+InOrInOut = str | tuple[str, str | None]
 
 # -----------------------------------------------------------------------------
 # Classes and functions
@@ -81,7 +79,7 @@ class DummyDB:
 
     Only used in the absence of sqlite"""
 
-    def execute(*args: typing.Any, **kwargs: typing.Any) -> list:
+    def execute(*args: t.Any, **kwargs: t.Any) -> list:
         return []
 
     def commit(self, *args, **kwargs):  # type: ignore [no-untyped-def]
@@ -183,7 +181,7 @@ class HistoryAccessorBase(LoggingConfigurable):
         raw: bool = True,
         search_raw: bool = True,
         output: bool = False,
-        n: Optional[int] = None,
+        n: int | None = None,
         unique: bool = False,
     ) -> Iterable[tuple[int, int, InOrInOut]]:
         raise NotImplementedError
@@ -192,7 +190,7 @@ class HistoryAccessorBase(LoggingConfigurable):
         self,
         session: int,
         start: int = 1,
-        stop: Optional[int] = None,
+        stop: int | None = None,
         raw: bool = True,
         output: bool = False,
     ) -> Iterable[tuple[int, int, InOrInOut]]:
@@ -276,7 +274,7 @@ class HistoryAccessor(HistoryAccessorBase):
             raise TraitError(msg)
 
     def __init__(
-        self, profile: str = "default", hist_file: str = "", **traits: typing.Any
+        self, profile: str = "default", hist_file: str = "", **traits: t.Any
     ) -> None:
         """Create a new history accessor.
 
@@ -404,7 +402,7 @@ class HistoryAccessor(HistoryAccessorBase):
     @catch_corrupt_db
     def get_session_info(
         self, session: int
-    ) -> tuple[int, datetime.datetime, Optional[datetime.datetime], Optional[int], str]:
+    ) -> tuple[int, datetime.datetime, datetime.datetime | None, int | None, str]:
         """Get info about a session.
 
         Parameters
@@ -429,7 +427,7 @@ class HistoryAccessor(HistoryAccessorBase):
         return self.db.execute(query, (session,)).fetchone()
 
     @catch_corrupt_db
-    def get_last_session_id(self) -> Optional[int]:
+    def get_last_session_id(self) -> int | None:
         """Get the last session ID currently in the database.
 
         Within IPython, this should be the same as the value stored in
@@ -481,7 +479,7 @@ class HistoryAccessor(HistoryAccessorBase):
         raw: bool = True,
         search_raw: bool = True,
         output: bool = False,
-        n: Optional[int] = None,
+        n: int | None = None,
         unique: bool = False,
     ) -> Iterable[tuple[int, int, InOrInOut]]:
         """Search the database using unix glob-style matching (wildcards
@@ -510,7 +508,7 @@ class HistoryAccessor(HistoryAccessorBase):
             tosearch = "history." + tosearch
         self.writeout_cache()
         sqlform = "WHERE %s GLOB ?" % tosearch
-        params: tuple[typing.Any, ...] = (pattern,)
+        params: tuple[t.Any, ...] = (pattern,)
         if unique:
             sqlform += " GROUP BY {0}".format(tosearch)
         if n is not None:
@@ -528,7 +526,7 @@ class HistoryAccessor(HistoryAccessorBase):
         self,
         session: int,
         start: int = 1,
-        stop: Optional[int] = None,
+        stop: int | None = None,
         raw: bool = True,
         output: bool = False,
     ) -> Iterable[tuple[int, int, InOrInOut]]:
@@ -558,7 +556,7 @@ class HistoryAccessor(HistoryAccessorBase):
             (session, line, input) if output is False, or
             (session, line, (input, output)) if output is True.
         """
-        params: tuple[typing.Any, ...]
+        params: tuple[t.Any, ...]
         if stop:
             lineclause = "line >= ? AND line < ?"
             params = (session, start, stop)
@@ -597,10 +595,10 @@ class HistoryAccessor(HistoryAccessorBase):
 
 @dataclass
 class HistoryOutput:
-    output_type: typing.Literal[
+    output_type: Literal[
         "out_stream", "err_stream", "display_data", "execute_result"
     ]
-    bundle: typing.Dict[str, str | list[str]]
+    bundle: dict[str, str | list[str]]
 
 
 class HistoryManager(HistoryAccessor):
@@ -630,11 +628,11 @@ class HistoryManager(HistoryAccessor):
     # execution count.
     output_hist = Dict()
     # The text/plain repr of outputs.
-    output_hist_reprs: typing.Dict[int, str] = Dict()  # type: ignore [assignment]
+    output_hist_reprs: dict[int, str] = Dict()  # type: ignore [assignment]
     # Maps execution_count to MIME bundles
-    outputs: typing.Dict[int, typing.List[HistoryOutput]] = defaultdict(list)
+    outputs: dict[int, list[HistoryOutput]] = defaultdict(list)
     # Maps execution_count to exception tracebacks
-    exceptions: typing.Dict[int, typing.Dict[str, Any]] = Dict()  # type: ignore [assignment]
+    exceptions: dict[int, dict[str, t.Any]] = Dict()  # type: ignore [assignment]
 
     # The number of the current session in the history database
     session_number: int = Integer()  # type: ignore [assignment]
@@ -680,8 +678,8 @@ class HistoryManager(HistoryAccessor):
     def __init__(
         self,
         shell: InteractiveShell,
-        config: Optional[Configuration] = None,
-        **traits: typing.Any,
+        config: Configuration | None = None,
+        **traits: t.Any,
     ):
         """Create a new history manager associated with a shell instance."""
         super().__init__(shell=shell, config=config, **traits)
@@ -746,7 +744,7 @@ class HistoryManager(HistoryAccessor):
             self.save_thread = HistorySavingThread(self)
             self.save_thread.start()
 
-    def _get_hist_file_name(self, profile: Optional[str] = None) -> Path:
+    def _get_hist_file_name(self, profile: str | None = None) -> Path:
         """Get default history file name based on the Shell's profile.
 
         The profile parameter is ignored, but must exist for compatibility with
@@ -755,7 +753,7 @@ class HistoryManager(HistoryAccessor):
         return Path(profile_dir) / "history.sqlite"
 
     @only_when_enabled
-    def new_session(self, conn: Optional[sqlite3.Connection] = None) -> None:
+    def new_session(self, conn: sqlite3.Connection | None = None) -> None:
         """Get a new session number."""
         if conn is None:
             conn = self.db
@@ -819,7 +817,7 @@ class HistoryManager(HistoryAccessor):
     # ------------------------------
     def get_session_info(
         self, session: int = 0
-    ) -> tuple[int, datetime.datetime, Optional[datetime.datetime], Optional[int], str]:
+    ) -> tuple[int, datetime.datetime, datetime.datetime | None, int | None, str]:
         """Get info about a session.
 
         Parameters
@@ -908,7 +906,7 @@ class HistoryManager(HistoryAccessor):
     def _get_range_session(
         self,
         start: int = 1,
-        stop: Optional[int] = None,
+        stop: int | None = None,
         raw: bool = True,
         output: bool = False,
     ) -> Iterable[tuple[int, int, InOrInOut]]:
@@ -935,7 +933,7 @@ class HistoryManager(HistoryAccessor):
         self,
         session: int = 0,
         start: int = 1,
-        stop: Optional[int] = None,
+        stop: int | None = None,
         raw: bool = True,
         output: bool = False,
     ) -> Iterable[tuple[int, int, InOrInOut]]:
@@ -976,7 +974,7 @@ class HistoryManager(HistoryAccessor):
     ## Methods for storing history:
     ## ----------------------------
     def store_inputs(
-        self, line_num: int, source: str, source_raw: Optional[str] = None
+        self, line_num: int, source: str, source_raw: str | None = None
     ) -> None:
         """Store source and raw input in history and create input cache
         variables ``_i*``.
@@ -1064,7 +1062,7 @@ class HistoryManager(HistoryAccessor):
                 )
 
     @only_when_enabled
-    def writeout_cache(self, conn: Optional[sqlite3.Connection] = None) -> None:
+    def writeout_cache(self, conn: sqlite3.Connection | None = None) -> None:
         """Write any entries in the cache to the database."""
         if conn is None:
             conn = self.db
@@ -1210,7 +1208,7 @@ $""",
 )
 
 
-def extract_hist_ranges(ranges_str: str) -> Iterable[tuple[int, int, Optional[int]]]:
+def extract_hist_ranges(ranges_str: str) -> Iterable[tuple[int, int, int | None]]:
     """Turn a string of history ranges into 3-tuples of (session, start, stop).
 
     Empty string results in a `[(0, 1, None)]`, i.e. "everything from current

@@ -3,6 +3,7 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from __future__ import annotations
 
 from binascii import b2a_base64, hexlify
 import html
@@ -14,8 +15,6 @@ import warnings
 from copy import deepcopy
 from os.path import splitext
 from pathlib import Path, PurePath
-
-from typing import Optional
 
 from IPython.testing.skipdoctest import skip_doctest
 from . import display_functions
@@ -491,7 +490,7 @@ class SVG(DisplayObject):
     _read_flags = 'rb'
     # wrap data in a property, which extracts the <svg> tag, discarding
     # document headers
-    _data: Optional[str] = None
+    _data: str | None = None
 
     @property
     def data(self):

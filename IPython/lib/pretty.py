@@ -93,6 +93,8 @@ Inheritance diagram:
 :license: BSD License.
 """
 
+from __future__ import annotations
+
 from contextlib import contextmanager
 import datetime
 import os
@@ -106,8 +108,6 @@ from warnings import warn
 
 from IPython.utils.decorators import undoc
 from IPython.utils.py3compat import PYPY
-
-from typing import Dict
 
 # Allow pretty-printing of functions with PEP-649 annotations
 if sys.version_info >= (3, 14):
@@ -866,7 +866,7 @@ _type_pprinters[range] = _repr_pprint
 _type_pprinters[bytes] = _repr_pprint
 
 #: printers for types specified by name
-_deferred_type_pprinters: Dict = {}
+_deferred_type_pprinters: dict = {}
 
 
 def for_type(typ, func):
