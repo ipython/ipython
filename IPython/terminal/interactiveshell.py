@@ -1,10 +1,11 @@
 """IPython terminal interface using prompt_toolkit"""
 
+from __future__ import annotations
+
 import os
 import sys
 import inspect
 from warnings import warn
-from typing import Union as UnionType, Optional
 
 from IPython.core.async_helpers import get_asyncio_loop
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
@@ -221,12 +222,10 @@ class TerminalInteractiveShell(InteractiveShell):
         "menus, decrease for short and wide.",
     ).tag(config=True)
 
-    pt_app: UnionType[PromptSession, None] = None
-    auto_suggest: UnionType[
-        AutoSuggestFromHistory,
-        NavigableAutoSuggestFromHistory,
-        None,
-    ] = None
+    pt_app: PromptSession | None = None
+    auto_suggest: (
+        AutoSuggestFromHistory | NavigableAutoSuggestFromHistory | None
+    ) = None
     debugger_history = None
 
     debugger_history_file = Unicode(
@@ -1056,9 +1055,9 @@ class TerminalInteractiveShell(InteractiveShell):
         if self._inputhook is not None:
             self._inputhook(context)
 
-    active_eventloop: Optional[str] = None
+    active_eventloop: str | None = None
 
-    def enable_gui(self, gui: Optional[str] = None) -> None:
+    def enable_gui(self, gui: str | None = None) -> None:
         if gui:
             from ..core.pylabtools import _convert_gui_from_matplotlib
 

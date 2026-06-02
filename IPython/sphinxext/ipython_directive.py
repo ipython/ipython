@@ -180,6 +180,8 @@ To Do
 # - VáclavŠmilauer <eudoxos-AT-arcig.cz>: Prompt generalizations.
 # - Skipper Seabold, refactoring, cleanups, pure python addition
 
+from __future__ import annotations
+
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
@@ -196,7 +198,7 @@ import ast
 import warnings
 import shutil
 from io import StringIO
-from typing import Any, Dict, Set
+from typing import Any
 
 # Third-party
 from docutils.parsers.rst import directives
@@ -906,7 +908,7 @@ class IPythonDirective(Directive):
     required_arguments: int = 0
     optional_arguments: int = 4  # python, suppress, verbatim, doctest
     final_argumuent_whitespace: bool = True
-    option_spec: Dict[str, Any] = {
+    option_spec: dict[str, Any] = {
         "python": directives.unchanged,
         "suppress": directives.flag,
         "verbatim": directives.flag,
@@ -917,7 +919,7 @@ class IPythonDirective(Directive):
 
     shell = None
 
-    seen_docs: Set = set()
+    seen_docs: set = set()
 
     def get_config_options(self):
         # contains sphinx configuration variables
