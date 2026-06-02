@@ -35,6 +35,10 @@ example, you could use a startup file like this::
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
+from __future__ import annotations
+
+from typing import Any, Callable
+
 import os
 import subprocess
 import sys
@@ -90,14 +94,14 @@ class CommandChainDispatcher:
     priority), execute normally via f() calling mechanism.
 
     """
-    def __init__(self,commands=None):
+    def __init__(self, commands: list[tuple[int, Callable[..., Any]]] | None = None) -> None:
         if commands is None:
-            self.chain = []
+            self.chain: list[tuple[int, Callable[..., Any]]] = []
         else:
             self.chain = commands
 
 
-    def __call__(self,*args, **kw):
+    def __call__(self, *args: Any, **kw: Any) -> Any:
         """ Command chain is called just like normal func.
 
         This will call all funcs in chain with the same args as were given to
@@ -113,10 +117,10 @@ class CommandChainDispatcher:
         # if no function will accept it, raise TryNext up to the caller
         raise last_exc
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.chain)
 
-    def add(self, func, priority=0):
+    def add(self, func: Callable[..., Any], priority: int = 0) -> None:
         """ Add a func to the cmd chain with given priority """
         self.chain.append((priority, func))
         self.chain.sort(key=lambda x: x[0])

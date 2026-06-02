@@ -86,3 +86,62 @@ def test_command_chain_dispatcher_eq_priority():
     okay2 = Okay("okay2")
     dp = CommandChainDispatcher([(1, okay1)])
     dp.add(okay2, 1)
+
+
+def test_command_chain_dispatcher_empty_raises_trynext():
+    dp = CommandChainDispatcher()
+    with pytest.raises(TryNext):
+        dp()
+
+
+def test_command_chain_dispatcher_str():
+    dp = CommandChainDispatcher()
+    assert isinstance(str(dp), str)
+
+
+def test_command_chain_dispatcher_iter():
+    okay = Okay("ok")
+    dp = CommandChainDispatcher([(0, okay)])
+    items = list(dp)
+    assert len(items) == 1
+    assert items[0] == (0, okay)
+
+
+@pytest.mark.parametrize("priorities,expected_order", [
+    ([10, 5, 1], [1, 5, 10]),
+    ([0, 0, 0], [0, 0, 0]),
+    ([3, 1, 2], [1, 2, 3]),
+])
+def test_command_chain_dispatcher_sorted_by_priority(priorities, expected_order):
+    funcs = [Okay(f"val{i}") for i in range(len(priorities))]
+    dp = CommandChainDispatcher()
+    for func, prio in zip(funcs, priorities):
+        dp.add(func, prio)
+    actual = [prio for prio, _ in dp]
+    assert actual == expected_order
+
+
+def test_command_chain_dispatcher_first_okay_stops_chain():
+    """Once one func succeeds, later ones are NOT called."""
+    fail = Fail("fail")
+    okay = Okay("ok")
+    late = Okay("late")
+    dp = CommandChainDispatcher([(0, fail), (5, okay), (10, late)])
+    result = dp()
+    assert result == "ok"
+    assert fail.called is True
+    assert okay.called is True
+    assert late.called is False
+
+
+def test_command_chain_dispatcher_passes_args():
+    results = []
+
+    def capture(*args, **kwargs):
+        results.append((args, kwargs))
+        return "done"
+
+    dp = CommandChainDispatcher()
+    dp.add(capture)
+    dp(1, 2, key="val")
+    assert results == [((1, 2), {"key": "val"})]
