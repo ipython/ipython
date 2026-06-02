@@ -239,7 +239,7 @@ class NamespaceMagics(Magics):
         try:
             psearch(args,shell.ns_table,ns_search,
                     show_all=opt('a'),ignore_case=ignore_case, list_types=list_types)
-        except:
+        except Exception:
             shell.showtraceback()
 
     @skip_doctest
@@ -477,7 +477,7 @@ class NamespaceMagics(Magics):
                 except UnicodeEncodeError:
                     vstr = var.encode(DEFAULT_ENCODING,
                                       'backslashreplace')
-                except:
+                except Exception:
                     vstr = "<object with id %d (str() failed)>" % id(var)
                 vstr = vstr.replace('\n', '\\n')
                 if len(vstr) < 50:

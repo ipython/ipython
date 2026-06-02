@@ -181,7 +181,7 @@ def try_import(mod: str, only_modules=False) -> List[str]:
     mod = mod.rstrip('.')
     try:
         m = import_module(mod)
-    except:
+    except ImportError:
         return []
 
     m_is_init = '__init__' in (getattr(m, '__file__', '') or '')
