@@ -20,7 +20,7 @@ class Macro:
     input when called.
     """
 
-    def __init__(self,code):
+    def __init__(self, code: str):
         """store the macro value, as a single string which can be executed"""
         lines = []
         enc = None
@@ -34,20 +34,25 @@ class Macro:
         if isinstance(code, bytes):
             code = code.decode(enc or DEFAULT_ENCODING)
         self.value = code + '\n'
-    
+
     def __str__(self):
         return self.value
 
     def __repr__(self):
         return 'IPython.macro.Macro(%s)' % repr(self.value)
-    
+
     def __getstate__(self):
         """ needed for safe pickling via %store """
         return {'value': self.value}
-    
-    def __add__(self, other):
+
+    def __setstate__(self, state):
+        self.value = state['value']
+
+    def __add__(self, other: "Macro | str") -> "Macro":
         if isinstance(other, Macro):
             return Macro(self.value + other.value)
         elif isinstance(other, str):
             return Macro(self.value + other)
-        raise TypeError
+        raise TypeError(
+            f"unsupported operand type(s) for +: 'Macro' and {type(other).__name__!r}"
+        )
