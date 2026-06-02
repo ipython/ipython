@@ -947,9 +947,7 @@ class Inspector(Configurable):
                 ostr = str(obj)
                 if not detail_level and len(ostr) > string_max:
                     ostr = ostr[:shalf] + ' <...> ' + ostr[-shalf:]
-                    # TODO: `'string_form'.expandtabs()` seems wrong, but
-                    # it was (nearly) like this since the first commit ever.
-                    ostr = ("\n" + " " * len("string_form".expandtabs())).join(
+                    ostr = ("\n" + " " * len("string_form")).join(
                         q.strip() for q in ostr.split("\n")
                     )
                 out["string_form"] = ostr

@@ -571,6 +571,22 @@ def test_pinfo_getattr_object(capsys):
     assert "ExprLike" in captured.out or "Class" in captured.out
 
 
+def test_pinfo_long_string_form_truncated():
+    """Long string representations should be truncated with <...> in ? mode."""
+
+    class LongRepr:
+        def __repr__(self):
+            return "x" * 100 + "\n" + "y" * 100 + "\n" + "z" * 100
+
+    obj = LongRepr()
+    info = ip.inspector.info(obj, detail_level=0)
+    assert info["string_form"] is not None
+    assert "<...>" in info["string_form"]
+    # In detail_level=1 (??), the string should not be truncated
+    info_full = ip.inspector.info(obj, detail_level=1)
+    assert "<...>" not in info_full["string_form"]
+
+
 def test_pinfo_magic():
     with AssertPrints("Docstring:"):
         ip._inspect("pinfo", "lsmagic", detail_level=0)
