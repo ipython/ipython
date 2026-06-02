@@ -379,8 +379,7 @@ Currently the magic system has the following functions:""",
         try:
             shell.InteractiveTB.set_mode(mode=new_mode)
             print('Exception reporting mode:',shell.InteractiveTB.mode)
-        except:
-            raise
+        except Exception:
             xmode_switch_err('user')
 
     @line_magic
