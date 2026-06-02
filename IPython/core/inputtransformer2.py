@@ -10,12 +10,14 @@ deprecated in 7.0 and removed in 9.0
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from __future__ import annotations
+
 import ast
 from codeop import CommandCompiler, Compile
 import re
 import sys
 import tokenize
-from typing import List, Tuple, Optional, Any
+from typing import Any
 import warnings
 from textwrap import dedent
 
@@ -86,14 +88,14 @@ class PromptStripper:
             self._triple_quote_re = re.compile(r"(?<!\\)(\"\"\"|''')")
 
 
-    def _triple_quote_mask(self, lines: List[str]) -> List[bool]:
+    def _triple_quote_mask(self, lines: list[str]) -> list[bool]:
         """
         Return a boolean mask: True if the corresponding line is considered
         inside a triple-quoted string literal.
 
         This is intentionally heuristic (fast + good enough for paste handling).
         """
-        mask: List[bool] = []
+        mask: list[bool] = []
         in_triple: str | None = None  # either ''' or """
         for line in lines:
             mask.append(in_triple is not None)
@@ -127,8 +129,8 @@ class PromptStripper:
             if not has_doctest_outside:
                 return lines
 
-            out_lines: List[str] = []
-            stripped_mask: List[bool] = []
+            out_lines: list[str] = []
+            stripped_mask: list[bool] = []
 
             for l, in_triple in zip(lines, triple_mask):
                 if in_triple:
@@ -146,7 +148,7 @@ class PromptStripper:
                 stripped_mask.append(new_l != l)
 
             # Dedent only the non-triple-quoted segments where stripping occurred.
-            dedented: List[str] = []
+            dedented: list[str] = []
             i = 0
             while i < len(out_lines):
                 j = i
@@ -214,7 +216,7 @@ def cell_magic(lines):
             % (magic_name, first_line, body)]
 
 
-def _find_assign_op(token_line) -> Optional[int]:
+def _find_assign_op(token_line) -> int | None:
     """Get the index of the first assignment in the line ('=' not inside brackets)
 
     Note: We don't try to support multiple special assignment (a = b = %foo)
@@ -243,7 +245,7 @@ def find_end_of_continued_line(lines, start_line: int):
             break
     return end_line
 
-def assemble_continued_line(lines, start: Tuple[int, int], end_line: int):
+def assemble_continued_line(lines, start: tuple[int, int], end_line: int):
     r"""Assemble a single line from multiple continued line pieces
 
     Continued lines are lines ending in ``\``, and the line following the last
@@ -313,7 +315,7 @@ class TokenTransformBase:
         """
         raise NotImplementedError
 
-    def transform(self, lines: List[str]):
+    def transform(self, lines: list[str]):
         """Transform one instance of special syntax found by ``find()``
 
         Takes a list of strings representing physical lines,
@@ -335,7 +337,7 @@ class MagicAssign(TokenTransformBase):
                     and (line[assign_ix+2].type == tokenize.NAME):
                 return cls(line[assign_ix+1].start)
 
-    def transform(self, lines: List[str]):
+    def transform(self, lines: list[str]):
         """Transform a magic assignment found by the ``find()`` classmethod.
         """
         start_line, start_col = self.start_line, self.start_col
@@ -392,7 +394,7 @@ class SystemAssign(TokenTransformBase):
             return cls.find_pre_312(tokens_by_line)
         return cls.find_post_312(tokens_by_line)
 
-    def transform(self, lines: List[str]):
+    def transform(self, lines: list[str]):
         """Transform a system assignment found by the ``find()`` classmethod.
         """
         start_line, start_col = self.start_line, self.start_col
@@ -595,7 +597,7 @@ class HelpEnd(TokenTransformBase):
 
         return lines_before + [new_line] + lines_after
 
-def make_tokens_by_line(lines:List[str]):
+def make_tokens_by_line(lines:list[str]):
     """Tokenize a series of lines and group tokens by line.
 
     The tokens for a multiline Python string or expression are grouped as one
@@ -611,7 +613,7 @@ def make_tokens_by_line(lines:List[str]):
 
     #   reexported from token on 3.7+
     NEWLINE, NL = tokenize.NEWLINE, tokenize.NL  # type: ignore
-    tokens_by_line: List[List[Any]] = [[]]
+    tokens_by_line: List[list[Any]] = [[]]
     if len(lines) > 1 and not lines[0].endswith(("\n", "\r", "\r\n", "\x0b", "\x0c")):
         warnings.warn(
             "`make_tokens_by_line` received a list of lines which do not have lineending markers ('\\n', '\\r', '\\r\\n', '\\x0b', '\\x0c'), behavior will be unspecified",
@@ -643,7 +645,7 @@ def make_tokens_by_line(lines:List[str]):
     return tokens_by_line
 
 
-def has_sunken_brackets(tokens: List[tokenize.TokenInfo]):
+def has_sunken_brackets(tokens: list[tokenize.TokenInfo]):
     """Check if the depth of brackets in the list of tokens drops below 0"""
     parenlev = 0
     for token in tokens:

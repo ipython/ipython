@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import inspect
 import pydoc
@@ -5,7 +7,7 @@ import sys
 import types
 import warnings
 from types import TracebackType
-from typing import Any, Optional, Tuple
+from typing import Any
 from collections.abc import Callable
 
 import stack_data
@@ -287,11 +289,11 @@ class FrameInfo:
     really long frames.
     """
 
-    description: Optional[str]
-    filename: Optional[str]
+    description: str | None
+    filename: str | None
     lineno: int
     # number of context lines to use
-    context: Optional[int]
+    context: int | None
     raw_lines: list[str]
     _sd: stack_data.core.FrameInfo
     frame: Any
@@ -299,7 +301,7 @@ class FrameInfo:
     @classmethod
     def _from_stack_data_FrameInfo(
         cls, frame_info: stack_data.core.FrameInfo | stack_data.core.RepeatedFrames
-    ) -> "FrameInfo":
+    ) -> FrameInfo:
         return cls(
             getattr(frame_info, "description", None),
             getattr(frame_info, "filename", None),  # type: ignore[arg-type]
@@ -312,11 +314,11 @@ class FrameInfo:
 
     def __init__(
         self,
-        description: Optional[str],
+        description: str | None,
         filename: str,
         lineno: int,
         frame: Any,
-        code: Optional[types.CodeType],
+        code: types.CodeType | None,
         *,
         sd: Any = None,
         context: int | None = None,
@@ -462,7 +464,7 @@ class TBTools:
 
     def get_parts_of_chained_exception(
         self, evalue: BaseException | None
-    ) -> Optional[Tuple[type, BaseException, TracebackType]]:
+    ) -> tuple[type, BaseException, TracebackType] | None:
         chained_evalue = self._get_chained_exception(evalue)
 
         if chained_evalue:
@@ -530,7 +532,7 @@ class TBTools:
         etype: type,
         value: BaseException | None,
         tb: TracebackType | None,
-        tb_offset: Optional[int] = None,
+        tb_offset: int | None = None,
         context: int = 5,
     ) -> str:
         """Return formatted traceback.
@@ -544,8 +546,8 @@ class TBTools:
         self,
         etype: type,
         evalue: BaseException | None,
-        etb: Optional[TracebackType] = None,
-        tb_offset: Optional[int] = None,
+        etb: TracebackType | None = None,
+        tb_offset: int | None = None,
         context: int = 5,
     ) -> list[str]:
         """Return a list of traceback frames.
