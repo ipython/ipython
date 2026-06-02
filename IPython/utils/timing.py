@@ -96,7 +96,8 @@ def timings_out(
     documentation for the time module for more details."""
 
     reps = int(reps)
-    assert reps >=1, 'reps must be >= 1'
+    if reps < 1:
+        raise ValueError('reps must be >= 1')
     if reps==1:
         start = clock()
         out = func(*args,**kw)
