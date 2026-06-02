@@ -286,7 +286,7 @@ class TempFileMixin(unittest.TestCase):
                 # win32, there's nothing to cleanup.
                 try:
                     os.unlink(fname)
-                except:
+                except OSError:
                     # On Windows, even though we close the file, we still can't
                     # delete it.  I have no clue why
                     pass
