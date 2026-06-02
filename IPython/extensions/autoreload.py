@@ -325,7 +325,7 @@ class ModuleReloader:
                         superreload(m, reload, self.old_objects)
                     if py_filename in self.failed:
                         del self.failed[py_filename]
-                except:
+                except Exception:
                     if not self.hide_errors:
                         logger = logging.getLogger("autoreload")
                         logger.exception(
@@ -582,7 +582,7 @@ def superreload(
 
     try:
         module = reload(module)
-    except:
+    except Exception:
         # restore module dictionary on failed reload
         module.__dict__.update(old_dict)
         raise
@@ -850,7 +850,7 @@ class AutoreloadMagics(Magics):
         if self._reloader.enabled:
             try:
                 self._reloader.check()
-            except:
+            except Exception:
                 pass
 
     def post_execute_hook(self):
