@@ -5,11 +5,12 @@ Filters restricting scope of IPython Terminal shortcuts.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from __future__ import annotations
+
 import ast
 import re
 import signal
 import sys
-from typing import Optional, Dict, Union
 from collections.abc import Callable
 
 from prompt_toolkit.application.current import get_app
@@ -98,11 +99,11 @@ def all_quotes_paired(quote, buf):
     return paired
 
 
-_preceding_text_cache: Dict[Union[str, Callable], Condition] = {}
-_following_text_cache: Dict[Union[str, Callable], Condition] = {}
+_preceding_text_cache: dict[str | Callable, Condition] = {}
+_following_text_cache: dict[str | Callable, Condition] = {}
 
 
-def preceding_text(pattern: Union[str, Callable]) -> Condition:
+def preceding_text(pattern: str | Callable) -> Condition:
     if pattern in _preceding_text_cache:
         return _preceding_text_cache[pattern]
 
@@ -284,7 +285,7 @@ KEYBINDING_FILTERS = {
 }
 
 
-def eval_node(node: Union[ast.AST, None]) -> Optional[Filter]:
+def eval_node(node: Union[ast.AST, None]) -> Filter | None:
     if node is None:
         return None
     if isinstance(node, ast.Expression):
@@ -315,7 +316,7 @@ def eval_node(node: Union[ast.AST, None]) -> Optional[Filter]:
     raise ValueError("Unhandled node", ast.dump(node))
 
 
-def filter_from_string(code: str) -> Union[Condition, Filter]:
+def filter_from_string(code: str) -> Condition | Filter:
     expression = ast.parse(code, mode="eval")
     return eval_node(expression)
 
