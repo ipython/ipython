@@ -235,7 +235,7 @@ class DisplayFormatter(Configurable):
             md = None
             try:
                 data = formatter(obj)
-            except:
+            except Exception:
                 # FIXME: log the exception
                 raise
 
