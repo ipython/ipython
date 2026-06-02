@@ -1404,7 +1404,7 @@ class Completer(Configurable):
         return self._auto_import_func
 
 
-def get__all__entries(obj):
+def get__all__entries(obj: Any) -> list[str]:
     """returns the strings in the __all__ attribute"""
     try:
         words = getattr(obj, '__all__')
@@ -1429,7 +1429,7 @@ class _DictKeyState(enum.Flag):
     IN_TUPLE = enum.auto()
 
 
-def _parse_tokens(c):
+def _parse_tokens(c: str) -> list[tokenize.TokenInfo]:
     """Parse tokens even if there is an error."""
     tokens = []
     token_generator = tokenize.generate_tokens(iter(c.splitlines()).__next__)
@@ -2904,7 +2904,7 @@ class IPCompleter(Completer):
         matches = self.python_func_kw_matches(context.token)
         return _convert_matcher_v1_result_to_v2_no_no(matches, type="param")
 
-    def python_func_kw_matches(self, text):
+    def python_func_kw_matches(self, text: str) -> list[str]:
         """Match named parameters (kwargs) of the last open function.
 
         .. deprecated:: 8.6
@@ -3170,7 +3170,7 @@ class IPCompleter(Completer):
         }
 
     @context_matcher()
-    def latex_name_matcher(self, context: CompletionContext):
+    def latex_name_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
         """Match Latex syntax for unicode characters.
 
         This does both ``\\alp`` -> ``\\alpha`` and ``\\alpha`` -> ``α``
@@ -3204,7 +3204,7 @@ class IPCompleter(Completer):
         return '', ()
 
     @context_matcher()
-    def custom_completer_matcher(self, context):
+    def custom_completer_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
         """Dispatch custom completer.
 
         If a match is found, suppresses all other matchers except for Jedi.
@@ -3217,7 +3217,7 @@ class IPCompleter(Completer):
         result["do_not_suppress"] = {_get_matcher_id(self._jedi_matcher)}
         return result
 
-    def dispatch_custom_completer(self, text):
+    def dispatch_custom_completer(self, text: str) -> list[str] | None:
         """
         .. deprecated:: 8.6
             You can use :meth:`custom_completer_matcher` instead.
@@ -3754,7 +3754,7 @@ class IPCompleter(Completer):
         return sorted(matches, key=lambda x: completions_sorting_key(x.text))
 
     @context_matcher()
-    def fwd_unicode_matcher(self, context: CompletionContext):
+    def fwd_unicode_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
         """Same as :any:`fwd_unicode_match`, but adopted to new Matcher API."""
         # TODO: use `context.limit` to terminate early once we matched the maximum
         #  number that will be used downstream; can be added as an optional to
