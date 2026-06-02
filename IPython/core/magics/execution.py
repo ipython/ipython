@@ -4,6 +4,8 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from __future__ import annotations
+
 
 import ast
 import bdb
@@ -21,7 +23,7 @@ import sys
 import time
 import timeit
 import signal
-from typing import Dict, Any
+from typing import Any
 from ast import (
     Assign,
     Call,
@@ -191,7 +193,7 @@ class Timer(timeit.Timer):
 class ExecutionMagics(Magics):
     """Magics related to code execution, debugging, profiling, etc."""
 
-    _transformers: Dict[str, Any] = {}
+    _transformers: dict[str, Any] = {}
 
     def __init__(self, shell):
         super(ExecutionMagics, self).__init__(shell)

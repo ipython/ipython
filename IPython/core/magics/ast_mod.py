@@ -175,8 +175,9 @@ transforming:
 
 """
 
-__skip_doctest__ = True
+from __future__ import annotations
 
+__skip_doctest__ = True
 
 from ast import (
     NodeTransformer,
@@ -191,8 +192,6 @@ from ast import (
 )
 import ast
 import copy
-
-from typing import Dict, Optional, Union
 
 
 mangle_all = lambda name: False if name in ("__ret__", "__code__") else True
@@ -247,7 +246,7 @@ class Mangler(NodeTransformer):
     def visit_Import(self, node: Import):
         return self._visit_Import_and_ImportFrom(node)
 
-    def _visit_Import_and_ImportFrom(self, node: Union[Import, ImportFrom]):
+    def _visit_Import_and_ImportFrom(self, node: Import | ImportFrom):
         for alias in node.names:
             asname = alias.name if alias.asname is None else alias.asname
             if self.predicate(asname):
@@ -265,7 +264,7 @@ class ReplaceCodeTransformer(NodeTransformer):
     mangler: Mangler
 
     def __init__(
-        self, template: Module, mapping: Optional[Dict] = None, mangling_predicate=None
+        self, template: Module, mapping: dict | None = None, mangling_predicate=None
     ):
         assert isinstance(mapping, (dict, type(None)))
         assert isinstance(mangling_predicate, (type(None), type(lambda: None)))
@@ -278,7 +277,7 @@ class ReplaceCodeTransformer(NodeTransformer):
 
     @classmethod
     def from_string(
-        cls, template: str, mapping: Optional[Dict] = None, mangling_predicate=None
+        cls, template: str, mapping: dict | None = None, mangling_predicate=None
     ):
         return cls(
             ast.parse(template), mapping=mapping, mangling_predicate=mangling_predicate
