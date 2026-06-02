@@ -18,8 +18,11 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import annotations
+
 import sys
 import traceback
+import types
 from pprint import pformat
 from pathlib import Path
 
@@ -31,9 +34,6 @@ from IPython.core.release import author_email
 from IPython.utils.sysinfo import sys_info
 
 from IPython.core.release import __version__ as version
-
-from typing import Optional, Dict
-import types
 
 #-----------------------------------------------------------------------------
 # Code
@@ -97,14 +97,14 @@ class CrashHandler:
 
     message_template = _default_message_template
     section_sep = '\n\n'+'*'*75+'\n\n'
-    info: Dict[str, Optional[str]]
+    info: dict[str, str | None]
 
     def __init__(
         self,
         app: Application,
-        contact_name: Optional[str] = None,
-        contact_email: Optional[str] = None,
-        bug_tracker: Optional[str] = None,
+        contact_name: str | None = None,
+        contact_email: str | None = None,
+        bug_tracker: str | None = None,
         show_crash_traceback: bool = True,
         call_pdb: bool = False,
     ):
