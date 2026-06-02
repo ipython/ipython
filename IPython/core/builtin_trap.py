@@ -90,4 +90,3 @@ class BuiltinTrap(Configurable):
         for key, val in self._orig_builtins.items():
             remove_builtin(key, val)
         self._orig_builtins.clear()
-        self._builtins_added = False
