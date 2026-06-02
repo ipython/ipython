@@ -9,6 +9,8 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+from __future__ import annotations
+
 
 import abc
 import ast
@@ -34,8 +36,8 @@ from io import open as io_open
 from logging import error
 from pathlib import Path
 from collections.abc import Callable
-from typing import List as ListType, Any as AnyType
-from typing import Literal, Optional, Tuple
+from typing import Any as AnyType
+from typing import Literal
 from collections.abc import Sequence
 from warnings import warn
 import textwrap
@@ -99,7 +101,7 @@ from IPython.utils.text import DollarFormatter, LSString, SList, format_screen
 from IPython.core.oinspect import OInfo
 
 
-sphinxify: Optional[Callable]
+sphinxify: Callable | None
 
 try:
     import docrepr.sphinxify as sphx
@@ -308,9 +310,9 @@ class ExecutionResult:
     Stores information about what took place.
     """
 
-    execution_count: Optional[int] = None
-    error_before_exec: Optional[BaseException] = None
-    error_in_exec: Optional[BaseException] = None
+    execution_count: int | None = None
+    error_before_exec: BaseException | None = None
+    error_in_exec: BaseException | None = None
     info = None
     result = None
 
@@ -1657,7 +1659,7 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to object introspection
     #-------------------------------------------------------------------------
     @staticmethod
-    def _find_parts(oname: str) -> Tuple[bool, ListType[str]]:
+    def _find_parts(oname: str) -> tuple[bool, list[str]]:
         """
         Given an object name, return a list of parts of this object name.
 
@@ -1702,7 +1704,7 @@ class InteractiveShell(SingletonConfigurable):
         return parts_ok, parts
 
     def _ofind(
-        self, oname: str, namespaces: Optional[Sequence[Tuple[str, AnyType]]] = None
+        self, oname: str, namespaces: Sequence[tuple[str, AnyType]] | None = None
     ) -> OInfo:
         """Find an object in the available namespaces.
 
@@ -3289,8 +3291,8 @@ class InteractiveShell(SingletonConfigurable):
         silent=False,
         shell_futures=True,
         *,
-        transformed_cell: Optional[str] = None,
-        preprocessing_exc_tuple: Optional[AnyType] = None,
+        transformed_cell: str | None = None,
+        preprocessing_exc_tuple: AnyType | None = None,
         cell_id=None,
     ) -> ExecutionResult:
         """Run a complete IPython cell asynchronously.
@@ -3588,7 +3590,7 @@ class InteractiveShell(SingletonConfigurable):
 
     async def run_ast_nodes(
         self,
-        nodelist: ListType[stmt],
+        nodelist: list[stmt],
         cell_name: str,
         interactivity="last_expr",
         compiler=compile,
@@ -3775,7 +3777,7 @@ class InteractiveShell(SingletonConfigurable):
     # For backwards compatibility
     runcode = run_code
 
-    def check_complete(self, code: str) -> Tuple[str, str]:
+    def check_complete(self, code: str) -> tuple[str, str]:
         """Return whether a block of code is ready to execute, or should be continued
 
         Parameters
@@ -3799,7 +3801,7 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to GUI support and pylab
     #-------------------------------------------------------------------------
 
-    active_eventloop: Optional[str] = None
+    active_eventloop: str | None = None
 
     def enable_gui(self, gui=None):
         raise NotImplementedError('Implement enable_gui in a subclass')
