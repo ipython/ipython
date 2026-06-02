@@ -4,12 +4,13 @@ These classes add extra features such as creating a named file in temporary dire
 creating a context manager for the working directory which is also temporary.
 """
 
+from __future__ import annotations
+
 import os as _os
 from io import BufferedWriter
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import TracebackType
-from typing import Optional, Type
 
 
 class NamedFileInTemporaryDirectory:
@@ -38,7 +39,7 @@ class NamedFileInTemporaryDirectory:
     def __enter__(self) -> BufferedWriter:
         return self.file
 
-    def __exit__(self, type: Optional[Type[BaseException]], value: Optional[BaseException], traceback: Optional[TracebackType]):
+    def __exit__(self, type: type[BaseException] | None, value: BaseException | None, traceback: TracebackType | None) -> None:
         self.cleanup()
 
 
@@ -57,6 +58,6 @@ class TemporaryWorkingDirectory(TemporaryDirectory):
         _os.chdir(self.name)
         return super(TemporaryWorkingDirectory, self).__enter__()
 
-    def __exit__(self, exc: Optional[Type[BaseException]], value: Optional[BaseException], tb: Optional[TracebackType]) -> None:
+    def __exit__(self, exc: type[BaseException] | None, value: BaseException | None, tb: TracebackType | None) -> None:
         _os.chdir(self.old_wd)
         return super(TemporaryWorkingDirectory, self).__exit__(exc, value, tb)

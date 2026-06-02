@@ -2,13 +2,14 @@
 
 Authors : MinRK, gregcaporaso, dannystaple
 """
+from __future__ import annotations
+
 from html import escape as html_escape
 from os.path import exists, isfile, splitext, abspath, join, isdir
 from os import walk, sep, fsdecode
 
 from IPython.core.display import DisplayObject, TextDisplayObject
 
-from typing import Tuple, Optional
 from collections.abc import Iterable
 
 __all__ = ['Audio', 'IFrame', 'YouTubeVideo', 'VimeoVideo', 'ScribdDocument',
@@ -167,7 +168,7 @@ class Audio(DisplayObject):
         return val
 
     @staticmethod
-    def _validate_and_normalize_with_numpy(data, normalize) -> Tuple[bytes, int]:
+    def _validate_and_normalize_with_numpy(data, normalize) -> tuple[bytes, int]:
         import numpy as np
 
         data = np.array(data, dtype=float)
@@ -274,7 +275,7 @@ class IFrame:
         """
 
     def __init__(
-        self, src, width, height, extras: Optional[Iterable[str]] = None, **kwargs
+        self, src, width, height, extras: Iterable[str] | None = None, **kwargs
     ):
         if extras is None:
             extras = []
