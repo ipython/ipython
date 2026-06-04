@@ -602,6 +602,19 @@ class Pdb(OldPdb):
         filename = frame.f_code.co_filename
         self.shell.hooks.synchronize_with_editor(filename, lineno, 0)
 
+    def _pdbcmd_print_frame_status(self, arg):
+        """Use print_stack_entry to print frames in Python 3.14+."""
+        if sys.version_info[:2] >= (3, 14):
+            # This is the only line changed from the base class.
+            self.print_stack_entry(self.stack[self.curindex])
+
+            # Same as in 3.14
+            self._validate_file_mtime()
+            self._show_display()
+        else:
+            # 3.13 and 3.12 don't need any changes.
+            super()._pdbcmd_print_frame_status(arg)
+
     def _get_frame_locals(self, frame):
         """ "
         Accessing f_local of current frame reset the namespace, so we want to avoid
