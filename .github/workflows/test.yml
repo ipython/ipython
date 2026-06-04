@@ -11,6 +11,8 @@ on:
   - cron:  '23 1 * * 1'
   workflow_dispatch:
 
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -43,16 +45,18 @@ jobs:
             want-latest-entry-point-code: true
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      with:
+        persist-credentials: false
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
       with:
         python-version: ${{ matrix.python-version }}
         cache: pip
         cache-dependency-path: |
           pyproject.toml
     - name: Install uv
-      uses: astral-sh/setup-uv@v7
+      uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
     - name: Install latex
       if: runner.os == 'Linux' && matrix.deps == 'test_extra'
       run: echo "disable latex for now, issues in mirros" #sudo apt-get -yq -o Acquire::Retries=3 --no-install-suggests --no-install-recommends install texlive dvipng
@@ -92,7 +96,7 @@ jobs:
       run: |
         pytest --color=yes -raXxs ${{ startsWith(matrix.python-version, 'pypy') && ' ' || '--cov --cov-report=xml' }} --maxfail=15
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v6
+      uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6
       with:
          token: ${{ secrets.CODECOV_TOKEN }}
          name: Test
@@ -113,9 +117,11 @@ jobs:
           - windows-latest
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      with:
+        persist-credentials: false
     - name: Set up uv with Python 3.11
-      uses: astral-sh/setup-uv@v7
+      uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
       with:
         python-version: '3.11'
         enable-cache: true
