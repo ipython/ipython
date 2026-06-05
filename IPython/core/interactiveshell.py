@@ -357,7 +357,7 @@ class InteractiveShell(SingletonConfigurable):
 
     inspector: oinspect.Inspector
 
-    ast_transformers: List[ast.NodeTransformer] = List(
+    ast_transformers: list[ast.NodeTransformer] = List(
         [],
         help="""
         A list of ast.NodeTransformer subclass instances, which will be applied

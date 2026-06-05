@@ -646,8 +646,8 @@ class HistoryManager(HistoryAccessor):
         "Values of 1 or less effectively disable caching.",
     ).tag(config=True)
     # The input and output caches
-    db_input_cache: List[tuple[int, str, str]] = List()
-    db_output_cache: List[tuple[int, str]] = List()
+    db_input_cache: list[tuple[int, str, str]] = List()
+    db_output_cache: list[tuple[int, str]] = List()
 
     # History saving in separate thread
     save_thread = Instance("IPython.core.history.HistorySavingThread", allow_none=True)

@@ -285,7 +285,7 @@ KEYBINDING_FILTERS = {
 }
 
 
-def eval_node(node: Union[ast.AST, None]) -> Filter | None:
+def eval_node(node: ast.AST | None) -> Filter | None:
     if node is None:
         return None
     if isinstance(node, ast.Expression):
