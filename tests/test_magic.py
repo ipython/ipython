@@ -71,19 +71,19 @@ def test_extract_code_ranges():
     assert actual == expected
 
 
-def test_extract_symbols():
-    source = """import foo\na = 10\ndef b():\n    return 42\n\n\nclass A: pass\n\n\n"""
-    symbols_args = ["a", "b", "A", "A,b", "A,a", "z"]
-    expected = [
-        ([], ["a"]),
-        (["def b():\n    return 42\n"], []),
-        (["class A: pass\n"], []),
-        (["class A: pass\n", "def b():\n    return 42\n"], []),
-        (["class A: pass\n"], ["a"]),
-        ([], ["z"]),
-    ]
-    for symbols, exp in zip(symbols_args, expected):
-        assert code.extract_symbols(source, symbols) == exp
+_EXTRACT_SYMBOLS_SOURCE = """import foo\na = 10\ndef b():\n    return 42\n\n\nclass A: pass\n\n\n"""
+
+
+@pytest.mark.parametrize("symbols,expected", [
+    ("a", ([], ["a"])),
+    ("b", (["def b():\n    return 42\n"], [])),
+    ("A", (["class A: pass\n"], [])),
+    ("A,b", (["class A: pass\n", "def b():\n    return 42\n"], [])),
+    ("A,a", (["class A: pass\n"], ["a"])),
+    ("z", ([], ["z"])),
+])
+def test_extract_symbols(symbols, expected):
+    assert code.extract_symbols(_EXTRACT_SYMBOLS_SOURCE, symbols) == expected
 
 
 def test_extract_symbols_raises_exception_with_non_python_code():

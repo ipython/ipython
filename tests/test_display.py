@@ -294,10 +294,11 @@ def test_audio_data_without_normalization_raises_for_invalid_data_no_numpy():
     pytest.raises(ValueError, display.Audio, [1.001], rate=44100, normalize=False)
     pytest.raises(ValueError, display.Audio, [-1.001], rate=44100, normalize=False)
 
-    @skipif_not_numpy
-    def test_audio_raises_for_nested_list(self):
-        stereo_signal = [list(get_test_tone())] * 2
-        self.assertRaises(TypeError, lambda: display.Audio(stereo_signal, rate=44100))
+
+@skipif_not_numpy
+def test_audio_raises_for_nested_list():
+    stereo_signal = [list(get_test_tone())] * 2
+    pytest.raises(TypeError, display.Audio, stereo_signal, rate=44100)
 
 
 @skipif_not_numpy
