@@ -4,6 +4,8 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from __future__ import annotations
+
 import os
 import shutil
 import errno
@@ -13,8 +15,6 @@ from traitlets.config.configurable import LoggingConfigurable
 from ..paths import get_ipython_package_dir
 from ..utils.path import expand_path, ensure_dir_exists
 from traitlets import Unicode, Bool, observe
-
-from typing import Optional
 
 #-----------------------------------------------------------------------------
 # Module errors
@@ -71,7 +71,7 @@ class ProfileDir(LoggingConfigurable):
         self.static_dir = os.path.join(new, self.static_dir_name)
         self.check_dirs()
 
-    def _mkdir(self, path: str, mode: Optional[int] = None) -> bool:
+    def _mkdir(self, path: str, mode: int | None = None) -> bool:
         """ensure a directory exists at a given path
 
         This is a version of os.mkdir, with the following differences:
@@ -117,11 +117,11 @@ class ProfileDir(LoggingConfigurable):
                 raise
 
         return True
-    
+
     @observe('log_dir')
     def check_log_dir(self, change=None):
         self._mkdir(self.log_dir)
-    
+
     @observe('startup_dir')
     def check_startup_dir(self, change=None):
         if self._mkdir(self.startup_dir):

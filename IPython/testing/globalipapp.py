@@ -107,7 +107,7 @@ def start_ipython():
         if isinstance(strng, dict):
            strng = strng.get('text/plain', '')
         print(strng)
-    
+
     page.orig_page = page.pager_page
     page.pager_page = nopage
 

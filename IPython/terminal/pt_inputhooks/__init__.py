@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import importlib
 import os
-from typing import Tuple
 from collections.abc import Callable
 
 aliases = {
@@ -121,7 +122,7 @@ def set_qt_api(gui):
         return qt_env2gui[QT_API]
 
 
-def get_inputhook_name_and_func(gui: str) -> Tuple[str, Callable]:
+def get_inputhook_name_and_func(gui: str) -> tuple[str, Callable]:
     if gui in registered:
         return gui, registered[gui]
 

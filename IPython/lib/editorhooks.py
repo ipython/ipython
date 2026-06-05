@@ -4,6 +4,7 @@ They should honor the line number argument, at least.
 
 Contributions are *very* welcome.
 """
+from __future__ import annotations
 
 import os
 import shlex

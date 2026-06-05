@@ -2,6 +2,6 @@
 This package contains all third-party modules bundled with IPython.
 """
 
-from typing import List
+from __future__ import annotations
 
-__all__: List[str] = []
+__all__: list[str] = []

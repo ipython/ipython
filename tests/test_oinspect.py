@@ -252,11 +252,16 @@ def support_function_one(x, y=2, *a, **kw):
     """A simple function."""
 
 
-def test_calldef_none():
-    # We should ignore __call__ for all of these.
-    for obj in [support_function_one, SimpleClass().method, any, str.upper]:
-        i = inspector.info(obj)
-        assert i["call_def"] is None
+@pytest.mark.parametrize("obj", [
+    support_function_one,
+    SimpleClass().method,
+    any,
+    str.upper,
+])
+def test_calldef_none(obj):
+    # __call__ should be ignored for all of these
+    i = inspector.info(obj)
+    assert i["call_def"] is None
 
 
 def f_kwarg(pos, *, kwonly):
@@ -545,6 +550,46 @@ def test_pinfo_docstring_dynamic(capsys):
     ip.run_cell("b.undefined?")
     captured = capsys.readouterr()
     assert re.search(r"Type:\s+NoneType", captured.out)
+
+
+def test_pinfo_getattr_object(capsys):
+    """Test that pinfo doesn't crash on objects with generic __getattr__.
+
+    Regression test for issue #15072: polars Expr objects have a generic
+    __getattr__ that returns a new Expr for any attribute name, which caused
+    TypeError when pinfo tried to call .get() on the returned Expr instead of
+    a dict.
+    """
+    obj_def = """class ExprLike:
+    '''A class that simulates polars.Expr behavior with generic __getattr__.'''
+    def __getattr__(self, name):
+        # Return self for any attribute, simulating polars Expr behavior
+        return self
+    """
+    ip.run_cell(obj_def)
+    ip.run_cell("expr_like = ExprLike()")
+
+    # This should not raise TypeError
+    ip.run_cell("expr_like.some_attr?")
+    captured = capsys.readouterr()
+    # Should get some output without crashing
+    assert "ExprLike" in captured.out or "Class" in captured.out
+
+
+def test_pinfo_long_string_form_truncated():
+    """Long string representations should be truncated with <...> in ? mode."""
+
+    class LongRepr:
+        def __repr__(self):
+            return "x" * 100 + "\n" + "y" * 100 + "\n" + "z" * 100
+
+    obj = LongRepr()
+    info = ip.inspector.info(obj, detail_level=0)
+    assert info["string_form"] is not None
+    assert "<...>" in info["string_form"]
+    # In detail_level=1 (??), the string should not be truncated
+    info_full = ip.inspector.info(obj, detail_level=1)
+    assert "<...>" not in info_full["string_form"]
 
 
 def test_pinfo_magic():

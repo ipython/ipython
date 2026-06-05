@@ -6,12 +6,14 @@ Module to define and register Terminal IPython shortcuts with
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from __future__ import annotations
+
 import os
 import signal
 import sys
 import warnings
 from dataclasses import dataclass
-from typing import Any, Optional, List
+from typing import Any
 from collections.abc import Callable
 
 from prompt_toolkit.application.current import get_app
@@ -38,7 +40,7 @@ __all__ = ["create_ipython_shortcuts"]
 @dataclass
 class BaseBinding:
     command: Callable[[KeyPressEvent], Any]
-    keys: List[str]
+    keys: list[str]
 
 
 @dataclass
@@ -52,7 +54,7 @@ class Binding(BaseBinding):
     # than created from strings), by using strings we ensure that users will
     # be able to create filters in configuration (e.g. JSON) files too, which
     # also benefits the documentation by enforcing human-readable filter names.
-    condition: Optional[str] = None
+    condition: str | None = None
 
     def __post_init__(self):
         if self.condition:
@@ -332,7 +334,7 @@ def create_ipython_shortcuts(shell, skip=None) -> KeyBindings:
     ----------
     shell: InteractiveShell
         The current IPython shell Instance
-    skip: List[Binding]
+    skip: list[Binding]
         Bindings to skip.
 
     Returns

@@ -2,6 +2,7 @@
 """
 Utilities for path handling.
 """
+from __future__ import annotations
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
@@ -38,7 +39,7 @@ if sys.platform == 'win32':
         """
         try:
             import ctypes
-        except ImportError as e: 
+        except ImportError as e:
             raise ImportError('you need to have ctypes installed for this to work') from e
         _GetLongPathName = ctypes.windll.kernel32.GetLongPathNameW
         _GetLongPathName.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p,
@@ -186,7 +187,7 @@ def get_home_dir(require_writable: bool=False) -> str:
                 r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
             ) as key:
                 homedir = wreg.QueryValueEx(key,'Personal')[0]
-        except:
+        except Exception:
             pass
 
     if (not require_writable) or _writable_dir(homedir):
@@ -324,7 +325,7 @@ def link_or_copy(src, dst):
         new_dst = dst + "-temp-%04X" %(random.randint(1, 16**4), )
         try:
             link_or_copy(src, new_dst)
-        except:
+        except Exception:
             try:
                 os.remove(new_dst)
             except OSError:

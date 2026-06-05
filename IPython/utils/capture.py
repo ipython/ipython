@@ -4,11 +4,12 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from __future__ import annotations
 
 import sys
 from io import StringIO
 from types import TracebackType
-from typing import Any, List, Optional, Type
+from typing import Any
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -76,9 +77,9 @@ class CapturedIO:
 
     def __init__(
         self,
-        stdout: Optional[StringIO],
-        stderr: Optional[StringIO],
-        outputs: Optional[List[Any]] = None,
+        stdout: StringIO | None,
+        stderr: StringIO | None,
+        outputs: list[Any] | None = None,
     ):
         self._stdout = stdout
         self._stderr = stderr
@@ -104,7 +105,7 @@ class CapturedIO:
         return self._stderr.getvalue()
 
     @property
-    def outputs(self):
+    def outputs(self) -> list[RichOutput]:
         """A list of the captured rich display outputs, if any.
 
         If you have a CapturedIO object ``c``, these can be displayed in IPython
@@ -169,7 +170,7 @@ class capture_output:
 
         return CapturedIO(stdout, stderr, outputs)
 
-    def __exit__(self, exc_type: Optional[Type[BaseException]], exc_value: Optional[BaseException], traceback: Optional[TracebackType]):
+    def __exit__(self, exc_type: type[BaseException] | None, exc_value: BaseException | None, traceback: TracebackType | None) -> None:
         sys.stdout = self.sys_stdout
         sys.stderr = self.sys_stderr
         if self.display and self.shell:

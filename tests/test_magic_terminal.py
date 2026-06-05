@@ -6,7 +6,8 @@
 
 import sys
 from io import StringIO
-from unittest import TestCase
+
+import pytest
 
 from IPython.testing import tools as tt
 
@@ -97,124 +98,131 @@ def test_cpaste():
         check_cpaste(code, should_fail=True)
 
 
-class PasteTestCase(TestCase):
-    """Multiple tests for clipboard pasting"""
+@pytest.fixture
+def clipboard(monkeypatch):
+    """Fixture that injects a fake clipboard hook and restores the original."""
+    original_clip = ip.hooks.clipboard_get
 
-    def paste(self, txt, flags="-q"):
-        """Paste input text, by default in quiet mode"""
+    def paste(txt, flags="-q"):
         ip.hooks.clipboard_get = lambda: txt
         ip.run_line_magic("paste", flags)
 
-    def setUp(self):
-        # Inject fake clipboard hook but save original so we can restore it later
-        self.original_clip = ip.hooks.clipboard_get
+    yield paste
 
-    def tearDown(self):
-        # Restore original hook
-        ip.hooks.clipboard_get = self.original_clip
+    ip.hooks.clipboard_get = original_clip
 
-    def test_paste(self):
-        ip.user_ns.pop("x", None)
-        self.paste("x = 1")
-        self.assertEqual(ip.user_ns["x"], 1)
-        ip.user_ns.pop("x")
 
-    def test_paste_pyprompt(self):
-        ip.user_ns.pop("x", None)
-        self.paste(">>> x=2")
-        self.assertEqual(ip.user_ns["x"], 2)
-        ip.user_ns.pop("x")
+def test_paste(clipboard):
+    ip.user_ns.pop("x", None)
+    clipboard("x = 1")
+    assert ip.user_ns["x"] == 1
+    ip.user_ns.pop("x")
 
-    def test_paste_py_multi(self):
-        self.paste(
-            """
-        >>> x = [1,2,3]
-        >>> y = []
-        >>> for i in x:
-        ...     y.append(i**2)
-        ... 
+
+def test_paste_pyprompt(clipboard):
+    ip.user_ns.pop("x", None)
+    clipboard(">>> x=2")
+    assert ip.user_ns["x"] == 2
+    ip.user_ns.pop("x")
+
+
+def test_paste_py_multi(clipboard):
+    clipboard(
         """
-        )
-        self.assertEqual(ip.user_ns["x"], [1, 2, 3])
-        self.assertEqual(ip.user_ns["y"], [1, 4, 9])
+    >>> x = [1,2,3]
+    >>> y = []
+    >>> for i in x:
+    ...     y.append(i**2)
+    ...
+    """
+    )
+    assert ip.user_ns["x"] == [1, 2, 3]
+    assert ip.user_ns["y"] == [1, 4, 9]
 
-    def test_paste_py_multi_r(self):
-        "Now, test that self.paste -r works"
-        self.test_paste_py_multi()
-        self.assertEqual(ip.user_ns.pop("x"), [1, 2, 3])
-        self.assertEqual(ip.user_ns.pop("y"), [1, 4, 9])
-        self.assertFalse("x" in ip.user_ns)
-        ip.run_line_magic("paste", "-r")
-        self.assertEqual(ip.user_ns["x"], [1, 2, 3])
-        self.assertEqual(ip.user_ns["y"], [1, 4, 9])
 
-    def test_paste_email(self):
-        "Test pasting of email-quoted contents"
-        self.paste(
-            """\
-        >> def foo(x):
-        >>     return x + 1
-        >> xx = foo(1.1)"""
-        )
-        self.assertEqual(ip.user_ns["xx"], 2.1)
+def test_paste_py_multi_r(clipboard):
+    "Test that paste -r works"
+    test_paste_py_multi(clipboard)
+    assert ip.user_ns.pop("x") == [1, 2, 3]
+    assert ip.user_ns.pop("y") == [1, 4, 9]
+    assert "x" not in ip.user_ns
+    ip.run_line_magic("paste", "-r")
+    assert ip.user_ns["x"] == [1, 2, 3]
+    assert ip.user_ns["y"] == [1, 4, 9]
 
-    def test_paste_email2(self):
-        "Email again; some programs add a space also at each quoting level"
-        self.paste(
-            """\
-        > > def foo(x):
-        > >     return x + 1
-        > > yy = foo(2.1)     """
-        )
-        self.assertEqual(ip.user_ns["yy"], 3.1)
 
-    def test_paste_email_py(self):
-        "Email quoting of interactive input"
-        self.paste(
-            """\
-        >> >>> def f(x):
-        >> ...   return x+1
-        >> ... 
-        >> >>> zz = f(2.5)      """
-        )
-        self.assertEqual(ip.user_ns["zz"], 3.5)
+def test_paste_email(clipboard):
+    "Test pasting of email-quoted contents"
+    clipboard(
+        """\
+    >> def foo(x):
+    >>     return x + 1
+    >> xx = foo(1.1)"""
+    )
+    assert ip.user_ns["xx"] == 2.1
 
-    def test_paste_echo(self):
-        "Also test self.paste echoing, by temporarily faking the writer"
-        w = StringIO()
-        old_write = sys.stdout.write
-        sys.stdout.write = w.write
-        code = """
-        a = 100
-        b = 200"""
-        try:
-            self.paste(code, "")
-            out = w.getvalue()
-        finally:
-            sys.stdout.write = old_write
-        self.assertEqual(ip.user_ns["a"], 100)
-        self.assertEqual(ip.user_ns["b"], 200)
-        assert out == code + "\n## -- End pasted text --\n"
 
-    def test_paste_leading_commas(self):
-        "Test multiline strings with leading commas"
-        tm = ip.magics_manager.registry["TerminalMagics"]
-        s = '''\
+def test_paste_email2(clipboard):
+    "Email again; some programs add a space also at each quoting level"
+    clipboard(
+        """\
+    > > def foo(x):
+    > >     return x + 1
+    > > yy = foo(2.1)     """
+    )
+    assert ip.user_ns["yy"] == 3.1
+
+
+def test_paste_email_py(clipboard):
+    "Email quoting of interactive input"
+    clipboard(
+        """\
+    >> >>> def f(x):
+    >> ...   return x+1
+    >> ...
+    >> >>> zz = f(2.5)      """
+    )
+    assert ip.user_ns["zz"] == 3.5
+
+
+def test_paste_echo(clipboard):
+    "Test paste echoing, by temporarily faking the writer"
+    w = StringIO()
+    old_write = sys.stdout.write
+    sys.stdout.write = w.write
+    code = """
+    a = 100
+    b = 200"""
+    try:
+        clipboard(code, "")
+        out = w.getvalue()
+    finally:
+        sys.stdout.write = old_write
+    assert ip.user_ns["a"] == 100
+    assert ip.user_ns["b"] == 200
+    assert out == code + "\n## -- End pasted text --\n"
+
+
+def test_paste_leading_commas():
+    "Test multiline strings with leading commas"
+    tm = ip.magics_manager.registry["TerminalMagics"]
+    s = '''\
 a = """
 ,1,2,3
 """'''
-        ip.user_ns.pop("foo", None)
-        tm.store_or_execute(s, "foo")
-        self.assertIn("foo", ip.user_ns)
+    ip.user_ns.pop("foo", None)
+    tm.store_or_execute(s, "foo")
+    assert "foo" in ip.user_ns
 
-    def test_paste_trailing_question(self):
-        "Test pasting sources with trailing question marks"
-        tm = ip.magics_manager.registry["TerminalMagics"]
-        s = """\
+
+def test_paste_trailing_question(clipboard):
+    "Test pasting sources with trailing question marks"
+    tm = ip.magics_manager.registry["TerminalMagics"]
+    s = """\
 def funcfoo():
    if True: #am i true?
        return 'fooresult'
 """
-        ip.user_ns.pop("funcfoo", None)
-        self.paste(s)
-        self.assertEqual(ip.user_ns["funcfoo"](), "fooresult")
+    ip.user_ns.pop("funcfoo", None)
+    clipboard(s)
+    assert ip.user_ns["funcfoo"]() == "fooresult"

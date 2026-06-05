@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Find files and directories which IPython uses.
 """
 import os.path

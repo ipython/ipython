@@ -108,11 +108,11 @@ def extract_symbols(code, symbols):
     code = code.split('\n')
 
     symbols_lines = {}
-    
-    # we already know the start_lineno of each symbol (marks). 
-    # To find each end_lineno, we traverse in reverse order until each 
+
+    # we already know the start_lineno of each symbol (marks).
+    # To find each end_lineno, we traverse in reverse order until each
     # non-blank line
-    end = len(code)  
+    end = len(code)
     for name, start in reversed(marks):
         while not code[end - 1].strip():
             end -= 1
@@ -122,7 +122,7 @@ def extract_symbols(code, symbols):
 
     # Now symbols_lines is a map
     # {'symbol_name': (start_lineno, end_lineno), ...}
-    
+
     # fill a list with chunks of codes for each requested symbol
     blocks = []
     not_found = []
@@ -195,7 +195,7 @@ class CodeMagics(Magics):
           so that magics are loaded in their transformed version to valid
           Python.  If this option is given, the raw input as typed at the
           command line is used instead.
-          
+
           -f: force overwrite.  If file exists, %save will prompt for overwrite
           unless -f is given.
 
@@ -330,11 +330,11 @@ class CodeMagics(Magics):
         Options:
 
           -r <lines>: Specify lines or ranges of lines to load from the source.
-          Ranges could be specified as x-y (x..y) or in python-style x:y 
-          (x..(y-1)). Both limits x and y can be left blank (meaning the 
+          Ranges could be specified as x-y (x..y) or in python-style x:y
+          (x..(y-1)). Both limits x and y can be left blank (meaning the
           beginning and end of the file, respectively).
 
-          -s <symbols>: Specify function or classes to load from python source. 
+          -s <symbols>: Specify function or classes to load from python source.
 
           -y : Don't ask confirmation for loading source above 200 000 characters.
 
@@ -492,7 +492,7 @@ class CodeMagics(Magics):
                                     # target instead
                                     data = attr
                                     break
-                        
+
                         m = ipython_input_pat.match(os.path.basename(filename))
                         if m:
                             raise InteractivelyDefined(int(m.groups()[0])) from e
@@ -528,7 +528,7 @@ class CodeMagics(Magics):
             last_call[0] = shell.displayhook.prompt_count
             if not opts_prev:
                 last_call[1] = args
-        except:
+        except AttributeError:
             pass
 
 
@@ -691,7 +691,7 @@ class CodeMagics(Magics):
         opts,args = self.parse_options(parameter_s,'prxn:')
 
         try:
-            filename, lineno, is_temp = self._find_edit_target(self.shell, 
+            filename, lineno, is_temp = self._find_edit_target(self.shell,
                                                        args, opts, last_call)
         except MacroToEdit as e:
             self._edit_macro(args, e.args[0])
@@ -699,7 +699,7 @@ class CodeMagics(Magics):
         except InteractivelyDefined as e:
             print("Editing In[%i]" % e.index)
             args = str(e.index)
-            filename, lineno, is_temp = self._find_edit_target(self.shell, 
+            filename, lineno, is_temp = self._find_edit_target(self.shell,
                                                        args, opts, last_call)
         if filename is None:
             # nothing was found, warnings have already been issued,

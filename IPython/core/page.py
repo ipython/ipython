@@ -1,4 +1,5 @@
 # encoding: utf-8
+from __future__ import annotations
 """
 Paging capabilities for IPython.core
 
@@ -89,13 +90,13 @@ def _detect_screen_size(screen_lines_def):
         # curses causes problems on many terminals other than xterm, and
         # some termios calls lock up on Sun OS5.
         return screen_lines_def
-    
+
     try:
         import termios
         import curses
     except ImportError:
         return screen_lines_def
-    
+
     # There is a bug in curses, where *sometimes* it fails to properly
     # initialize, and then after the endwin() call is made, the
     # terminal is left in an unusable state.  Rather than trying to
@@ -114,7 +115,7 @@ def _detect_screen_size(screen_lines_def):
     except AttributeError:
         # Curses on Solaris may not be complete, so we can't use it there
         return screen_lines_def
-    
+
     screen_lines_real,screen_cols = scr.getmaxyx()
     curses.endwin()
 
@@ -148,7 +149,7 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None) -> None:
     If no system pager works, the string is sent through a 'dumb pager'
     written in python, very simplistic.
     """
-    
+
     # for compatibility with mime-bundle form:
     if isinstance(strng, dict):
         strng = strng['text/plain']
@@ -260,7 +261,7 @@ def page(data, start: int = 0, screen_lines: int = 0, pager_cmd=None):
             return
         except TryNext:
             pass
-    
+
     # fallback on default pager
     return pager_page(data, start, screen_lines, pager_cmd)
 
@@ -276,12 +277,12 @@ def page_file(fname, start=0, pager_cmd=None):
         if os.environ['TERM'] in ['emacs','dumb']:
             raise EnvironmentError
         system(pager_cmd + ' ' + fname)
-    except:
+    except Exception:
         try:
             if start > 0:
                 start -= 1
             page(open(fname, encoding="utf-8").read(), start)
-        except:
+        except Exception:
             print('Unable to show file',repr(fname))
 
 
@@ -298,12 +299,12 @@ def get_pager_cmd(pager_cmd=None):
     if pager_cmd is None:
         try:
             pager_cmd = os.environ['PAGER']
-        except:
+        except KeyError:
             pager_cmd = default_pager_cmd
-    
+
     if pager_cmd == 'less' and '-r' not in os.environ.get('LESS', '').lower():
         pager_cmd += ' -R'
-    
+
     return pager_cmd
 
 

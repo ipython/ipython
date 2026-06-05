@@ -8,6 +8,7 @@ Authors:
 * Fernando Perez
 * Alexander Belchenko (e-mail: bialix AT ukr.net)
 """
+from __future__ import annotations
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
@@ -87,7 +88,7 @@ def _restore_term_title_xterm():
         )
         return
 
-    sys.stdout.write('\033[23;0t') 
+    sys.stdout.write('\033[23;0t')
     _xterm_term_title_saved = False
 
 

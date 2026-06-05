@@ -7,6 +7,10 @@ Inheritance diagram:
    :parts: 3
 """
 
+from __future__ import annotations
+
+import builtins
+
 import os
 import re
 import string
@@ -17,18 +21,12 @@ from string import Formatter
 from pathlib import Path
 
 from typing import (
-    List,
-    Dict,
-    Tuple,
-    Optional,
     cast,
     Any,
-    Union,
     TypeVar,
+    Self,
 )
 from collections.abc import Sequence, Mapping, Callable, Iterator
-
-from typing import Self
 
 
 class LSString(str):
@@ -47,11 +45,11 @@ class LSString(str):
     Such strings are very useful to efficiently interact with the shell, which
     typically only understands whitespace-separated options for commands."""
 
-    __list: List[str]
+    __list: list[str]
     __spstr: str
-    __paths: List[Path]
+    __paths: list[Path]
 
-    def get_list(self) -> List[str]:
+    def get_list(self) -> list[str]:
         try:
             return self.__list
         except AttributeError:
@@ -74,7 +72,7 @@ class LSString(str):
 
     n = nlstr = property(get_nlstr)
 
-    def get_paths(self) -> List[Path]:
+    def get_paths(self) -> builtins.list[Path]:
         try:
             return self.__paths
         except AttributeError:
@@ -111,7 +109,7 @@ class SList(list[Any]):
 
     __spstr: str
     __nlstr: str
-    __paths: List[Path]
+    __paths: list[Path]
 
     def get_list(self) -> Self:
         return self
@@ -136,7 +134,7 @@ class SList(list[Any]):
 
     n = nlstr = property(get_nlstr)
 
-    def get_paths(self) -> List[Path]:
+    def get_paths(self) -> builtins.list[Path]:
         try:
             return self.__paths
         except AttributeError:
@@ -147,9 +145,9 @@ class SList(list[Any]):
 
     def grep(
         self,
-        pattern: Union[str, Callable[[Any], re.Match[str] | None]],
+        pattern: str | Callable[[Any], re.Match[str] | None],
         prune: bool = False,
-        field: Optional[int] = None,
+        field: int | None = None,
     ) -> Self:
         """Return all strings matching 'pattern' (a regex or callable)
 
@@ -185,7 +183,7 @@ class SList(list[Any]):
         else:
             return type(self)([el for el in self if not pred(match_target(el))])  # type: ignore [no-untyped-call]
 
-    def fields(self, *fields: List[str]) -> List[List[str]]:
+    def fields(self, *fields: builtins.list[str]) -> builtins.list[builtins.list[str]]:
         """Collect whitespace-separated fields from string list
 
         Allows quick awk-like usage of string lists.
@@ -223,7 +221,7 @@ class SList(list[Any]):
 
     def sort(  # type:ignore[override]
         self,
-        field: Optional[List[str]] = None,
+        field: builtins.list[str] | None = None,
         nums: bool = False,
     ) -> Self:
         """sort by specified fields (see fields())
@@ -290,7 +288,7 @@ def indent(instr: str, nspaces: int = 4, ntabs: int = 0, flatten: bool = False) 
         return outstr
 
 
-def list_strings(arg: Union[str, List[str]]) -> List[str]:
+def list_strings(arg: str | list[str]) -> list[str]:
     """Always return a list of strings, given a string or list of strings
     as input.
 
@@ -452,7 +450,7 @@ class EvalFormatter(Formatter):
         Out[3]: 'll'
     """
 
-    def get_field(self, name: str, args: Any, kwargs: Any) -> Tuple[Any, str]:
+    def get_field(self, name: str, args: Any, kwargs: Any) -> tuple[Any, str]:
         v = eval(name, kwargs, kwargs)
         return v, name
 
@@ -462,13 +460,13 @@ class EvalFormatter(Formatter):
 
 class FullEvalFormatter(Formatter):
     """A String Formatter that allows evaluation of simple expressions.
-    
+
     Any time a format key is not found in the kwargs,
     it will be tried as an expression in the kwargs namespace.
-    
+
     Note that this version allows slicing using [1:2], so you cannot specify
     a format string. Use :class:`EvalFormatter` to permit format strings.
-    
+
     Examples
     --------
     ::
@@ -489,7 +487,7 @@ class FullEvalFormatter(Formatter):
         self, format_string: str, args: Sequence[Any], kwargs: Mapping[str, Any]
     ) -> str:
         result = []
-        conversion: Optional[str]
+        conversion: str | None
         for literal_text, field_name, format_spec, conversion in self.parse(
             format_string
         ):
@@ -544,7 +542,7 @@ class DollarFormatter(FullEvalFormatter):
         r"(.*?)\$(\$?[\w\.]+)(?=([^']*'[^']*')*[^']*$)"
     )
 
-    def parse(self, fmt_string: str) -> Iterator[Tuple[Any, Any, Any, Any]]:
+    def parse(self, fmt_string: str) -> Iterator[tuple[Any, Any, Any, Any]]:
         for literal_txt, field_name, format_spec, conversion in Formatter.parse(
             self, fmt_string
         ):
@@ -560,7 +558,7 @@ class DollarFormatter(FullEvalFormatter):
                     yield (txt + new_txt, new_field, "", None)
                     txt = ""
                 continue_from = m.end()
-            
+
             # Re-yield the {foo} style pattern
             yield (txt + literal_txt[continue_from:], field_name, format_spec, conversion)
 
@@ -573,8 +571,8 @@ class DollarFormatter(FullEvalFormatter):
 
 
 def _col_chunks(
-    l: List[int], max_rows: int, row_first: bool = False
-) -> Iterator[List[int]]:
+    l: list[int], max_rows: int, row_first: bool = False
+) -> Iterator[list[int]]:
     """Yield successive max_rows-sized column chunks from l."""
     if row_first:
         ncols = (len(l) // max_rows) + (len(l) % max_rows > 0)
@@ -586,8 +584,8 @@ def _col_chunks(
 
 
 def _find_optimal(
-    rlist: List[int], row_first: bool, separator_size: int, displaywidth: int
-) -> Dict[str, Any]:
+    rlist: list[int], row_first: bool, separator_size: int, displaywidth: int
+) -> dict[str, Any]:
     """Calculate optimal info to columnize a list of string"""
     for max_rows in range(1, len(rlist) + 1):
         col_widths = list(map(max, _col_chunks(rlist, max_rows, row_first)))
@@ -605,7 +603,7 @@ def _find_optimal(
 T = TypeVar("T")
 
 
-def _get_or_default(mylist: List[T], i: int, default: T) -> T:
+def _get_or_default(mylist: list[T], i: int, default: T) -> T:
     """return list item number, or default if don't exist"""
     if i >= len(mylist):
         return default
@@ -614,7 +612,7 @@ def _get_or_default(mylist: List[T], i: int, default: T) -> T:
 
 
 def get_text_list(
-    list_: List[str], last_sep: str = " and ", sep: str = ", ", wrap_item_with: str = ""
+    list_: list[str], last_sep: str = " and ", sep: str = ", ", wrap_item_with: str = ""
 ) -> str:
     """
     Return a string with a natural enumeration of items

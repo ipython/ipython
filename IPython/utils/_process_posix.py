@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Posix-specific implementation of process utilities.
 
 This file is only meant to be imported by process.py, not by end-users.
@@ -99,7 +100,7 @@ class ProcessHandler:
 
         # Get likely encoding for the output.
         enc = DEFAULT_ENCODING
-        
+
         # Patterns to match on the output, for pexpect.  We read input and
         # allow either a short timeout or EOF
         patterns = [pexpect.TIMEOUT, pexpect.EOF]

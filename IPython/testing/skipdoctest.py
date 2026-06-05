@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Decorators marks that a doctest should be skipped.
 
 The IPython.testing.decorators module triggers various extra imports, including

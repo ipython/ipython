@@ -201,9 +201,8 @@ from dataclasses import dataclass
 from functools import cached_property, partial
 from types import SimpleNamespace
 from typing import (
-    Union,
     Any,
-    Optional,
+    Union,
     TYPE_CHECKING,
     TypeVar,
     Literal,
@@ -336,7 +335,7 @@ def provisionalcompleter(action='ignore'):
         yield
 
 
-def has_open_quotes(s: str) -> Union[str, bool]:
+def has_open_quotes(s: str) -> str | bool:
     """Return whether a string has open quotes.
 
     This simply counts whether the number of quote characters of either type in
@@ -508,7 +507,7 @@ class Completion:
         end: int,
         text: str,
         *,
-        type: Optional[str] = None,
+        type: str | None = None,
         _origin="",
         signature="",
     ) -> None:
@@ -565,7 +564,7 @@ class SimpleCompletion:
 
     __slots__ = ["text", "type"]
 
-    def __init__(self, text: str, *, type: Optional[str] = None):
+    def __init__(self, text: str, *, type: str | None = None):
         self.text = text
         self.type = type
 
@@ -581,7 +580,7 @@ class _MatcherResultBase(TypedDict):
 
     #: Whether to suppress results from all other matchers (True), some
     #: matchers (set of identifiers) or none (False); default is False.
-    suppress: NotRequired[Union[bool, set[str]]]
+    suppress: NotRequired[bool | set[str]]
 
     #: Identifiers of matchers which should NOT be suppressed when this matcher
     #: requests to suppress all other matchers; defaults to an empty set.
@@ -609,7 +608,7 @@ class _JediMatcherResult(_MatcherResultBase):
     completions: Iterator[_JediCompletionLike]
 
 
-AnyMatcherCompletion = Union[_JediCompletionLike, SimpleCompletion]
+AnyMatcherCompletion = _JediCompletionLike | SimpleCompletion
 AnyCompletion = TypeVar("AnyCompletion", AnyMatcherCompletion, Completion)
 
 
@@ -641,7 +640,7 @@ class CompletionContext:
     #: Matchers can use this information to abort early.
     #: The built-in Jedi matcher is currently excepted from this limit.
     # If not given, return all possible completions.
-    limit: Optional[int]
+    limit: int | None
 
     @cached_property
     def text_until_cursor(self) -> str:
@@ -653,7 +652,7 @@ class CompletionContext:
 
 
 #: Matcher results for API v2.
-MatcherResult = Union[SimpleMatcherResult, _JediMatcherResult]
+MatcherResult = SimpleMatcherResult | _JediMatcherResult
 
 
 class _MatcherAPIv1Base(Protocol):
@@ -667,7 +666,7 @@ class _MatcherAPIv1Base(Protocol):
 
 class _MatcherAPIv1Total(_MatcherAPIv1Base, Protocol):
     #: API version
-    matcher_api_version: Optional[Literal[1]]
+    matcher_api_version: Literal[1] | None
 
     def __call__(self, text: str) -> list[str]:
         """Call signature."""
@@ -675,7 +674,7 @@ class _MatcherAPIv1Total(_MatcherAPIv1Base, Protocol):
 
 
 #: Protocol describing Matcher API v1.
-MatcherAPIv1: TypeAlias = Union[_MatcherAPIv1Base, _MatcherAPIv1Total]
+MatcherAPIv1: TypeAlias = _MatcherAPIv1Base | _MatcherAPIv1Total
 
 
 class MatcherAPIv2(Protocol):
@@ -692,7 +691,7 @@ class MatcherAPIv2(Protocol):
     __qualname__: str
 
 
-Matcher: TypeAlias = Union[MatcherAPIv1, MatcherAPIv2]
+Matcher: TypeAlias = MatcherAPIv1 | MatcherAPIv2
 
 
 def _is_matcher_v1(matcher: Matcher) -> TypeGuard[MatcherAPIv1]:
@@ -738,8 +737,8 @@ def has_any_completions(result: MatcherResult) -> bool:
 
 def completion_matcher(
     *,
-    priority: Optional[float] = None,
-    identifier: Optional[str] = None,
+    priority: float | None = None,
+    identifier: str | None = None,
     api_version: int = 1,
 ) -> Callable[[Matcher], Matcher]:
     """Adds attributes describing the matcher.
@@ -1125,7 +1124,7 @@ class Completer(Configurable):
         except IndexError:
             return None
 
-    def global_matches(self, text: str, context: Optional[CompletionContext] = None):
+    def global_matches(self, text: str, context: CompletionContext | None = None):
         """Compute matches when text is a simple name.
 
         Return a list of all keywords, built-in functions and names currently
@@ -1255,7 +1254,7 @@ class Completer(Configurable):
         self,
         text: str,
         include_prefix: bool = True,
-        context: Optional[CompletionContext] = None,
+        context: CompletionContext | None = None,
     ) -> tuple[Sequence[str], str]:
         m2 = self._ATTR_MATCH_RE.match(text)
         if not m2:
@@ -1404,7 +1403,7 @@ class Completer(Configurable):
         return self._auto_import_func
 
 
-def get__all__entries(obj):
+def get__all__entries(obj: Any) -> list[str]:
     """returns the strings in the __all__ attribute"""
     try:
         words = getattr(obj, '__all__')
@@ -1429,7 +1428,7 @@ class _DictKeyState(enum.Flag):
     IN_TUPLE = enum.auto()
 
 
-def _parse_tokens(c):
+def _parse_tokens(c: str) -> list[tokenize.TokenInfo]:
     """Parse tokens even if there is an error."""
     tokens = []
     token_generator = tokenize.generate_tokens(iter(c.splitlines()).__next__)
@@ -1442,7 +1441,7 @@ def _parse_tokens(c):
             return tokens
 
 
-def _match_number_in_dict_key_prefix(prefix: str) -> Union[str, None]:
+def _match_number_in_dict_key_prefix(prefix: str) -> str | None:
     """Match any valid Python numeric literal in a prefix of dictionary keys.
 
     References:
@@ -1485,10 +1484,10 @@ _INT_FORMATS = {
 
 
 def match_dict_keys(
-    keys: list[Union[str, bytes, tuple[Union[str, bytes], ...]]],
+    keys: list[str | bytes | tuple[str | bytes, ...]],
     prefix: str,
     delims: str,
-    extra_prefix: Optional[tuple[Union[str, bytes], ...]] = None,
+    extra_prefix: tuple[str | bytes, ...] | None = None,
 ) -> tuple[str, int, dict[str, _DictKeyState]]:
     """Used by dict_key_matches, matching the prefix to a list of keys
 
@@ -1539,7 +1538,7 @@ def match_dict_keys(
         return True
 
     filtered_key_is_final: dict[
-        Union[str, bytes, int, float], _DictKeyState
+        str | bytes | int | float, _DictKeyState
     ] = defaultdict(lambda: _DictKeyState.BASELINE)
 
     for k in keys:
@@ -1601,7 +1600,7 @@ def match_dict_keys(
 
     matched: dict[str, _DictKeyState] = {}
 
-    str_key: Union[str, bytes]
+    str_key: str | bytes
 
     for key in filtered_keys:
         if isinstance(key, (int, float)):
@@ -1927,7 +1926,7 @@ def _convert_matcher_v1_result_to_v2_no_no(
 def _convert_matcher_v1_result_to_v2(
     matches: Sequence[str],
     type: str,
-    fragment: Optional[str] = None,
+    fragment: str | None = None,
     suppress_if_matches: bool = False,
 ) -> SimpleMatcherResult:
     """Utility to help with transition"""
@@ -2904,7 +2903,7 @@ class IPCompleter(Completer):
         matches = self.python_func_kw_matches(context.token)
         return _convert_matcher_v1_result_to_v2_no_no(matches, type="param")
 
-    def python_func_kw_matches(self, text):
+    def python_func_kw_matches(self, text: str) -> list[str]:
         """Match named parameters (kwargs) of the last open function.
 
         .. deprecated:: 8.6
@@ -2981,7 +2980,7 @@ class IPCompleter(Completer):
             for namedArg in set(namedArgs) - usedNamedArgs:
                 if namedArg.startswith(text):
                     argMatches.append("%s=" %namedArg)
-        except:
+        except Exception:
             pass
 
         return argMatches
@@ -3170,7 +3169,7 @@ class IPCompleter(Completer):
         }
 
     @context_matcher()
-    def latex_name_matcher(self, context: CompletionContext):
+    def latex_name_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
         """Match Latex syntax for unicode characters.
 
         This does both ``\\alp`` -> ``\\alpha`` and ``\\alpha`` -> ``α``
@@ -3204,7 +3203,7 @@ class IPCompleter(Completer):
         return '', ()
 
     @context_matcher()
-    def custom_completer_matcher(self, context):
+    def custom_completer_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
         """Dispatch custom completer.
 
         If a match is found, suppresses all other matchers except for Jedi.
@@ -3217,7 +3216,7 @@ class IPCompleter(Completer):
         result["do_not_suppress"] = {_get_matcher_id(self._jedi_matcher)}
         return result
 
-    def dispatch_custom_completer(self, text):
+    def dispatch_custom_completer(self, text: str) -> list[str] | None:
         """
         .. deprecated:: 8.6
             You can use :meth:`custom_completer_matcher` instead.
@@ -3321,7 +3320,7 @@ class IPCompleter(Completer):
                       category=ProvisionalCompleterWarning, stacklevel=2)
 
         seen = set()
-        profiler:Optional[cProfile.Profile]
+        profiler: cProfile.Profile | None
         try:
             if self.profile_completions:
                 import cProfile
@@ -3689,7 +3688,7 @@ class IPCompleter(Completer):
             result["matched_fragment"] = result.get("matched_fragment", context.token)
 
             if not suppressed_matchers:
-                suppression_recommended: Union[bool, set[str]] = result.get(
+                suppression_recommended: bool | set[str] = result.get(
                     "suppress", False
                 )
 
@@ -3754,7 +3753,7 @@ class IPCompleter(Completer):
         return sorted(matches, key=lambda x: completions_sorting_key(x.text))
 
     @context_matcher()
-    def fwd_unicode_matcher(self, context: CompletionContext):
+    def fwd_unicode_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
         """Same as :any:`fwd_unicode_match`, but adopted to new Matcher API."""
         # TODO: use `context.limit` to terminate early once we matched the maximum
         #  number that will be used downstream; can be added as an optional to

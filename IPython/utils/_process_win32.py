@@ -3,6 +3,8 @@
 This file is only meant to be imported by process.py, not by end-users.
 """
 
+from __future__ import annotations
+
 import ctypes
 import os
 import subprocess
@@ -13,7 +15,6 @@ from ctypes.wintypes import HLOCAL, LPCWSTR
 from subprocess import STDOUT
 from threading import Thread
 from types import TracebackType
-from typing import List, Optional
 
 from . import py3compat
 from ._process_common import arg_split as py_arg_split
@@ -43,7 +44,7 @@ class AvoidUNCPath:
             os.system(cmd)
     """
 
-    def __enter__(self) -> Optional[str]:
+    def __enter__(self) -> str | None:
         self.path = os.getcwd()
         self.is_unc_path = self.path.startswith(r"\\")
         if self.is_unc_path:
@@ -57,9 +58,9 @@ class AvoidUNCPath:
 
     def __exit__(
         self,
-        exc_type: Optional[type[BaseException]],
-        exc_value: Optional[BaseException],
-        traceback: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
     ) -> None:
         if self.is_unc_path:
             os.chdir(self.path)
@@ -113,7 +114,7 @@ def _system_body(p: subprocess.Popen[bytes]) -> int:
     return result
 
 
-def system(cmd: str) -> Optional[int]:
+def system(cmd: str) -> int | None:
     """Win32 version of os.system() that works with network shares.
 
     Note that this implementation returns None, as meant for use in IPython.
@@ -175,7 +176,7 @@ try:
 
     def arg_split(
         commandline: str, posix: bool = False, strict: bool = True
-    ) -> List[str]:
+    ) -> list[str]:
         """Split a command line's arguments in a shell-like manner.
 
         This is a special version for windows that use a ctypes call to CommandLineToArgvW

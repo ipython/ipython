@@ -2,13 +2,14 @@
 
 Authors : MinRK, gregcaporaso, dannystaple
 """
+from __future__ import annotations
+
 from html import escape as html_escape
 from os.path import exists, isfile, splitext, abspath, join, isdir
 from os import walk, sep, fsdecode
 
 from IPython.core.display import DisplayObject, TextDisplayObject
 
-from typing import Tuple, Optional
 from collections.abc import Iterable
 
 __all__ = ['Audio', 'IFrame', 'YouTubeVideo', 'VimeoVideo', 'ScribdDocument',
@@ -167,7 +168,7 @@ class Audio(DisplayObject):
         return val
 
     @staticmethod
-    def _validate_and_normalize_with_numpy(data, normalize) -> Tuple[bytes, int]:
+    def _validate_and_normalize_with_numpy(data, normalize) -> tuple[bytes, int]:
         import numpy as np
 
         data = np.array(data, dtype=float)
@@ -182,7 +183,7 @@ class Audio(DisplayObject):
             data = data.T.ravel()
         else:
             raise ValueError('Array audio input must be a 1D or 2D array')
-        
+
         max_abs_value = np.max(np.abs(data))
         normalization_factor = Audio._get_normalization_factor(max_abs_value, normalize)
         scaled = data / normalization_factor * 32767
@@ -250,7 +251,7 @@ class Audio(DisplayObject):
             return 'autoplay="autoplay"'
         else:
             return ''
-    
+
     def element_id_attr(self):
         if (self.element_id):
             return 'id="{element_id}"'.format(element_id=self.element_id)
@@ -274,7 +275,7 @@ class IFrame:
         """
 
     def __init__(
-        self, src, width, height, extras: Optional[Iterable[str]] = None, **kwargs
+        self, src, width, height, extras: Iterable[str] | None = None, **kwargs
     ):
         if extras is None:
             extras = []
@@ -322,7 +323,7 @@ class YouTubeVideo(IFrame):
 
     Other parameters can be provided as documented at
     https://developers.google.com/youtube/player_parameters#Parameters
-    
+
     When converting the notebook using nbconvert, a jpeg representation of the video
     will be inserted in the document.
     """

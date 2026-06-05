@@ -66,6 +66,8 @@ Inheritance diagram:
 # the file COPYING, distributed as part of this software.
 # *****************************************************************************
 
+from __future__ import annotations
+
 import functools
 import inspect
 import linecache
@@ -76,7 +78,7 @@ import types
 import warnings
 from collections.abc import Sequence
 from types import TracebackType
-from typing import Any, List, Optional, Tuple
+from typing import Any
 from collections.abc import Callable
 
 import stack_data
@@ -151,9 +153,9 @@ class ListTB(TBTools):
     def structured_traceback(
         self,
         etype: type,
-        evalue: Optional[BaseException],
-        etb: Optional[TracebackType] = None,
-        tb_offset: Optional[int] = None,
+        evalue: BaseException | None,
+        etb: TracebackType | None = None,
+        tb_offset: int | None = None,
         context: int = 5,
     ) -> list[str]:
         """Return a color formatted string with the traceback info.
@@ -433,7 +435,7 @@ class ListTB(TBTools):
         # Lifted from traceback.py
         try:
             return str(value)
-        except:
+        except Exception:
             return "<unprintable %s object>" % type(value).__name__
 
 
@@ -712,7 +714,7 @@ class VerboseTB(TBTools):
         # Get (safely) a string form of the exception info
         try:
             etype_str, evalue_str = map(str, (etype, evalue))
-        except:
+        except Exception:
             # User exception is improperly defined.
             etype, evalue = str, sys.exc_info()[:2]
             etype_str, evalue_str = map(str, (etype, evalue))
@@ -741,10 +743,10 @@ class VerboseTB(TBTools):
     def format_exception_as_a_whole(
         self,
         etype: type,
-        evalue: Optional[BaseException],
-        etb: Optional[TracebackType],
+        evalue: BaseException | None,
+        etb: TracebackType | None,
         context: int,
-        tb_offset: Optional[int],
+        tb_offset: int | None,
     ) -> list[list[str]]:
         """Formats the header, traceback and exception message for a single exception.
 
@@ -831,7 +833,7 @@ class VerboseTB(TBTools):
         )
 
         # Collect traceback frames and their module sizes.
-        cf: Optional[TracebackType] = etb
+        cf: TracebackType | None = etb
         tbs: list[tuple[TracebackType, int]] = []
         while cf is not None:
             try:
@@ -898,9 +900,9 @@ class VerboseTB(TBTools):
     def structured_traceback(
         self,
         etype: type,
-        evalue: Optional[BaseException],
-        etb: Optional[TracebackType] = None,
-        tb_offset: Optional[int] = None,
+        evalue: BaseException | None,
+        etb: TracebackType | None = None,
+        tb_offset: int | None = None,
         context: int = 5,
     ) -> list[str]:
         """Return a nice text document describing the traceback."""
@@ -1129,7 +1131,7 @@ class FormattedTB(VerboseTB, ListTB):
         """Convert a structured traceback (a list) to a string."""
         return self.tb_join_char.join(stb)
 
-    def set_mode(self, mode: Optional[str] = None) -> None:
+    def set_mode(self, mode: str | None = None) -> None:
         """Switch to the desired mode.
 
         If mode is not specified, cycles through the available modes."""
@@ -1212,9 +1214,9 @@ class AutoFormattedTB(FormattedTB):
     def structured_traceback(
         self,
         etype: type,
-        evalue: Optional[BaseException],
-        etb: Optional[TracebackType] = None,
-        tb_offset: Optional[int] = None,
+        evalue: BaseException | None,
+        etb: TracebackType | None = None,
+        tb_offset: int | None = None,
         context: int = 5,
     ) -> list[str]:
         # tb: TracebackType or tupleof tb types ?

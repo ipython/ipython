@@ -202,5 +202,5 @@ class PdbClosureBackport:
                 sys.stdout = save_stdout
                 sys.stdin = save_stdin
                 sys.displayhook = save_displayhook
-        except:
+        except Exception:
             self._error_exc()

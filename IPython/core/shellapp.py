@@ -7,11 +7,13 @@ launch InteractiveShell instances, load extensions, etc.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from __future__ import annotations
+
 import glob
 from itertools import chain
 import os
 import sys
-import typing as t
+from typing import Any
 
 from traitlets.config.application import boolean_flag
 from traitlets.config.configurable import Configurable
@@ -125,9 +127,9 @@ class MatplotlibBackendCaselessStrEnum(CaselessStrEnum):
     """
 
     def __init__(
-        self: CaselessStrEnum[t.Any],
-        default_value: t.Any = Undefined,
-        **kwargs: t.Any,
+        self: CaselessStrEnum[Any],
+        default_value: Any = Undefined,
+        **kwargs: Any,
     ) -> None:
         super().__init__(None, default_value=default_value, **kwargs)
 
@@ -329,7 +331,7 @@ class InteractiveShellApp(Configurable):
                 try:
                     self.log.info("Loading IPython extension: %s", ext)
                     self.shell.extension_manager.load_extension(ext)
-                except:
+                except Exception:
                     if self.reraise_ipython_extension_failures:
                         raise
                     msg = ("Error in loading extension: {ext}\n"
@@ -338,7 +340,7 @@ class InteractiveShellApp(Configurable):
                                location=self.profile_dir.location
                            ))
                     self.log.warning(msg, exc_info=True)
-        except:
+        except Exception:
             if self.reraise_ipython_extension_failures:
                 raise
             self.log.warning("Unknown error in loading extensions:", exc_info=True)
@@ -374,11 +376,11 @@ class InteractiveShellApp(Configurable):
                     self.log.info("Running code in user namespace: %s" %
                                   line)
                     self.shell.run_cell(line, store_history=False)
-                except:
+                except Exception:
                     self.log.warning("Error in executing line in user "
                                   "namespace: %s" % line)
                     self.shell.showtraceback()
-        except:
+        except Exception:
             self.log.warning("Unknown error in handling IPythonApp.exec_lines:")
             self.shell.showtraceback()
 
@@ -425,7 +427,7 @@ class InteractiveShellApp(Configurable):
             self.log.debug("Running PYTHONSTARTUP file %s...", python_startup)
             try:
                 self._exec_file(python_startup)
-            except:
+            except Exception:
                 self.log.warning("Unknown error in handling PYTHONSTARTUP file %s:", python_startup)
                 self.shell.showtraceback()
         for startup_dir in startup_dirs[::-1]:
@@ -438,7 +440,7 @@ class InteractiveShellApp(Configurable):
         try:
             for fname in sorted(startup_files):
                 self._exec_file(fname)
-        except:
+        except Exception:
             self.log.warning("Unknown error in handling startup files:")
             self.shell.showtraceback()
 
@@ -451,7 +453,7 @@ class InteractiveShellApp(Configurable):
         try:
             for fname in self.exec_files:
                 self._exec_file(fname)
-        except:
+        except Exception:
             self.log.warning("Unknown error in handling IPythonApp.exec_files:")
             self.shell.showtraceback()
 
@@ -463,7 +465,7 @@ class InteractiveShellApp(Configurable):
                 self.log.info("Running code given at command line (c=): %s" %
                               line)
                 self.shell.run_cell(line, store_history=False)
-            except:
+            except Exception:
                 self.log.warning("Error in executing line in user namespace: %s" %
                               line)
                 self.shell.showtraceback()
@@ -481,7 +483,7 @@ class InteractiveShellApp(Configurable):
                     self.exit(2)
             try:
                 self._exec_file(fname, shell_futures=True)
-            except:
+            except Exception:
                 self.shell.showtraceback(tb_offset=4)
                 if not self.interact:
                     self.exit(1)

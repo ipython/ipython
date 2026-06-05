@@ -18,8 +18,11 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import annotations
+
 import sys
 import traceback
+import types
 from pprint import pformat
 from pathlib import Path
 
@@ -31,9 +34,6 @@ from IPython.core.release import author_email
 from IPython.utils.sysinfo import sys_info
 
 from IPython.core.release import __version__ as version
-
-from typing import Optional, Dict
-import types
 
 #-----------------------------------------------------------------------------
 # Code
@@ -97,14 +97,14 @@ class CrashHandler:
 
     message_template = _default_message_template
     section_sep = '\n\n'+'*'*75+'\n\n'
-    info: Dict[str, Optional[str]]
+    info: dict[str, str | None]
 
     def __init__(
         self,
         app: Application,
-        contact_name: Optional[str] = None,
-        contact_email: Optional[str] = None,
-        bug_tracker: Optional[str] = None,
+        contact_name: str | None = None,
+        contact_email: str | None = None,
+        bug_tracker: str | None = None,
         show_crash_traceback: bool = True,
         call_pdb: bool = False,
     ):
@@ -157,7 +157,7 @@ class CrashHandler:
         # this prevents unlikely errors in the crash handling from entering an
         # infinite loop.
         sys.excepthook = sys.__excepthook__
-        
+
 
         # Use this ONLY for developer debugging (keep commented out for release)
         ipython_dir = getattr(self.app, "ipython_dir", None)
@@ -191,7 +191,7 @@ class CrashHandler:
         # and generate a complete report on disk
         try:
             report = open(report_name, "w", encoding="utf-8")
-        except:
+        except OSError:
             print('Could not create crash report on disk.', file=sys.stderr)
             return
 
@@ -220,7 +220,7 @@ class CrashHandler:
             rpt_add("Application name: %s\n\n" % self.app.name)
             rpt_add("Current user configuration structure:\n\n")
             rpt_add(config)
-        except:
+        except Exception:
             pass
         rpt_add(sec_sep+'Crash traceback:\n\n' + traceback)
 
@@ -232,7 +232,7 @@ def crash_handler_lite(
 ) -> None:
     """a light excepthook, adding a small message to the usual traceback"""
     traceback.print_exception(etype, evalue, tb)
-    
+
     from IPython.core.interactiveshell import InteractiveShell
     if InteractiveShell.initialized():
         # we are in a Shell environment, give %magic example

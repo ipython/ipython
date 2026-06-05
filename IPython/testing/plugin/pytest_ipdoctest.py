@@ -1,3 +1,4 @@
+from __future__ import annotations
 # Based on Pytest doctest.py
 # Original license:
 # The MIT License (MIT)
@@ -19,12 +20,7 @@ from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
-    Dict,
-    List,
-    Optional,
-    Tuple,
     Type,
-    Union,
 )
 from re import Pattern
 from collections.abc import Callable, Generator, Iterable, Sequence
@@ -69,7 +65,7 @@ DOCTEST_REPORT_CHOICES = (
 # Lazy definition of runner class
 RUNNER_CLASS = None
 # Lazy definition of output checker class
-CHECKER_CLASS: Optional[Type["IPDoctestOutputChecker"]] = None
+CHECKER_CLASS: Type[IPDoctestOutputChecker] | None = None
 
 pytest_version = tuple([int(part) for part in pytest.__version__.split(".")])
 
@@ -133,7 +129,7 @@ def pytest_unconfigure() -> None:
 def pytest_collect_file(
     file_path: Path,
     parent: Collector,
-) -> Optional[Union["IPDoctestModule", "IPDoctestTextfile"]]:
+) -> IPDoctestModule | IPDoctestTextfile | None:
     config = parent.config
     if file_path.suffix == ".py":
         if config.option.ipdoctestmodules and not any(
@@ -153,7 +149,7 @@ if pytest_version[0] < 7:
     def pytest_collect_file(
         path,
         parent: Collector,
-    ) -> Optional[Union["IPDoctestModule", "IPDoctestTextfile"]]:
+    ) -> IPDoctestModule | IPDoctestTextfile | None:
         return _collect_file(Path(path), parent)
 
     _import_path = import_path
@@ -184,7 +180,7 @@ def _is_main_py(path: Path) -> bool:
 
 class ReprFailDoctest(TerminalRepr):
     def __init__(
-        self, reprlocation_lines: Sequence[Tuple[ReprFileLocation, Sequence[str]]]
+        self, reprlocation_lines: Sequence[tuple[ReprFileLocation, Sequence[str]]]
     ) -> None:
         self.reprlocation_lines = reprlocation_lines
 
@@ -196,12 +192,12 @@ class ReprFailDoctest(TerminalRepr):
 
 
 class MultipleDoctestFailures(Exception):
-    def __init__(self, failures: Sequence["doctest.DocTestFailure"]) -> None:
+    def __init__(self, failures: Sequence[doctest.DocTestFailure]) -> None:
         super().__init__()
         self.failures = failures
 
 
-def _init_runner_class() -> Type["IPDocTestRunner"]:
+def _init_runner_class() -> Type[IPDocTestRunner]:
     import doctest
     from .ipdoctest import IPDocTestRunner
 
@@ -214,8 +210,8 @@ def _init_runner_class() -> Type["IPDocTestRunner"]:
 
         def __init__(
             self,
-            checker: Optional["IPDoctestOutputChecker"] = None,
-            verbose: Optional[bool] = None,
+            checker: IPDoctestOutputChecker | None = None,
+            verbose: bool | None = None,
             optionflags: int = 0,
             continue_on_failure: bool = True,
         ) -> None:
@@ -225,8 +221,8 @@ def _init_runner_class() -> Type["IPDocTestRunner"]:
         def report_failure(
             self,
             out,
-            test: "doctest.DocTest",
-            example: "doctest.Example",
+            test: doctest.DocTest,
+            example: doctest.Example,
             got: str,
         ) -> None:
             failure = doctest.DocTestFailure(test, example, got)
@@ -238,9 +234,9 @@ def _init_runner_class() -> Type["IPDocTestRunner"]:
         def report_unexpected_exception(
             self,
             out,
-            test: "doctest.DocTest",
-            example: "doctest.Example",
-            exc_info: Tuple[Type[BaseException], BaseException, types.TracebackType],
+            test: doctest.DocTest,
+            example: doctest.Example,
+            exc_info: tuple[Type[BaseException], BaseException, types.TracebackType],
         ) -> None:
             if isinstance(exc_info[1], OutcomeException):
                 raise exc_info[1]
@@ -256,11 +252,11 @@ def _init_runner_class() -> Type["IPDocTestRunner"]:
 
 
 def _get_runner(
-    checker: Optional["IPDoctestOutputChecker"] = None,
-    verbose: Optional[bool] = None,
+    checker: IPDoctestOutputChecker | None = None,
+    verbose: bool | None = None,
     optionflags: int = 0,
     continue_on_failure: bool = True,
-) -> "IPDocTestRunner":
+) -> IPDocTestRunner:
     # We need this in order to do a lazy import on doctest
     global RUNNER_CLASS
     if RUNNER_CLASS is None:
@@ -276,31 +272,31 @@ def _get_runner(
 
 
 class IPDoctestItem(pytest.Item):
-    _user_ns_orig: Dict[str, Any]
+    _user_ns_orig: dict[str, Any]
 
     def __init__(
         self,
         name: str,
-        parent: "Union[IPDoctestTextfile, IPDoctestModule]",
-        runner: Optional["IPDocTestRunner"] = None,
-        dtest: Optional["doctest.DocTest"] = None,
+        parent: IPDoctestTextfile | IPDoctestModule,
+        runner: IPDocTestRunner | None = None,
+        dtest: doctest.DocTest | None = None,
     ) -> None:
         super().__init__(name, parent)
         self.runner = runner
         self.dtest = dtest
         self.obj = None
-        self.fixture_request: Optional[FixtureRequest] = None
+        self.fixture_request: FixtureRequest | None = None
         self._user_ns_orig = {}
 
     @classmethod
     def from_parent(  # type: ignore
         cls,
-        parent: "Union[IPDoctestTextfile, IPDoctestModule]",
+        parent: IPDoctestTextfile | IPDoctestModule,
         *,
         name: str,
-        runner: "IPDocTestRunner",
-        dtest: "doctest.DocTest",
-    ) -> "IPDoctestItem":
+        runner: IPDocTestRunner,
+        dtest: doctest.DocTest,
+    ) -> IPDoctestItem:
         # incompatible signature due to imposed limits on subclass
         """The public named constructor."""
         return super().from_parent(name=name, parent=parent, runner=runner, dtest=dtest)
@@ -347,7 +343,7 @@ class IPDoctestItem(pytest.Item):
         assert self.runner is not None
         _check_all_skipped(self.dtest)
         self._disable_output_capturing_for_darwin()
-        failures: List[doctest.DocTestFailure] = []
+        failures: list[doctest.DocTestFailure] = []
 
         # exec(compile(..., "single", ...), ...) puts result in builtins._
         had_underscore_value = hasattr(builtins, "_")
@@ -387,12 +383,10 @@ class IPDoctestItem(pytest.Item):
     def repr_failure(  # type: ignore[override]
         self,
         excinfo: ExceptionInfo[BaseException],
-    ) -> Union[str, TerminalRepr]:
+    ) -> str | TerminalRepr:
         import doctest
 
-        failures: Optional[
-            Sequence[Union[doctest.DocTestFailure, doctest.UnexpectedException]]
-        ] = None
+        failures: Sequence[doctest.DocTestFailure | doctest.UnexpectedException] | None = None
         if isinstance(
             excinfo.value, (doctest.DocTestFailure, doctest.UnexpectedException)
         ):
@@ -448,7 +442,7 @@ class IPDoctestItem(pytest.Item):
             reprlocation_lines.append((reprlocation, lines))
         return ReprFailDoctest(reprlocation_lines)
 
-    def reportinfo(self) -> Tuple[Union["os.PathLike[str]", str], Optional[int], str]:
+    def reportinfo(self) -> tuple[os.PathLike[str] | str, int | None, str]:
         assert self.dtest is not None
         return self.path, self.dtest.lineno, "[ipdoctest] %s" % self.name
 
@@ -459,7 +453,7 @@ class IPDoctestItem(pytest.Item):
             return Path(self.fspath)
 
 
-def _get_flag_lookup() -> Dict[str, int]:
+def _get_flag_lookup() -> dict[str, int]:
     import doctest
 
     return dict(
@@ -475,7 +469,7 @@ def _get_flag_lookup() -> Dict[str, int]:
     )
 
 
-def get_optionflags(parent: "IPDoctestModule") -> int:
+def get_optionflags(parent: IPDoctestModule) -> int:
     optionflags_str = parent.config.getini("ipdoctest_optionflags")
     flag_lookup_table = _get_flag_lookup()
     flag_acc = 0
@@ -537,7 +531,7 @@ class IPDoctestTextfile(pytest.Module):
             parent,
             *,
             fspath=None,
-            path: Optional[Path] = None,
+            path: Path | None = None,
             **kw,
         ):
             if path is not None:
@@ -547,7 +541,7 @@ class IPDoctestTextfile(pytest.Module):
             return super().from_parent(parent=parent, fspath=fspath, **kw)
 
 
-def _check_all_skipped(test: "doctest.DocTest") -> None:
+def _check_all_skipped(test: doctest.DocTest) -> None:
     """Raise pytest.skip() if all examples in the given DocTest have the SKIP
     option set."""
     import doctest
@@ -573,7 +567,7 @@ def _patch_unwrap_mock_aware() -> Generator[None, None, None]:
     real_unwrap = inspect.unwrap
 
     def _mock_aware_unwrap(
-        func: Callable[..., Any], *, stop: Optional[Callable[[Any], Any]] = None
+        func: Callable[..., Any], *, stop: Callable[[Any], Any] | None = None
     ) -> Any:
         try:
             if stop is None or stop is _is_mocked:
@@ -693,7 +687,7 @@ class IPDoctestModule(pytest.Module):
             parent,
             *,
             fspath=None,
-            path: Optional[Path] = None,
+            path: Path | None = None,
             **kw,
         ):
             if path is not None:
@@ -723,7 +717,7 @@ def _setup_fixtures(doctest_item: IPDoctestItem) -> FixtureRequest:
     return fixture_request
 
 
-def _init_checker_class() -> Type["IPDoctestOutputChecker"]:
+def _init_checker_class() -> Type[IPDoctestOutputChecker]:
     import doctest
     import re
     from .ipdoctest import IPDoctestOutputChecker
@@ -792,8 +786,8 @@ def _init_checker_class() -> Type["IPDoctestOutputChecker"]:
                 return got
             offset = 0
             for w, g in zip(wants, gots):
-                fraction: Optional[str] = w.group("fraction")
-                exponent: Optional[str] = w.group("exponent1")
+                fraction: str | None = w.group("fraction")
+                exponent: str | None = w.group("exponent1")
                 if exponent is None:
                     exponent = w.group("exponent2")
                 precision = 0 if fraction is None else len(fraction)
@@ -812,7 +806,7 @@ def _init_checker_class() -> Type["IPDoctestOutputChecker"]:
     return LiteralsOutputChecker
 
 
-def _get_checker() -> "IPDoctestOutputChecker":
+def _get_checker() -> IPDoctestOutputChecker:
     """Return a IPDoctestOutputChecker subclass that supports some
     additional options:
 
@@ -871,7 +865,7 @@ def _get_report_choice(key: str) -> int:
 
 
 @pytest.fixture(scope="session")
-def ipdoctest_namespace() -> Dict[str, Any]:
+def ipdoctest_namespace() -> dict[str, Any]:
     """Fixture that returns a :py:class:`dict` that will be injected into the
     namespace of ipdoctests."""
     return dict()

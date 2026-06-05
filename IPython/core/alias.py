@@ -7,6 +7,7 @@ Authors:
 * Fernando Perez
 * Brian Granger
 """
+from __future__ import annotations
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
@@ -30,8 +31,6 @@ from .error import UsageError
 from traitlets import List, Instance
 from logging import error
 
-import typing as t
-
 
 #-----------------------------------------------------------------------------
 # Utilities
@@ -40,7 +39,7 @@ import typing as t
 # This is used as the pattern for calls to split_user_input.
 shell_line_split = re.compile(r'^(\s*)()(\S+)(.*$)')
 
-def default_aliases() -> t.List[t.Tuple[str, str]]:
+def default_aliases() -> list[tuple[str, str]]:
     """Return list of shell aliases to auto-define.
     """
     # Note: the aliases defined here should be safe to use on a kernel
@@ -156,7 +155,7 @@ class Alias:
                                     "got: %r" % self.cmd)
 
         nargs = self.cmd.count('%s') - self.cmd.count('%%s')
-  
+
         if (nargs > 0) and (self.cmd.find('%l') >= 0):
             raise InvalidAliasError('The %s and %l specifiers are mutually '
                                     'exclusive in alias definitions.')
@@ -173,7 +172,7 @@ class Alias:
         if cmd.find('%l') >= 0:
             cmd = cmd.replace('%l', rest)
             rest = ''
-        
+
         if nargs==0:
             if cmd.find('%%s') >= 1:
                 cmd = cmd.replace('%%s', '%s')

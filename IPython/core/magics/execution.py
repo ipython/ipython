@@ -4,6 +4,8 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from __future__ import annotations
+
 
 import ast
 import bdb
@@ -21,7 +23,7 @@ import sys
 import time
 import timeit
 import signal
-from typing import Dict, Any
+from typing import Any
 from ast import (
     Assign,
     Call,
@@ -116,7 +118,7 @@ class TimeitResult:
             try:
                 "\xb1".encode(sys.stdout.encoding)
                 pm = "\xb1"
-            except:
+            except (UnicodeEncodeError, LookupError):
                 pass
         return "{mean} {pm} {std} per loop (mean {pm} std. dev. of {runs} run{run_plural}, {loops:,} loop{loop_plural} each)".format(
             pm=pm,
@@ -191,7 +193,7 @@ class Timer(timeit.Timer):
 class ExecutionMagics(Magics):
     """Magics related to code execution, debugging, profiling, etc."""
 
-    _transformers: Dict[str, Any] = {}
+    _transformers: dict[str, Any] = {}
 
     def __init__(self, shell):
         super(ExecutionMagics, self).__init__(shell)
@@ -1697,7 +1699,7 @@ def _format_time(timespan, precision=3):
         try:
             "μ".encode(sys.stdout.encoding)
             units = ["s", "ms", "μs", "ns"]
-        except:
+        except (UnicodeEncodeError, LookupError):
             pass
     scaling = [1, 1e3, 1e6, 1e9]
 

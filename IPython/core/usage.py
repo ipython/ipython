@@ -194,16 +194,16 @@ MAIN FEATURES
 * Auto-parentheses and auto-quotes (adapted from Nathan Gray's LazyPython)
 
   1. Auto-parentheses
-        
+
      Callable objects (i.e. functions, methods, etc) can be invoked like
      this (notice the commas between the arguments)::
-       
+
          In [1]: callable_ob arg1, arg2, arg3
-       
+
      and the input will be translated to this::
-       
+
          callable_ob(arg1, arg2, arg3)
-       
+
      This feature is off by default (in rare cases it can produce
      undesirable side-effects), but you can activate it at the command-line
      by starting IPython with `--autocall 1`, set it permanently in your
@@ -211,49 +211,49 @@ MAIN FEATURES
 
      You can force auto-parentheses by using '/' as the first character
      of a line.  For example::
-       
+
           In [1]: /globals             # becomes 'globals()'
-       
+
      Note that the '/' MUST be the first character on the line!  This
      won't work::
-       
+
           In [2]: print /globals    # syntax error
 
      In most cases the automatic algorithm should work, so you should
      rarely need to explicitly invoke /. One notable exception is if you
      are trying to call a function with a list of tuples as arguments (the
      parenthesis will confuse IPython)::
-       
+
           In [1]: zip (1,2,3),(4,5,6)  # won't work
-       
+
      but this will work::
-       
+
           In [2]: /zip (1,2,3),(4,5,6)
           ------> zip ((1,2,3),(4,5,6))
           Out[2]= [(1, 4), (2, 5), (3, 6)]
 
      IPython tells you that it has altered your command line by
      displaying the new command line preceded by -->.  e.g.::
-       
+
           In [18]: callable list
           -------> callable (list)
 
   2. Auto-Quoting
-    
+
      You can force auto-quoting of a function's arguments by using ',' as
      the first character of a line.  For example::
-       
+
           In [1]: ,my_function /home/me   # becomes my_function("/home/me")
 
      If you use ';' instead, the whole argument is quoted as a single
      string (while ',' splits on whitespace)::
-       
+
           In [2]: ,my_function a b c   # becomes my_function("a","b","c")
           In [3]: ;my_function a b c   # becomes my_function("a b c")
 
      Note that the ',' MUST be the first character on the line!  This
      won't work::
-       
+
           In [4]: x = ,my_function /home/me    # syntax error
 """
 

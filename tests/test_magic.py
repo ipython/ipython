@@ -19,7 +19,7 @@ from time import sleep
 from threading import Thread
 from subprocess import CalledProcessError
 from textwrap import dedent
-from unittest import TestCase, mock
+from unittest import mock
 
 import pytest
 
@@ -38,7 +38,7 @@ from IPython.core.magics import code, execution, logging, osm, script
 from IPython.core.history import HistoryOutput
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
-from IPython.utils.io import capture_output
+from IPython.utils.io import capture_output, temp_pyfile
 from IPython.utils.process import find_cmd
 from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory
 from IPython.utils.syspathcontext import prepended_to_syspath
@@ -71,19 +71,19 @@ def test_extract_code_ranges():
     assert actual == expected
 
 
-def test_extract_symbols():
-    source = """import foo\na = 10\ndef b():\n    return 42\n\n\nclass A: pass\n\n\n"""
-    symbols_args = ["a", "b", "A", "A,b", "A,a", "z"]
-    expected = [
-        ([], ["a"]),
-        (["def b():\n    return 42\n"], []),
-        (["class A: pass\n"], []),
-        (["class A: pass\n", "def b():\n    return 42\n"], []),
-        (["class A: pass\n"], ["a"]),
-        ([], ["z"]),
-    ]
-    for symbols, exp in zip(symbols_args, expected):
-        assert code.extract_symbols(source, symbols) == exp
+_EXTRACT_SYMBOLS_SOURCE = """import foo\na = 10\ndef b():\n    return 42\n\n\nclass A: pass\n\n\n"""
+
+
+@pytest.mark.parametrize("symbols,expected", [
+    ("a", ([], ["a"])),
+    ("b", (["def b():\n    return 42\n"], [])),
+    ("A", (["class A: pass\n"], [])),
+    ("A,b", (["class A: pass\n", "def b():\n    return 42\n"], [])),
+    ("A,a", (["class A: pass\n"], ["a"])),
+    ("z", ([], ["z"])),
+])
+def test_extract_symbols(symbols, expected):
+    assert code.extract_symbols(_EXTRACT_SYMBOLS_SOURCE, symbols) == expected
 
 
 def test_extract_symbols_raises_exception_with_non_python_code():
@@ -383,30 +383,21 @@ def test_reset_in_length():
     assert len(_ip.user_ns["In"]) == _ip.displayhook.prompt_count + 1
 
 
-class TestResetErrors(TestCase):
-    def test_reset_redefine(self):
-        @magics_class
-        class KernelMagics(Magics):
-            @line_magic
-            def less(self, shell):
-                pass
+def test_reset_redefine(caplog):
+    @magics_class
+    class KernelMagics(Magics):
+        @line_magic
+        def less(self, shell):
+            pass
 
-        _ip.register_magics(KernelMagics)
+    _ip.register_magics(KernelMagics)
 
-        with self.assertLogs() as cm:
-            # hack, we want to just capture logs, but assertLogs fails if not
-            # logs get produce.
-            # so log one things we ignore.
-            import logging as log_mod
+    import logging
+    with caplog.at_level(logging.INFO):
+        _ip.run_cell("reset -f")
 
-            log = log_mod.getLogger()
-            log.info("Nothing")
-            # end hack.
-            _ip.run_cell("reset -f")
-
-        assert len(cm.output) == 1
-        for out in cm.output:
-            assert "Invalid alias" not in out
+    for record in caplog.records:
+        assert "Invalid alias" not in record.getMessage()
 
 
 def test_tb_syntaxerror():
@@ -679,19 +670,19 @@ def test_reset_hard():
     assert monitor == [1]
 
 
-class TestXdel(tt.TempFileMixin):
-    def test_xdel(self):
-        """Test that references from %run are cleared by xdel."""
-        src = (
-            "class A(object):\n"
-            "    monitor = []\n"
-            "    def __del__(self):\n"
-            "        self.monitor.append(1)\n"
-            "a = A()\n"
-        )
-        self.mktmp(src)
+def test_xdel():
+    """Test that references from %run are cleared by xdel."""
+    src = (
+        "class A(object):\n"
+        "    monitor = []\n"
+        "    def __del__(self):\n"
+        "        self.monitor.append(1)\n"
+        "a = A()\n"
+    )
+    fname = temp_pyfile(src)
+    try:
         # %run creates some hidden references...
-        _ip.run_line_magic("run", "%s" % self.fname)
+        _ip.run_line_magic("run", "%s" % fname)
         # ... as does the displayhook.
         _ip.run_cell("a")
 
@@ -703,6 +694,8 @@ class TestXdel(tt.TempFileMixin):
         # Check that a's __del__ method has been called.
         gc.collect(0)
         assert monitor == [1]
+    finally:
+        os.unlink(fname)
 
 
 def doctest_who():
@@ -1161,52 +1154,57 @@ def test_notebook_export_single_display():
         _ip.execution_count = orig_execution_count
 
 
-class TestEnv(TestCase):
-    def test_env(self):
+def test_env():
+    env = _ip.run_line_magic("env", "")
+    assert isinstance(env, dict)
+
+
+def test_env_secret():
+    hidden = "<hidden>"
+    with mock.patch.dict(
+        os.environ,
+        {
+            "API_KEY": "abc123",
+            "SECRET_THING": "ssshhh",
+            "JUPYTER_TOKEN": "",
+            "VAR": "abc",
+        },
+    ):
         env = _ip.run_line_magic("env", "")
-        self.assertTrue(isinstance(env, dict))
+    assert env["API_KEY"] == hidden
+    assert env["SECRET_THING"] == hidden
+    assert env["JUPYTER_TOKEN"] == hidden
+    assert env["VAR"] == "abc"
 
-    def test_env_secret(self):
-        env = _ip.run_line_magic("env", "")
-        hidden = "<hidden>"
-        with mock.patch.dict(
-            os.environ,
-            {
-                "API_KEY": "abc123",
-                "SECRET_THING": "ssshhh",
-                "JUPYTER_TOKEN": "",
-                "VAR": "abc",
-            },
-        ):
-            env = _ip.run_line_magic("env", "")
-        assert env["API_KEY"] == hidden
-        assert env["SECRET_THING"] == hidden
-        assert env["JUPYTER_TOKEN"] == hidden
-        assert env["VAR"] == "abc"
 
-    def test_env_get_set_simple(self):
-        env = _ip.run_line_magic("env", "var val1")
-        self.assertEqual(env, None)
-        self.assertEqual(os.environ["var"], "val1")
-        self.assertEqual(_ip.run_line_magic("env", "var"), "val1")
-        env = _ip.run_line_magic("env", "var=val2")
-        self.assertEqual(env, None)
-        self.assertEqual(os.environ["var"], "val2")
+def test_env_get_set_simple():
+    env = _ip.run_line_magic("env", "var val1")
+    assert env is None
+    assert os.environ["var"] == "val1"
+    assert _ip.run_line_magic("env", "var") == "val1"
+    env = _ip.run_line_magic("env", "var=val2")
+    assert env is None
+    assert os.environ["var"] == "val2"
 
-    def test_env_get_set_complex(self):
-        env = _ip.run_line_magic("env", "var 'val1 '' 'val2")
-        self.assertEqual(env, None)
-        self.assertEqual(os.environ["var"], "'val1 '' 'val2")
-        self.assertEqual(_ip.run_line_magic("env", "var"), "'val1 '' 'val2")
-        env = _ip.run_line_magic("env", 'var=val2 val3="val4')
-        self.assertEqual(env, None)
-        self.assertEqual(os.environ["var"], 'val2 val3="val4')
 
-    def test_env_set_bad_input(self):
-        self.assertRaises(UsageError, lambda: _ip.run_line_magic("set_env", "var"))
+def test_env_get_set_complex():
+    env = _ip.run_line_magic("env", "var 'val1 '' 'val2")
+    assert env is None
+    assert os.environ["var"] == "'val1 '' 'val2"
+    assert _ip.run_line_magic("env", "var") == "'val1 '' 'val2"
+    env = _ip.run_line_magic("env", 'var=val2 val3="val4')
+    assert env is None
+    assert os.environ["var"] == 'val2 val3="val4'
 
-    def test_env_set_whitespace(self):
-        self.assertRaises(UsageError, lambda: _ip.run_line_magic("env", "var A=B"))
+
+def test_env_set_bad_input():
+    with pytest.raises(UsageError):
+        _ip.run_line_magic("set_env", "var")
+
+
+def test_env_set_whitespace():
+    with pytest.raises(UsageError):
+        _ip.run_line_magic("env", "var A=B")
 
 
 def check_ident(magic):

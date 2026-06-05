@@ -1,18 +1,12 @@
 # -*- coding: utf-8 -*-
 """Tests for completerlib."""
 
-# -----------------------------------------------------------------------------
-# Imports
-# -----------------------------------------------------------------------------
-
 import os
-import shutil
 import sys
-import tempfile
-import unittest
 from os.path import join
-
 from tempfile import TemporaryDirectory
+
+import pytest
 
 from IPython.core.completerlib import magic_run_completer, module_completion, try_import
 from IPython.testing.decorators import onlyif_unicode_paths
@@ -23,111 +17,62 @@ class MockEvent(object):
         self.line = line
 
 
-# -----------------------------------------------------------------------------
-# Test functions begin
-# -----------------------------------------------------------------------------
-class Test_magic_run_completer(unittest.TestCase):
+@pytest.fixture
+def run_completer_dir(tmp_path, monkeypatch):
     files = ["aao.py", "a.py", "b.py", "aao.txt"]
     dirs = ["adir/", "bdir/"]
-
-    def setUp(self):
-        self.BASETESTDIR = tempfile.mkdtemp()
-        for fil in self.files:
-            with open(join(self.BASETESTDIR, fil), "w", encoding="utf-8") as sfile:
-                sfile.write("pass\n")
-        for d in self.dirs:
-            os.mkdir(join(self.BASETESTDIR, d))
-
-        self.oldpath = os.getcwd()
-        os.chdir(self.BASETESTDIR)
-
-    def tearDown(self):
-        os.chdir(self.oldpath)
-        shutil.rmtree(self.BASETESTDIR)
-
-    def test_1(self):
-        """Test magic_run_completer, should match two alternatives"""
-        event = MockEvent("%run a")
-        mockself = None
-        match = set(magic_run_completer(mockself, event))
-        self.assertEqual(match, {"a.py", "aao.py", "adir/"})
-
-    def test_2(self):
-        """Test magic_run_completer, should match one alternative"""
-        event = MockEvent("%run aa")
-        mockself = None
-        match = set(magic_run_completer(mockself, event))
-        self.assertEqual(match, {"aao.py"})
-
-    def test_3(self):
-        """Test magic_run_completer with unterminated " """
-        event = MockEvent('%run "a')
-        mockself = None
-        match = set(magic_run_completer(mockself, event))
-        self.assertEqual(match, {"a.py", "aao.py", "adir/"})
-
-    def test_completion_more_args(self):
-        event = MockEvent("%run a.py ")
-        match = set(magic_run_completer(None, event))
-        self.assertEqual(match, set(self.files + self.dirs))
-
-    def test_completion_in_dir(self):
-        # Github issue #3459
-        event = MockEvent("%run a.py {}".format(join(self.BASETESTDIR, "a")))
-        print(repr(event.line))
-        match = set(magic_run_completer(None, event))
-        # We specifically use replace here rather than normpath, because
-        # at one point there were duplicates 'adir' and 'adir/', and normpath
-        # would hide the failure for that.
-        self.assertEqual(
-            match,
-            {
-                join(self.BASETESTDIR, f).replace("\\", "/")
-                for f in ("a.py", "aao.py", "aao.txt", "adir/")
-            },
-        )
+    for fil in files:
+        (tmp_path / fil).write_text("pass\n", encoding="utf-8")
+    for d in dirs:
+        (tmp_path / d).mkdir()
+    monkeypatch.chdir(tmp_path)
+    return tmp_path, files, dirs
 
 
-class Test_magic_run_completer_nonascii(unittest.TestCase):
-    @onlyif_unicode_paths
-    def setUp(self):
-        self.BASETESTDIR = tempfile.mkdtemp()
-        for fil in ["aaø.py", "a.py", "b.py"]:
-            with open(join(self.BASETESTDIR, fil), "w", encoding="utf-8") as sfile:
-                sfile.write("pass\n")
-        self.oldpath = os.getcwd()
-        os.chdir(self.BASETESTDIR)
-
-    def tearDown(self):
-        os.chdir(self.oldpath)
-        shutil.rmtree(self.BASETESTDIR)
-
-    @onlyif_unicode_paths
-    def test_1(self):
-        """Test magic_run_completer, should match two alternatives"""
-        event = MockEvent("%run a")
-        mockself = None
-        match = set(magic_run_completer(mockself, event))
-        self.assertEqual(match, {"a.py", "aaø.py"})
-
-    @onlyif_unicode_paths
-    def test_2(self):
-        """Test magic_run_completer, should match one alternative"""
-        event = MockEvent("%run aa")
-        mockself = None
-        match = set(magic_run_completer(mockself, event))
-        self.assertEqual(match, {"aaø.py"})
-
-    @onlyif_unicode_paths
-    def test_3(self):
-        """Test magic_run_completer with unterminated " """
-        event = MockEvent('%run "a')
-        mockself = None
-        match = set(magic_run_completer(mockself, event))
-        self.assertEqual(match, {"a.py", "aaø.py"})
+@pytest.mark.parametrize("line,expected_match", [
+    ("%run a", {"a.py", "aao.py", "adir/"}),
+    ("%run aa", {"aao.py"}),
+    ('%run "a', {"a.py", "aao.py", "adir/"}),
+])
+def test_magic_run_completer(run_completer_dir, line, expected_match):
+    match = set(magic_run_completer(None, MockEvent(line)))
+    assert match == expected_match
 
 
-# module_completer:
+def test_magic_run_completer_more_args(run_completer_dir):
+    tmp_path, files, dirs = run_completer_dir
+    match = set(magic_run_completer(None, MockEvent("%run a.py ")))
+    assert match == set(files + dirs)
+
+
+def test_magic_run_completer_in_dir(run_completer_dir):
+    # Github issue #3459
+    tmp_path, files, dirs = run_completer_dir
+    event = MockEvent("%run a.py {}".format(join(str(tmp_path), "a")))
+    match = set(magic_run_completer(None, event))
+    assert match == {
+        join(str(tmp_path), f).replace("\\", "/")
+        for f in ("a.py", "aao.py", "aao.txt", "adir/")
+    }
+
+
+@pytest.fixture
+def run_completer_dir_nonascii(tmp_path, monkeypatch):
+    for fil in ["aaø.py", "a.py", "b.py"]:
+        (tmp_path / fil).write_text("pass\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    return tmp_path
+
+
+@onlyif_unicode_paths
+@pytest.mark.parametrize("line,expected_match", [
+    ("%run a", {"a.py", "aaø.py"}),
+    ("%run aa", {"aaø.py"}),
+    ('%run "a', {"a.py", "aaø.py"}),
+])
+def test_magic_run_completer_nonascii(run_completer_dir_nonascii, line, expected_match):
+    match = set(magic_run_completer(None, MockEvent(line)))
+    assert match == expected_match
 
 
 def test_import_invalid_module():
@@ -160,8 +105,6 @@ def test_bad_module_all():
         for r in results:
             assert isinstance(r, str)
 
-        # bad_all doesn't contain submodules, but this completion
-        # should finish without raising an exception:
         results = module_completion("import bad_all.")
         assert results == []
     finally:
@@ -190,7 +133,5 @@ def test_valid_exported_submodules():
     Test checking exported (__all__) objects are submodules
     """
     results = module_completion("import os.pa")
-    # ensure we get a valid submodule:
     assert "os.path" in results
-    # ensure we don't get objects that aren't submodules:
     assert "os.pathconf" not in results

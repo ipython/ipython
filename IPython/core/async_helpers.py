@@ -9,6 +9,7 @@ Some constructs (like top-level `return`, or `yield`) are taken care of
 explicitly to actually raise a SyntaxError and stay as close as possible to
 Python semantics.
 """
+from __future__ import annotations
 
 import ast
 import asyncio

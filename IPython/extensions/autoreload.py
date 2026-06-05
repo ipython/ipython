@@ -1,3 +1,4 @@
+from __future__ import annotations
 """IPython extension to reload modules before executing user code.
 
 ``autoreload`` reloads modules automatically before entering the execution of
@@ -325,7 +326,7 @@ class ModuleReloader:
                         superreload(m, reload, self.old_objects)
                     if py_filename in self.failed:
                         del self.failed[py_filename]
-                except:
+                except Exception:
                     if not self.hide_errors:
                         logger = logging.getLogger("autoreload")
                         logger.exception(
@@ -582,7 +583,7 @@ def superreload(
 
     try:
         module = reload(module)
-    except:
+    except Exception:
         # restore module dictionary on failed reload
         module.__dict__.update(old_dict)
         raise
@@ -666,7 +667,7 @@ class AutoreloadMagics(Magics):
 
              '3' or 'complete' - Same as 2/all, but also adds any new
              objects in the module.
-             
+
              By default, a newer autoreload algorithm that diffs the module's source code
              with the previous version and only reloads changed parts is applied for modes
              2 and below. To use the original algorithm, add the `-` suffix to the mode,
@@ -850,7 +851,7 @@ class AutoreloadMagics(Magics):
         if self._reloader.enabled:
             try:
                 self._reloader.check()
-            except:
+            except Exception:
                 pass
 
     def post_execute_hook(self):

@@ -11,6 +11,8 @@ of subprocess utilities, and it contains tools that are common to all of them.
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+from __future__ import annotations
+
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
@@ -18,7 +20,7 @@ import os
 import shlex
 import subprocess
 import sys
-from typing import IO, List, TypeVar, Union
+from typing import IO, TypeVar
 from collections.abc import Callable
 
 _T = TypeVar("_T")
@@ -46,7 +48,7 @@ def read_no_interrupt(stream: IO[bytes]) -> bytes | None:
 
 
 def process_handler(
-    cmd: Union[str, List[str]],
+    cmd: str | list[str],
     callback: Callable[[subprocess.Popen[bytes]], _T],
     stderr: int = subprocess.PIPE,
 ) -> _T | None:

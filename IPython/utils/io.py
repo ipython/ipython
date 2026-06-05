@@ -6,7 +6,7 @@ IO related utilities.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-
+from __future__ import annotations
 
 import atexit
 import os
@@ -18,7 +18,6 @@ from warnings import warn
 from IPython.utils.decorators import undoc
 from .capture import CapturedIO, capture_output
 from io import StringIO
-from typing import Union
 
 
 class Tee:
@@ -32,7 +31,7 @@ class Tee:
     # Inspired by:
     # http://mail.python.org/pipermail/python-list/2007-May/442737.html
 
-    def __init__(self, file_or_name: Union[str, StringIO], mode: str="w", channel: str='stdout'):
+    def __init__(self, file_or_name: str | StringIO, mode: str="w", channel: str='stdout'):
         """Construct a new Tee object.
 
         Parameters
@@ -43,6 +42,7 @@ class Tee:
             If a filename was give, open with this mode.
         channel : str, one of ['stdout', 'stderr']
         """
+        self._closed = True
         if channel not in ['stdout', 'stderr']:
             raise ValueError('Invalid channel spec %s' % channel)
 
@@ -54,7 +54,7 @@ class Tee:
         self.channel = channel
         self.ostream = getattr(sys, channel)
         setattr(sys, channel, self)
-        self._closed = False
+        self._closed = False  # fully initialized, mark as open
 
     def close(self):
         """Close the file and restore the channel."""
