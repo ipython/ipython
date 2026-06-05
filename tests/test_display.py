@@ -213,7 +213,7 @@ class TestAudioDataWithNumpy(TestCase):
 
     @skipif_not_numpy
     def test_audio_from_numpy_array_without_rate_raises(self):
-        self.assertRaises(ValueError, display.Audio, get_test_tone())
+        pytest.raises(ValueError, display.Audio, get_test_tone())
 
     @skipif_not_numpy
     def test_audio_data_normalization(self):
@@ -235,12 +235,8 @@ class TestAudioDataWithNumpy(TestCase):
             assert actual_max_value == expected_max_value
 
     def test_audio_data_without_normalization_raises_for_invalid_data(self):
-        self.assertRaises(
-            ValueError, lambda: display.Audio([1.001], rate=44100, normalize=False)
-        )
-        self.assertRaises(
-            ValueError, lambda: display.Audio([-1.001], rate=44100, normalize=False)
-        )
+        pytest.raises(ValueError, display.Audio, [1.001], rate=44100, normalize=False)
+        pytest.raises(ValueError, display.Audio, [-1.001], rate=44100, normalize=False)
 
 
 def simulate_numpy_not_installed():
