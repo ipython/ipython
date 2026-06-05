@@ -20,7 +20,7 @@ jobs:
     steps:
 
       - name: Send Zulip notification
-        uses: zulip/github-actions-zulip/send-message@e4c8f27c732ba9bd98ac6be0583096dea82feea5 # v1
+        uses: zulip/github-actions-zulip/send-message@bd8ec52de371d139ae8313661b7d8318c19266aa # v2.0.1
         with:
           api-key: ${{ secrets.ORG_ZULIP_API_KEY }}
           email: ${{ secrets.ORG_ZULIP_EMAIL }}
