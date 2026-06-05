@@ -38,7 +38,7 @@ from IPython.core.magics import code, execution, logging, osm, script
 from IPython.core.history import HistoryOutput
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
-from IPython.utils.io import capture_output
+from IPython.utils.io import capture_output, temp_pyfile
 from IPython.utils.process import find_cmd
 from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory
 from IPython.utils.syspathcontext import prepended_to_syspath
@@ -670,19 +670,19 @@ def test_reset_hard():
     assert monitor == [1]
 
 
-class TestXdel(tt.TempFileMixin):
-    def test_xdel(self):
-        """Test that references from %run are cleared by xdel."""
-        src = (
-            "class A(object):\n"
-            "    monitor = []\n"
-            "    def __del__(self):\n"
-            "        self.monitor.append(1)\n"
-            "a = A()\n"
-        )
-        self.mktmp(src)
+def test_xdel():
+    """Test that references from %run are cleared by xdel."""
+    src = (
+        "class A(object):\n"
+        "    monitor = []\n"
+        "    def __del__(self):\n"
+        "        self.monitor.append(1)\n"
+        "a = A()\n"
+    )
+    fname = temp_pyfile(src)
+    try:
         # %run creates some hidden references...
-        _ip.run_line_magic("run", "%s" % self.fname)
+        _ip.run_line_magic("run", "%s" % fname)
         # ... as does the displayhook.
         _ip.run_cell("a")
 
@@ -694,6 +694,11 @@ class TestXdel(tt.TempFileMixin):
         # Check that a's __del__ method has been called.
         gc.collect(0)
         assert monitor == [1]
+    finally:
+        try:
+            os.unlink(fname)
+        except OSError:
+            pass  # Windows can't delete files that were recently run
 
 
 def doctest_who():
