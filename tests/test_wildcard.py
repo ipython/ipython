@@ -1,17 +1,8 @@
 """Some tests for the wildcard utilities."""
 
-# -----------------------------------------------------------------------------
-# Library imports
-# -----------------------------------------------------------------------------
-# Stdlib
-import unittest
+import pytest
 
-# Our own
 from IPython.utils import wildcard
-
-# -----------------------------------------------------------------------------
-# Globals for test
-# -----------------------------------------------------------------------------
 
 
 class obj_t(object):
@@ -45,220 +36,83 @@ root.__ANKA.a = 10
 root.__ANKA._a = 20
 root.__ANKA.__a = 20
 
-# -----------------------------------------------------------------------------
-# Test cases
-# -----------------------------------------------------------------------------
+
+@pytest.mark.parametrize("pat,expected", [
+    ("a*", ["abbot", "abel", "active", "arna"]),
+    ("?b*.?o*", ["abbot.koppel", "abbot.loop", "abel.koppel", "abel.loop"]),
+    ("_a*", []),
+    ("_*anka", ["__anka"]),
+    ("_*a*", ["__anka"]),
+])
+def test_case(pat, expected):
+    ns = root.__dict__
+    result = sorted(wildcard.list_namespace(ns, "all", pat, ignore_case=False, show_all=False).keys())
+    assert result == sorted(expected)
 
 
-class Tests(unittest.TestCase):
-    def test_case(self):
-        ns = root.__dict__
-        tests = [
-            (
-                "a*",
-                [
-                    "abbot",
-                    "abel",
-                    "active",
-                    "arna",
-                ],
-            ),
-            (
-                "?b*.?o*",
-                [
-                    "abbot.koppel",
-                    "abbot.loop",
-                    "abel.koppel",
-                    "abel.loop",
-                ],
-            ),
-            ("_a*", []),
-            (
-                "_*anka",
-                [
-                    "__anka",
-                ],
-            ),
-            (
-                "_*a*",
-                [
-                    "__anka",
-                ],
-            ),
-        ]
-        for pat, res in tests:
-            res.sort()
-            a = sorted(
-                wildcard.list_namespace(
-                    ns, "all", pat, ignore_case=False, show_all=False
-                ).keys()
-            )
-            self.assertEqual(a, res)
+@pytest.mark.parametrize("pat,expected", [
+    ("a*", ["abbot", "abel", "active", "arna"]),
+    ("?b*.?o*", ["abbot.koppel", "abbot.loop", "abel.koppel", "abel.loop"]),
+    ("_a*", ["_apan"]),
+    ("_*anka", ["__anka"]),
+    ("_*a*", ["__anka", "_apan"]),
+])
+def test_case_showall(pat, expected):
+    ns = root.__dict__
+    result = sorted(wildcard.list_namespace(ns, "all", pat, ignore_case=False, show_all=True).keys())
+    assert result == sorted(expected)
 
-    def test_case_showall(self):
-        ns = root.__dict__
-        tests = [
-            (
-                "a*",
-                [
-                    "abbot",
-                    "abel",
-                    "active",
-                    "arna",
-                ],
-            ),
-            (
-                "?b*.?o*",
-                [
-                    "abbot.koppel",
-                    "abbot.loop",
-                    "abel.koppel",
-                    "abel.loop",
-                ],
-            ),
-            ("_a*", ["_apan"]),
-            (
-                "_*anka",
-                [
-                    "__anka",
-                ],
-            ),
-            (
-                "_*a*",
-                [
-                    "__anka",
-                    "_apan",
-                ],
-            ),
-        ]
-        for pat, res in tests:
-            res.sort()
-            a = sorted(
-                wildcard.list_namespace(
-                    ns, "all", pat, ignore_case=False, show_all=True
-                ).keys()
-            )
-            self.assertEqual(a, res)
 
-    def test_nocase(self):
-        ns = root.__dict__
-        tests = [
-            (
-                "a*",
-                [
-                    "abbot",
-                    "abel",
-                    "ABEL",
-                    "active",
-                    "arna",
-                ],
-            ),
-            (
-                "?b*.?o*",
-                [
-                    "abbot.koppel",
-                    "abbot.loop",
-                    "abel.koppel",
-                    "abel.loop",
-                    "ABEL.koppel",
-                    "ABEL.loop",
-                ],
-            ),
-            ("_a*", []),
-            (
-                "_*anka",
-                [
-                    "__anka",
-                    "__ANKA",
-                ],
-            ),
-            (
-                "_*a*",
-                [
-                    "__anka",
-                    "__ANKA",
-                ],
-            ),
-        ]
-        for pat, res in tests:
-            res.sort()
-            a = sorted(
-                wildcard.list_namespace(
-                    ns, "all", pat, ignore_case=True, show_all=False
-                ).keys()
-            )
-            self.assertEqual(a, res)
+@pytest.mark.parametrize("pat,expected", [
+    ("a*", ["abbot", "abel", "ABEL", "active", "arna"]),
+    ("?b*.?o*", ["abbot.koppel", "abbot.loop", "abel.koppel", "abel.loop", "ABEL.koppel", "ABEL.loop"]),
+    ("_a*", []),
+    ("_*anka", ["__anka", "__ANKA"]),
+    ("_*a*", ["__anka", "__ANKA"]),
+])
+def test_nocase(pat, expected):
+    ns = root.__dict__
+    result = sorted(wildcard.list_namespace(ns, "all", pat, ignore_case=True, show_all=False).keys())
+    assert result == sorted(expected)
 
-    def test_nocase_showall(self):
-        ns = root.__dict__
-        tests = [
-            (
-                "a*",
-                [
-                    "abbot",
-                    "abel",
-                    "ABEL",
-                    "active",
-                    "arna",
-                ],
-            ),
-            (
-                "?b*.?o*",
-                [
-                    "abbot.koppel",
-                    "abbot.loop",
-                    "abel.koppel",
-                    "abel.loop",
-                    "ABEL.koppel",
-                    "ABEL.loop",
-                ],
-            ),
-            ("_a*", ["_apan", "_APAN"]),
-            (
-                "_*anka",
-                [
-                    "__anka",
-                    "__ANKA",
-                ],
-            ),
-            ("_*a*", ["__anka", "__ANKA", "_apan", "_APAN"]),
-        ]
-        for pat, res in tests:
-            res.sort()
-            a = sorted(
-                wildcard.list_namespace(
-                    ns, "all", pat, ignore_case=True, show_all=True
-                ).keys()
-            )
-            a.sort()
-            self.assertEqual(a, res)
 
-    def test_dict_attributes(self):
-        """Dictionaries should be indexed by attributes, not by keys. This was
-        causing Github issue 129."""
-        ns = {"az": {"king": 55}, "pq": {1: 0}}
-        tests = [("a*", ["az"]), ("az.k*", ["az.keys"]), ("pq.k*", ["pq.keys"])]
-        for pat, res in tests:
-            res.sort()
-            a = sorted(
-                wildcard.list_namespace(
-                    ns, "all", pat, ignore_case=False, show_all=True
-                ).keys()
-            )
-            self.assertEqual(a, res)
+@pytest.mark.parametrize("pat,expected", [
+    ("a*", ["abbot", "abel", "ABEL", "active", "arna"]),
+    ("?b*.?o*", ["abbot.koppel", "abbot.loop", "abel.koppel", "abel.loop", "ABEL.koppel", "ABEL.loop"]),
+    ("_a*", ["_apan", "_APAN"]),
+    ("_*anka", ["__anka", "__ANKA"]),
+    ("_*a*", ["__anka", "__ANKA", "_apan", "_APAN"]),
+])
+def test_nocase_showall(pat, expected):
+    ns = root.__dict__
+    result = sorted(wildcard.list_namespace(ns, "all", pat, ignore_case=True, show_all=True).keys())
+    assert result == sorted(expected)
 
-    def test_dict_dir(self):
-        class A(object):
-            def __init__(self):
-                self.a = 1
-                self.b = 2
 
-            def __getattribute__(self, name):
-                if name == "a":
-                    raise AttributeError
-                return object.__getattribute__(self, name)
+@pytest.mark.parametrize("pat,expected", [
+    ("a*", ["az"]),
+    ("az.k*", ["az.keys"]),
+    ("pq.k*", ["pq.keys"]),
+])
+def test_dict_attributes(pat, expected):
+    """Dictionaries should be indexed by attributes, not by keys (issue #129)."""
+    ns = {"az": {"king": 55}, "pq": {1: 0}}
+    result = sorted(wildcard.list_namespace(ns, "all", pat, ignore_case=False, show_all=True).keys())
+    assert result == sorted(expected)
 
-        a = A()
-        adict = wildcard.dict_dir(a)
-        assert "a" not in adict  # change to assertNotIn method in >= 2.7
-        self.assertEqual(adict["b"], 2)
+
+def test_dict_dir():
+    class A(object):
+        def __init__(self):
+            self.a = 1
+            self.b = 2
+
+        def __getattribute__(self, name):
+            if name == "a":
+                raise AttributeError
+            return object.__getattribute__(self, name)
+
+    a = A()
+    adict = wildcard.dict_dir(a)
+    assert "a" not in adict
+    assert adict["b"] == 2
