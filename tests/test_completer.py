@@ -370,21 +370,26 @@ def test_spaces():
     t = [("foo", "", "foo"), ("run foo", "", "foo"), ("run foo", "bar", "foo")]
     check_line_split(sp, t)
 
-def test_has_open_quotes1():
-    for s in ["'", "'''", "'hi' '"]:
-        assert completer.has_open_quotes(s) == "'"
-
-def test_has_open_quotes2():
-    for s in ['"', '"""', '"hi" "']:
-        assert completer.has_open_quotes(s) == '"'
-
-def test_has_open_quotes3():
-    for s in ["''", "''' '''", "'hi' 'ipython'"]:
-        assert not completer.has_open_quotes(s)
-
-def test_has_open_quotes4():
-    for s in ['""', '""" """', '"hi" "ipython"']:
-        assert not completer.has_open_quotes(s)
+@pytest.mark.parametrize("s,expected", [
+    ("'", "'"),
+    ("'''", "'"),
+    ("'hi' '", "'"),
+    ('"', '"'),
+    ('"""', '"'),
+    ('"hi" "', '"'),
+    ("''", False),
+    ("''' '''", False),
+    ("'hi' 'ipython'", False),
+    ('""', False),
+    ('""" """', False),
+    ('"hi" "ipython"', False),
+])
+def test_has_open_quotes(s, expected):
+    result = completer.has_open_quotes(s)
+    if expected is False:
+        assert not result
+    else:
+        assert result == expected
 
 @pytest.mark.xfail(
     sys.platform == "win32", reason="abspath completions fail on Windows"
@@ -464,7 +469,8 @@ def test_quoted_file_completions():
     sys.version_info.releaselevel in ("alpha",),
     reason="Parso does not yet parse 3.13",
 )
-def test_all_completions_dups():
+@pytest.mark.parametrize("jedi_status", [True, False])
+def test_all_completions_dups(jedi_status):
     """
     Make sure the output of `IPCompleter.all_completions` does not have
     duplicated prefixes.
@@ -472,18 +478,17 @@ def test_all_completions_dups():
     ip = get_ipython()
     c = ip.Completer
     ip.ex("class TestClass():\n\ta=1\n\ta1=2")
-    for jedi_status in [True, False]:
-        with provisionalcompleter():
-            ip.Completer.use_jedi = jedi_status
-            matches = c.all_completions("TestCl")
-            assert matches == ["TestClass"], (jedi_status, matches)
-            matches = c.all_completions("TestClass.")
-            assert len(matches) > 2, (jedi_status, matches)
-            matches = c.all_completions("TestClass.a")
-            if jedi_status:
-                assert matches == ["TestClass.a", "TestClass.a1"], jedi_status
-            else:
-                assert matches == [".a", ".a1"], jedi_status
+    with provisionalcompleter():
+        ip.Completer.use_jedi = jedi_status
+        matches = c.all_completions("TestCl")
+        assert matches == ["TestClass"], (jedi_status, matches)
+        matches = c.all_completions("TestClass.")
+        assert len(matches) > 2, (jedi_status, matches)
+        matches = c.all_completions("TestClass.a")
+        if jedi_status:
+            assert matches == ["TestClass.a", "TestClass.a1"], jedi_status
+        else:
+            assert matches == [".a", ".a1"], jedi_status
 
 @pytest.mark.xfail(
     sys.version_info.releaselevel in ("alpha",),
