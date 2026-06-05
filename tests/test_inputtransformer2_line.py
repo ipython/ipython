@@ -21,10 +21,8 @@ get_ipython().run_cell_magic('foo', 'arg', 'body 1\\nbody 2\\n')
 
 
 def test_cell_magic():
-    for sample, expected in [CELL_MAGIC]:
-        assert ipt2.cell_magic(sample.splitlines(keepends=True)) == expected.splitlines(
-            keepends=True
-        )
+    sample, expected = CELL_MAGIC
+    assert ipt2.cell_magic(sample.splitlines(keepends=True)) == expected.splitlines(keepends=True)
 
 
 CLASSIC_PROMPT = (
@@ -99,19 +97,17 @@ CLASSIC_PROMPT_STANDALONE_CONTINUATION = (
 )
 
 
-def test_classic_prompt():
-    for sample, expected in [
-        CLASSIC_PROMPT,
-        CLASSIC_PROMPT_L2,
-        CLASSIC_PROMPT_L3,
-        CLASSIC_PROMPT_DEDENT_SINGLE_LINE,
-        CLASSIC_PROMPT_DEDENT_LEADING_WS,
-        CLASSIC_PROMPT_MULTILINE_DOCTEST,
-        CLASSIC_PROMPT_STANDALONE_CONTINUATION,
-    ]:
-        assert ipt2.classic_prompt(
-            sample.splitlines(keepends=True)
-        ) == expected.splitlines(keepends=True)
+@pytest.mark.parametrize("sample,expected", [
+    CLASSIC_PROMPT,
+    CLASSIC_PROMPT_L2,
+    CLASSIC_PROMPT_L3,
+    CLASSIC_PROMPT_DEDENT_SINGLE_LINE,
+    CLASSIC_PROMPT_DEDENT_LEADING_WS,
+    CLASSIC_PROMPT_MULTILINE_DOCTEST,
+    CLASSIC_PROMPT_STANDALONE_CONTINUATION,
+])
+def test_classic_prompt(sample, expected):
+    assert ipt2.classic_prompt(sample.splitlines(keepends=True)) == expected.splitlines(keepends=True)
 
 
 IPYTHON_PROMPT = (
@@ -170,16 +166,14 @@ def a():
 )
 
 
-def test_ipython_prompt():
-    for sample, expected in [
-        IPYTHON_PROMPT,
-        IPYTHON_PROMPT_L2,
-        IPYTHON_PROMPT_VI_INS,
-        IPYTHON_PROMPT_VI_NAV,
-    ]:
-        assert ipt2.ipython_prompt(
-            sample.splitlines(keepends=True)
-        ) == expected.splitlines(keepends=True)
+@pytest.mark.parametrize("sample,expected", [
+    IPYTHON_PROMPT,
+    IPYTHON_PROMPT_L2,
+    IPYTHON_PROMPT_VI_INS,
+    IPYTHON_PROMPT_VI_NAV,
+])
+def test_ipython_prompt(sample, expected):
+    assert ipt2.ipython_prompt(sample.splitlines(keepends=True)) == expected.splitlines(keepends=True)
 
 
 INDENT_SPACES = (
@@ -205,11 +199,9 @@ if True:
 )
 
 
-def test_leading_indent():
-    for sample, expected in [INDENT_SPACES, INDENT_TABS]:
-        assert ipt2.leading_indent(
-            sample.splitlines(keepends=True)
-        ) == expected.splitlines(keepends=True)
+@pytest.mark.parametrize("sample,expected", [INDENT_SPACES, INDENT_TABS])
+def test_leading_indent(sample, expected):
+    assert ipt2.leading_indent(sample.splitlines(keepends=True)) == expected.splitlines(keepends=True)
 
 
 INDENT_SPACES_COMMENT = (
@@ -292,16 +284,14 @@ ONLY_EMPTY_LINES = (
 )
 
 
-def test_leading_empty_lines():
-    for sample, expected in [LEADING_EMPTY_LINES, ONLY_EMPTY_LINES]:
-        assert ipt2.leading_empty_lines(
-            sample.splitlines(keepends=True)
-        ) == expected.splitlines(keepends=True)
+@pytest.mark.parametrize("sample,expected", [LEADING_EMPTY_LINES, ONLY_EMPTY_LINES])
+def test_leading_empty_lines(sample, expected):
+    assert ipt2.leading_empty_lines(sample.splitlines(keepends=True)) == expected.splitlines(keepends=True)
 
 
 CRLF_MAGIC = (["%%ls\r\n"], ["get_ipython().run_cell_magic('ls', '', '')\n"])
 
 
 def test_crlf_magic():
-    for sample, expected in [CRLF_MAGIC]:
-        assert ipt2.cell_magic(sample) == expected
+    sample, expected = CRLF_MAGIC
+    assert ipt2.cell_magic(sample) == expected
