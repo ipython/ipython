@@ -5,6 +5,7 @@ Uses syntax highlighting for presenting the various information elements.
 Similar in spirit to the inspect module, but all calls take a name argument to
 reference the name under which an object is being read.
 """
+from __future__ import annotations
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
@@ -29,13 +30,8 @@ from pygments.token import Token
 from typing import (
     cast,
     Any,
-    Optional,
-    Dict,
-    Union,
-    List,
     TypedDict,
     TypeAlias,
-    Tuple,
 )
 
 import traitlets
@@ -59,8 +55,8 @@ from pygments.formatters import HtmlFormatter
 HOOK_NAME = "__custom_documentations__"
 
 
-UnformattedBundle: TypeAlias = Dict[str, List[Tuple[str, str]]]  # List of (title, body)
-Bundle: TypeAlias = Dict[str, str]
+UnformattedBundle: TypeAlias = dict[str, list[tuple[str, str]]]  # List of (title, body)
+Bundle: TypeAlias = dict[str, str]
 
 
 @dataclass
@@ -68,7 +64,7 @@ class OInfo:
     ismagic: bool
     isalias: bool
     found: bool
-    namespace: Optional[str]
+    namespace: str | None
     parent: Any
     obj: Any
 
@@ -112,21 +108,21 @@ _builtin_meth_type = type(str.upper)  # Bound methods have the same type as buil
 
 
 class InfoDict(TypedDict):
-    type_name: Optional[str]
-    base_class: Optional[str]
-    string_form: Optional[str]
-    namespace: Optional[str]
-    length: Optional[str]
-    file: Optional[str]
-    definition: Optional[str]
-    docstring: Optional[str]
-    source: Optional[str]
-    init_definition: Optional[str]
-    class_docstring: Optional[str]
-    init_docstring: Optional[str]
-    call_def: Optional[str]
-    call_docstring: Optional[str]
-    subclasses: Optional[str]
+    type_name: str | None
+    base_class: str | None
+    string_form: str | None
+    namespace: str | None
+    length: str | None
+    file: str | None
+    definition: str | None
+    docstring: str | None
+    source: str | None
+    init_definition: str | None
+    class_docstring: str | None
+    init_docstring: str | None
+    call_def: str | None
+    call_docstring: str | None
+    subclasses: str | None
     # These won't be printed but will be used to determine how to
     # format the object
     ismagic: bool
@@ -156,7 +152,7 @@ class InspectorHookData:
     """Data passed to the mime hook"""
 
     obj: Any
-    info: Optional[OInfo]
+    info: OInfo | None
     info_dict: InfoDict
     detail_level: int
     omit_sections: list[str]
@@ -208,7 +204,7 @@ def get_encoding(obj):
         return encoding
 
 
-def getdoc(obj) -> Union[str, None]:
+def getdoc(obj) -> str | None:
     """Stable wrapper around inspect.getdoc.
 
     This can't crash because of attribute problems.
@@ -229,7 +225,7 @@ def getdoc(obj) -> Union[str, None]:
     return docstr
 
 
-def getsource(obj, oname='') -> Union[str,None]:
+def getsource(obj, oname='') -> str | None:
     """Wrapper around inspect.getsource.
 
     This can be modified by other projects to provide customized source
@@ -314,7 +310,7 @@ def _get_wrapped(obj):
             return orig_obj
     return obj
 
-def find_file(obj) -> Optional[str]:
+def find_file(obj) -> str | None:
     """Find the absolute path to the file where an object was defined.
 
     This is essentially a robust wrapper around `inspect.getabsfile`.
@@ -332,7 +328,7 @@ def find_file(obj) -> Optional[str]:
     """
     obj = _get_wrapped(obj)
 
-    fname: Optional[str] = None
+    fname: str | None = None
     try:
         fname = inspect.getabsfile(obj)
     except TypeError:
@@ -416,7 +412,7 @@ class Inspector(Configurable):
     def format(self, *args, **kwargs):
         return self.parser.format(*args, **kwargs)
 
-    def _getdef(self,obj,oname='') -> Union[str,None]:
+    def _getdef(self,obj,oname='') -> str | None:
         """Return the call signature for any callable object.
 
         If any exception is generated, None is returned instead and the
@@ -654,7 +650,7 @@ class Inspector(Configurable):
         title: str,
         key: str,
         info,
-        omit_sections: List[str],
+        omit_sections: list[str],
         formatter,
     ):
         """Append an info value to the unformatted mimebundle being constructed by _make_info_unformatted"""
@@ -750,9 +746,9 @@ class Inspector(Configurable):
         obj: Any,
         oname: str = "",
         formatter=None,
-        info: Optional[OInfo] = None,
+        info: OInfo | None = None,
         detail_level: int = 0,
-        omit_sections: Union[List[str], Tuple[()]] = (),
+        omit_sections: list[str] | tuple[()] = (),
     ) -> Bundle:
         """Retrieve an info dict and format it.
 
@@ -815,7 +811,7 @@ class Inspector(Configurable):
         obj,
         oname="",
         formatter=None,
-        info: Optional[OInfo] = None,
+        info: OInfo | None = None,
         detail_level=0,
         enable_html_pager=True,
         omit_sections=(),

@@ -2,6 +2,8 @@
 """
 An embedded IPython shell.
 """
+from __future__ import annotations
+
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
@@ -18,8 +20,6 @@ from IPython.terminal.ipapp import load_default_config
 
 from traitlets import Bool, CBool, Unicode
 from IPython.utils.io import ask_yes_no
-
-from typing import Set
 
 class KillEmbedded(Exception):pass
 
@@ -132,7 +132,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         help="Automatically set the terminal title"
     ).tag(config=True)
 
-    _inactive_locations: Set[str] = set()
+    _inactive_locations: set[str] = set()
 
     def _disable_init_location(self):
         """Disable the current Instance creation location"""
