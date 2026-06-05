@@ -4,8 +4,9 @@
 # Distributed under the terms of the Modified BSD License.
 
 import sys
-import unittest
 import os
+
+import pytest
 
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 
@@ -16,15 +17,14 @@ from IPython.terminal.ptutils import _elide, _adjust_completion_text_based_on_co
 from IPython.terminal.shortcuts.auto_suggest import NavigableAutoSuggestFromHistory
 
 
-class TestAutoSuggest(unittest.TestCase):
-    def test_changing_provider(self):
-        ip = get_ipython()
-        ip.autosuggestions_provider = None
-        self.assertEqual(ip.auto_suggest, None)
-        ip.autosuggestions_provider = "AutoSuggestFromHistory"
-        self.assertIsInstance(ip.auto_suggest, AutoSuggestFromHistory)
-        ip.autosuggestions_provider = "NavigableAutoSuggestFromHistory"
-        self.assertIsInstance(ip.auto_suggest, NavigableAutoSuggestFromHistory)
+def test_changing_provider():
+    ip = get_ipython()
+    ip.autosuggestions_provider = None
+    assert ip.auto_suggest is None
+    ip.autosuggestions_provider = "AutoSuggestFromHistory"
+    assert isinstance(ip.auto_suggest, AutoSuggestFromHistory)
+    ip.autosuggestions_provider = "NavigableAutoSuggestFromHistory"
+    assert isinstance(ip.auto_suggest, NavigableAutoSuggestFromHistory)
 
 
 def test_elide():
@@ -78,26 +78,16 @@ def test_elide_typed_no_match():
     )
 
 
-class TestContextAwareCompletion(unittest.TestCase):
-    def test_adjust_completion_text_based_on_context(self):
-        # Adjusted case
-        self.assertEqual(
-            _adjust_completion_text_based_on_context("arg1=", "func1(a=)", 7), "arg1"
-        )
-
-        # Untouched cases
-        self.assertEqual(
-            _adjust_completion_text_based_on_context("arg1=", "func1(a)", 7), "arg1="
-        )
-        self.assertEqual(
-            _adjust_completion_text_based_on_context("arg1=", "func1(a", 7), "arg1="
-        )
-        self.assertEqual(
-            _adjust_completion_text_based_on_context("%magic", "func1(a=)", 7), "%magic"
-        )
-        self.assertEqual(
-            _adjust_completion_text_based_on_context("func2", "func1(a=)", 7), "func2"
-        )
+@pytest.mark.parametrize("completion,line_buffer,cursor_pos,expected", [
+    ("arg1=", "func1(a=)", 7, "arg1"),    # adjusted: trailing = removed
+    ("arg1=", "func1(a)", 7, "arg1="),    # untouched: no = in buffer
+    ("arg1=", "func1(a", 7, "arg1="),     # untouched: no = in buffer
+    ("%magic", "func1(a=)", 7, "%magic"), # untouched: magic completion
+    ("func2", "func1(a=)", 7, "func2"),   # untouched: function name
+])
+def test_adjust_completion_text_based_on_context(completion, line_buffer, cursor_pos, expected):
+    result = _adjust_completion_text_based_on_context(completion, line_buffer, cursor_pos)
+    assert result == expected
 
 
 # Decorator for interaction loop tests -----------------------------------------
@@ -141,99 +131,83 @@ def mock_input(testfunc):
     will see as if they were typed in at the prompt.
     """
 
-    def test_method(self):
-        testgen = testfunc(self)
+    def test_wrapper():
+        testgen = testfunc()
         with mock_input_helper(testgen) as mih:
             mih.ip.interact()
 
         if mih.exception is not None:
-            # Re-raise captured exception
             etype, value, tb = mih.exception
             import traceback
 
             traceback.print_tb(tb, file=sys.stdout)
-            del tb  # Avoid reference loop
+            del tb
             raise value
 
-    return test_method
+    return test_wrapper
 
 
-# Test classes -----------------------------------------------------------------
+@mock_input
+def test_inputtransformer_syntaxerror():
+    ip = get_ipython()
+    ip.input_transformers_post.append(syntax_error_transformer)
+
+    try:
+        with tt.AssertPrints("4", suppress=False):
+            yield "print(2*2)"
+
+        with tt.AssertPrints("SyntaxError: input contains", suppress=False):
+            yield "print(2345) # syntaxerror"
+
+        with tt.AssertPrints("16", suppress=False):
+            yield "print(4*4)"
+
+    finally:
+        ip.input_transformers_post.remove(syntax_error_transformer)
 
 
-class InteractiveShellTestCase(unittest.TestCase):
-    def rl_hist_entries(self, rl, n):
-        """Get last n readline history entries as a list"""
-        return [
-            rl.get_history_item(rl.get_current_history_length() - x)
-            for x in range(n - 1, -1, -1)
-        ]
+def test_repl_not_plain_text():
+    ip = get_ipython()
+    formatter = ip.display_formatter
+    assert formatter.active_types == ["text/plain"]
 
-    @mock_input
-    def test_inputtransformer_syntaxerror(self):
-        ip = get_ipython()
-        ip.input_transformers_post.append(syntax_error_transformer)
+    assert formatter.ipython_display_formatter.enabled
 
-        try:
-            # raise Exception
-            with tt.AssertPrints("4", suppress=False):
-                yield "print(2*2)"
+    class Test(object):
+        def __repr__(self):
+            return "<Test %i>" % id(self)
 
-            with tt.AssertPrints("SyntaxError: input contains", suppress=False):
-                yield "print(2345) # syntaxerror"
+        def _repr_html_(self):
+            return "<html>"
 
-            with tt.AssertPrints("16", suppress=False):
-                yield "print(4*4)"
+    obj = Test()
+    data, _ = formatter.format(obj)
+    assert data == {"text/plain": repr(obj)}
 
-        finally:
-            ip.input_transformers_post.remove(syntax_error_transformer)
+    class Test2(Test):
+        def _ipython_display_(self):
+            from IPython.display import display, HTML
 
-    def test_repl_not_plain_text(self):
-        ip = get_ipython()
-        formatter = ip.display_formatter
-        assert formatter.active_types == ["text/plain"]
+            display(HTML("<custom>"))
 
-        # terminal may have arbitrary mimetype handler to open external viewer
-        # or inline images.
-        assert formatter.ipython_display_formatter.enabled
+    called = False
 
-        class Test(object):
-            def __repr__(self):
-                return "<Test %i>" % id(self)
+    def handler(data, metadata):
+        print("Handler called")
+        nonlocal called
+        called = True
 
-            def _repr_html_(self):
-                return "<html>"
-
-        # verify that HTML repr isn't computed
+    ip.display_formatter.active_types.append("text/html")
+    ip.display_formatter.formatters["text/html"].enabled = True
+    ip.mime_renderers["text/html"] = handler
+    try:
         obj = Test()
-        data, _ = formatter.format(obj)
-        self.assertEqual(data, {"text/plain": repr(obj)})
+        display(obj)
+    finally:
+        ip.display_formatter.formatters["text/html"].enabled = False
+        del ip.mime_renderers["text/html"]
 
-        class Test2(Test):
-            def _ipython_display_(self):
-                from IPython.display import display, HTML
-
-                display(HTML("<custom>"))
-
-        # verify that mimehandlers are called
-        called = False
-
-        def handler(data, metadata):
-            print("Handler called")
-            nonlocal called
-            called = True
-
-        ip.display_formatter.active_types.append("text/html")
-        ip.display_formatter.formatters["text/html"].enabled = True
-        ip.mime_renderers["text/html"] = handler
-        try:
-            obj = Test()
-            display(obj)
-        finally:
-            ip.display_formatter.formatters["text/html"].enabled = False
-            del ip.mime_renderers["text/html"]
-
-        assert called == True
+    assert called is True
 
 
 def syntax_error_transformer(lines):
@@ -248,13 +222,12 @@ def syntax_error_transformer(lines):
     return lines
 
 
-class TerminalMagicsTestCase(unittest.TestCase):
-    def test_paste_magics_blankline(self):
-        """Test that code with a blank line doesn't get split (gh-3246)."""
-        ip = get_ipython()
-        s = "def pasted_func(a):\n" "    b = a+1\n" "\n" "    return b"
+def test_paste_magics_blankline():
+    """Test that code with a blank line doesn't get split (gh-3246)."""
+    ip = get_ipython()
+    s = "def pasted_func(a):\n" "    b = a+1\n" "\n" "    return b"
 
-        tm = ip.magics_manager.registry["TerminalMagics"]
-        tm.store_or_execute(s, name=None)
+    tm = ip.magics_manager.registry["TerminalMagics"]
+    tm.store_or_execute(s, name=None)
 
-        self.assertEqual(ip.user_ns["pasted_func"](54), 55)
+    assert ip.user_ns["pasted_func"](54) == 55
