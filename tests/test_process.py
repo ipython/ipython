@@ -35,6 +35,7 @@ from IPython.utils.process import (
 from IPython.utils.capture import capture_output
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
+from IPython.utils.io import temp_pyfile
 
 python = os.path.basename(sys.executable)
 
@@ -136,102 +137,97 @@ def test_arg_split_with_quotes_strict_false():
     assert ("foo", False) in result
 
 
-class SubProcessTestCase(tt.TempFileMixin):
-    def setUp(self):
-        """Make a valid python temp file."""
-        lines = [
-            "import sys",
-            "print('on stdout', end='', file=sys.stdout)",
-            "print('on stderr', end='', file=sys.stderr)",
-            "sys.stdout.flush()",
-            "sys.stderr.flush()",
-        ]
-        self.mktmp("\n".join(lines))
+_SUBPROCESS_SRC = "\n".join([
+    "import sys",
+    "print('on stdout', end='', file=sys.stdout)",
+    "print('on stderr', end='', file=sys.stderr)",
+    "sys.stdout.flush()",
+    "sys.stderr.flush()",
+])
 
-    def test_system(self):
-        status = system(f'{python} "{self.fname}"')
-        self.assertEqual(status, 0)
 
-    def test_system_quotes(self):
-        status = system('%s -c "import sys"' % python)
-        self.assertEqual(status, 0)
+@pytest.fixture
+def subprocess_tmpfile():
+    fname = temp_pyfile(_SUBPROCESS_SRC)
+    yield fname
+    try:
+        os.unlink(fname)
+    except OSError:
+        pass
 
-    def assert_interrupts(self, command):
-        """
-        Interrupt a subprocess after a second.
-        """
-        if threading.main_thread() != threading.current_thread():
-            raise pytest.skip("Can't run this test if not in main thread.")
 
-        # Some tests can overwrite SIGINT handler (by using pdb for example),
-        # which then breaks this test, so just make sure it's operating
-        # normally.
-        signal.signal(signal.SIGINT, signal.default_int_handler)
+def _assert_interrupts(command):
+    """Interrupt a subprocess after a second."""
+    if threading.main_thread() != threading.current_thread():
+        raise pytest.skip("Can't run this test if not in main thread.")
 
-        def interrupt():
-            # Wait for subprocess to start:
-            time.sleep(0.5)
-            interrupt_main()
+    signal.signal(signal.SIGINT, signal.default_int_handler)
 
-        threading.Thread(target=interrupt).start()
-        start = time.time()
-        try:
-            result = command()
-        except KeyboardInterrupt:
-            # Success!
-            pass
-        end = time.time()
-        self.assertTrue(
-            end - start < 2, "Process didn't die quickly: %s" % (end - start)
-        )
-        return result
+    def interrupt():
+        time.sleep(0.5)
+        interrupt_main()
 
-    def test_system_interrupt(self):
-        """
-        When interrupted in the way ipykernel interrupts IPython, the
-        subprocess is interrupted.
-        """
+    threading.Thread(target=interrupt).start()
+    start = time.time()
+    try:
+        result = command()
+    except KeyboardInterrupt:
+        pass
+    end = time.time()
+    assert end - start < 2, "Process didn't die quickly: %s" % (end - start)
+    return result
 
-        def command():
-            return system('%s -c "import time; time.sleep(5)"' % python)
 
-        status = self.assert_interrupts(command)
-        self.assertNotEqual(
-            status, 0, f"The process wasn't interrupted. Status: {status}"
-        )
+def test_system(subprocess_tmpfile):
+    status = system(f'{python} "{subprocess_tmpfile}"')
+    assert status == 0
 
-    def test_getoutput(self):
-        out = getoutput(f'{python} "{self.fname}"')
-        # we can't rely on the order the line buffered streams are flushed
-        try:
-            self.assertEqual(out, "on stderron stdout")
-        except AssertionError:
-            self.assertEqual(out, "on stdouton stderr")
 
-    def test_getoutput_quoted(self):
-        out = getoutput('%s -c "print (1)"' % python)
-        self.assertEqual(out.strip(), "1")
+def test_system_quotes():
+    status = system('%s -c "import sys"' % python)
+    assert status == 0
 
-    # Invalid quoting on windows
-    @dec.skip_win32
-    def test_getoutput_quoted2(self):
-        out = getoutput("%s -c 'print (1)'" % python)
-        self.assertEqual(out.strip(), "1")
-        out = getoutput("%s -c 'print (\"1\")'" % python)
-        self.assertEqual(out.strip(), "1")
 
-    def test_getoutput_error(self):
-        out, err = getoutputerror(f'{python} "{self.fname}"')
-        self.assertEqual(out, "on stdout")
-        self.assertEqual(err, "on stderr")
+def test_system_interrupt():
+    """When interrupted in the way ipykernel interrupts IPython, the subprocess is interrupted."""
+    def command():
+        return system('%s -c "import time; time.sleep(5)"' % python)
 
-    def test_get_output_error_code(self):
-        quiet_exit = '%s -c "import sys; sys.exit(1)"' % python
-        out, err, code = get_output_error_code(quiet_exit)
-        self.assertEqual(out, "")
-        self.assertEqual(err, "")
-        self.assertEqual(code, 1)
-        out, err, code = get_output_error_code(f'{python} "{self.fname}"')
-        self.assertEqual(out, "on stdout")
-        self.assertEqual(err, "on stderr")
-        self.assertEqual(code, 0)
+    status = _assert_interrupts(command)
+    assert status != 0, f"The process wasn't interrupted. Status: {status}"
+
+
+def test_getoutput(subprocess_tmpfile):
+    out = getoutput(f'{python} "{subprocess_tmpfile}"')
+    assert out in ("on stderron stdout", "on stdouton stderr")
+
+
+def test_getoutput_quoted():
+    out = getoutput('%s -c "print (1)"' % python)
+    assert out.strip() == "1"
+
+
+@dec.skip_win32
+def test_getoutput_quoted2():
+    out = getoutput("%s -c 'print (1)'" % python)
+    assert out.strip() == "1"
+    out = getoutput("%s -c 'print (\"1\")'" % python)
+    assert out.strip() == "1"
+
+
+def test_getoutput_error(subprocess_tmpfile):
+    out, err = getoutputerror(f'{python} "{subprocess_tmpfile}"')
+    assert out == "on stdout"
+    assert err == "on stderr"
+
+
+def test_get_output_error_code(subprocess_tmpfile):
+    quiet_exit = '%s -c "import sys; sys.exit(1)"' % python
+    out, err, code = get_output_error_code(quiet_exit)
+    assert out == ""
+    assert err == ""
+    assert code == 1
+    out, err, code = get_output_error_code(f'{python} "{subprocess_tmpfile}"')
+    assert out == "on stdout"
+    assert err == "on stderr"
+    assert code == 0
