@@ -494,6 +494,7 @@ class Pdb(OldPdb):
             chain. Exceptions will be numbered, with the current exception indicated
             with an arrow.
             If given an integer as argument, switch to the exception at that index.
+            ``exception`` can be used as an alias for this command.
             """
             if not self._chained_exceptions:
                 self.message(
