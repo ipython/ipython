@@ -157,7 +157,7 @@ class CrashHandler:
         # this prevents unlikely errors in the crash handling from entering an
         # infinite loop.
         sys.excepthook = sys.__excepthook__
-        
+
 
         # Use this ONLY for developer debugging (keep commented out for release)
         ipython_dir = getattr(self.app, "ipython_dir", None)
@@ -232,7 +232,7 @@ def crash_handler_lite(
 ) -> None:
     """a light excepthook, adding a small message to the usual traceback"""
     traceback.print_exception(etype, evalue, tb)
-    
+
     from IPython.core.interactiveshell import InteractiveShell
     if InteractiveShell.initialized():
         # we are in a Shell environment, give %magic example

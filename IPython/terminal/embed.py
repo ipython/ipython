@@ -290,7 +290,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
             the shell was called.
 
         """
-        
+
         # Get locals and globals from caller
         if ((local_ns is None or module is None or compile_flags is None)
             and self.default_user_namespaces):
@@ -310,15 +310,15 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
             if compile_flags is None:
                 compile_flags = (call_frame.f_code.co_flags &
                                  compilerop.PyCF_MASK)
-        
-        # Save original namespace and module so we can restore them after 
+
+        # Save original namespace and module so we can restore them after
         # embedding; otherwise the shell doesn't shut down correctly.
         orig_user_module = self.user_module
         orig_user_ns = self.user_ns
         orig_compile_flags = self.compile.flags
-        
+
         # Update namespaces and fire up interpreter
-        
+
         # The global one is easy, we can just throw it in
         if module is not None:
             self.user_module = module
@@ -342,12 +342,12 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
 
         with self.builtin_trap, self.display_trap:
             self.interact()
-        
+
         # now, purge out the local namespace of IPython's hidden variables.
         if local_ns is not None:
             local_ns.update({k: v for (k, v) in self.user_ns.items() if k not in self.user_ns_hidden.keys()})
 
-        
+
         # Restore original namespace so shell can shut down when we exit.
         self.user_module = orig_user_module
         self.user_ns = orig_user_ns

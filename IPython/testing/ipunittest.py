@@ -66,7 +66,7 @@ class IPython2PythonConverter:
 
     Eventually this code may grow to be the full IPython syntax conversion
     implementation, but for now it only does prompt conversion."""
-    
+
     def __init__(self):
         self.rps1 = re.compile(r'In\ \[\d+\]: ')
         self.rps2 = re.compile(r'\ \ \ \.\.\.+: ')
@@ -106,7 +106,7 @@ class IPython2PythonConverter:
                 prompt, text = mps2.groups()
                 newline(prompt+ip.prefilter(text, True))
                 continue
-            
+
             newline(line)
         newline('')  # ensure a closing newline, needed by doctest
         # print("PYSRC:", '\n'.join(out))  # dbg
@@ -137,7 +137,7 @@ class Doc2UnitTester:
 
     def __call__(self, func):
         """Use as a decorator: doctest a function's docstring as a unittest.
-        
+
         This version runs normal doctests, but the idea is to make it later run
         ipython syntax instead."""
 
@@ -168,7 +168,7 @@ class Doc2UnitTester:
                         raise ValueError(err)
                     # Report a normal failure.
                     self.fail('failed doctests: %s' % str(failed[0]))
-                    
+
         # Rename it so test reports have the original signature.
         Tester.__name__ = func.__name__
         return Tester
@@ -181,7 +181,7 @@ def ipdocstring(func):
         func.__doc__ = ip2py(func.__doc__)
     return func
 
-        
+
 # Make an instance of the classes for public use
 ipdoctest = Doc2UnitTester()
 ip2py = IPython2PythonConverter()

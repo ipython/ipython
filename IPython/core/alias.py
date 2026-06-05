@@ -156,7 +156,7 @@ class Alias:
                                     "got: %r" % self.cmd)
 
         nargs = self.cmd.count('%s') - self.cmd.count('%%s')
-  
+
         if (nargs > 0) and (self.cmd.find('%l') >= 0):
             raise InvalidAliasError('The %s and %l specifiers are mutually '
                                     'exclusive in alias definitions.')
@@ -173,7 +173,7 @@ class Alias:
         if cmd.find('%l') >= 0:
             cmd = cmd.replace('%l', rest)
             rest = ''
-        
+
         if nargs==0:
             if cmd.find('%%s') >= 1:
                 cmd = cmd.replace('%%s', '%s')

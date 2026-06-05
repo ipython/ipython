@@ -131,7 +131,7 @@ class BaseIPythonApplication(Application):
     aliases = base_aliases
     flags = base_flags
     classes = List([ProfileDir])
-    
+
     # enable `load_subconfig('cfg.py', profile='name')`
     python_config_loader_class = ProfileAwareConfigLoader
 
@@ -152,7 +152,7 @@ class BaseIPythonApplication(Application):
     builtin_profile_dir = Unicode(
         os.path.join(get_ipython_package_dir(), u'config', u'profile', u'default')
     )
-    
+
     config_file_paths = List(Unicode())
     @default('config_file_paths')
     def _config_file_paths_default(self):
@@ -160,7 +160,7 @@ class BaseIPythonApplication(Application):
 
     extra_config_file = Unicode(
     help="""Path to an extra config file to load.
-    
+
     If specified, load this config file in addition to any other IPython config.
     """).tag(config=True)
     @observe('extra_config_file')
@@ -177,7 +177,7 @@ class BaseIPythonApplication(Application):
     profile = Unicode(u'default',
         help="""The IPython profile to use."""
     ).tag(config=True)
-    
+
     @observe('profile')
     def _profile_changed(self, change):
         self.builtin_profile_dir = os.path.join(
@@ -212,7 +212,7 @@ class BaseIPythonApplication(Application):
             'new': d,
         })
         return d
-    
+
     _in_init_profile_dir = False
 
     profile_dir = Instance(ProfileDir, allow_none=True)
@@ -246,7 +246,7 @@ class BaseIPythonApplication(Application):
         profile, then they will be staged into the new directory.  Otherwise,
         default config files will be automatically generated.
         """).tag(config=True)
-    
+
     verbose_crash = Bool(False,
         help="""Create a massive crash report when IPython encounters what may be an
         internal error.  The default is to append a short message to the
@@ -269,7 +269,7 @@ class BaseIPythonApplication(Application):
     #-------------------------------------------------------------------------
     # Various stages of Application creation
     #-------------------------------------------------------------------------
-    
+
     def init_crash_handler(self):
         """Create a crash handler, typically setting sys.excepthook to it."""
         self.crash_handler = self.crash_handler_class(self)
@@ -277,14 +277,14 @@ class BaseIPythonApplication(Application):
         def unset_crashhandler():
             sys.excepthook = sys.__excepthook__
         atexit.register(unset_crashhandler)
-    
+
     def excepthook(self, etype, evalue, tb):
         """this is sys.excepthook after init_crashhandler
 
         set self.verbose_crash=True to use our full crashhandler, instead of
         a regular traceback with a short message (crash_handler_lite)
         """
-        
+
         if self.verbose_crash:
             return self.crash_handler(etype, evalue, tb)
         else:
@@ -355,7 +355,7 @@ class BaseIPythonApplication(Application):
             pass
         if suppress_errors is not None:
             Application.raise_config_file_errors = old_value
-        
+
         for config_file_name in self.config_files:
             if not config_file_name or config_file_name == base_config:
                 continue

@@ -183,7 +183,7 @@ class Audio(DisplayObject):
             data = data.T.ravel()
         else:
             raise ValueError('Array audio input must be a 1D or 2D array')
-        
+
         max_abs_value = np.max(np.abs(data))
         normalization_factor = Audio._get_normalization_factor(max_abs_value, normalize)
         scaled = data / normalization_factor * 32767
@@ -251,7 +251,7 @@ class Audio(DisplayObject):
             return 'autoplay="autoplay"'
         else:
             return ''
-    
+
     def element_id_attr(self):
         if (self.element_id):
             return 'id="{element_id}"'.format(element_id=self.element_id)
@@ -323,7 +323,7 @@ class YouTubeVideo(IFrame):
 
     Other parameters can be provided as documented at
     https://developers.google.com/youtube/player_parameters#Parameters
-    
+
     When converting the notebook using nbconvert, a jpeg representation of the video
     will be inserted in the document.
     """

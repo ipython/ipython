@@ -121,12 +121,12 @@ def list_bundled_profiles():
 
 class ProfileLocate(BaseIPythonApplication):
     description = """print the path to an IPython profile dir"""
-    
+
     def parse_command_line(self, argv=None):
         super(ProfileLocate, self).parse_command_line(argv)
         if self.extra_args:
             self.profile = self.extra_args[0]
-    
+
     def start(self):
         print(self.profile_dir.location)
 
@@ -171,13 +171,13 @@ class ProfileList(Application):
             print("    The first request for a bundled profile will copy it")
             print("    into your IPython directory (%s)," % self.ipython_dir)
             print("    where you can customize it.")
-        
+
         profiles = list_profiles_in(self.ipython_dir)
         if profiles:
             print()
             print("Available profiles in %s:" % self.ipython_dir)
             self._print_profiles(profiles)
-        
+
         profiles = list_profiles_in(os.getcwd())
         if profiles:
             print()
@@ -243,7 +243,7 @@ class ProfileCreate(BaseIPythonApplication):
     flags = Dict(create_flags)
 
     classes = [ProfileDir]
-    
+
     def _import_app(self, app_path):
         """import an app class"""
         app = None

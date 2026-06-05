@@ -173,7 +173,7 @@ class OSMagics(Magics):
         except TypeError:
             print(oinspect.getdoc(self.alias))
             return
-        
+
         try:
             self.shell.alias_manager.define_alias(alias, cmd)
         except AliasError as e:
@@ -190,7 +190,7 @@ class OSMagics(Magics):
         except ValueError as e:
             print(e)
             return
-        
+
         stored = self.shell.db.get('stored_aliases', {} )
         if aname in stored:
             print("Removing %stored alias",aname)
@@ -718,7 +718,7 @@ class OSMagics(Magics):
 
         This is very useful when trying to use such lists as arguments to
         system commands."""
-        
+
         if cell is None:
             # line magic
             return self.shell.getoutput(line)
@@ -841,7 +841,7 @@ class OSMagics(Magics):
             filename = os.path.expanduser(args.filename[1:-1])
         else:
             filename = os.path.expanduser(args.filename)
-            
+
         if os.path.exists(filename):
             if args.append:
                 print("Appending to %s" % filename)
@@ -849,7 +849,7 @@ class OSMagics(Magics):
                 print("Overwriting %s" % filename)
         else:
             print("Writing %s" % filename)
-        
+
         mode = 'a' if args.append else 'w'
         with io.open(filename, mode, encoding='utf-8') as f:
             f.write(cell)

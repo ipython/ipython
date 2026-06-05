@@ -42,11 +42,11 @@ class BackgroundJobManager:
     """Class to manage a pool of backgrounded threaded jobs.
 
     Below, we assume that 'jobs' is a BackgroundJobManager instance.
-    
+
     Usage summary (see the method docstrings for details):
 
       jobs.new(...) -> start a new job
-      
+
       jobs() or jobs.status() -> print status summary of all jobs
 
       jobs[N] -> returns job number N.
@@ -58,7 +58,7 @@ class BackgroundJobManager:
       jobs.remove(N) -> remove (finished) job N
 
       jobs.flush() -> remove all finished jobs
-      
+
     As a convenience feature, BackgroundJobManager instances provide the
     utility result and traceback methods which retrieve the corresponding
     information from the jobs list:
@@ -167,7 +167,7 @@ class BackgroundJobManager:
 
         4. There is no way, due to limitations in the Python threads library,
         to kill a thread once it has started."""
-        
+
         if callable(func_or_exp):
             kw  = kwargs.get('kw',{})
             job = BackgroundJobFunc(func_or_exp,*args,**kw)
@@ -264,7 +264,7 @@ class BackgroundJobManager:
             print('Flushing %s %s job%s.' % (njobs,name,plural))
             group[:] = []
             return True
-        
+
     def _status_new(self):
         """Print the status of newly finished jobs.
 
@@ -280,7 +280,7 @@ class BackgroundJobManager:
         self._comp_report[:] = []
         self._dead_report[:] = []
         return new_comp or new_dead
-                
+
     def status(self,verbose=0):
         """Print a status of all jobs currently being managed."""
 
@@ -387,18 +387,18 @@ class BackgroundJobBase(threading.Thread):
 
     def _init(self):
         """Common initialization for all BackgroundJob objects"""
-        
+
         for attr in ['call','strform']:
             assert hasattr(self,attr), "Missing attribute <%s>" % attr
-        
+
         # The num tag can be set by an external job manager
         self.num = None
-      
+
         self.status    = BackgroundJobBase.stat_created
         self.stat_code = BackgroundJobBase.stat_created_c
         self.finished  = False
         self.result    = '<BackgroundJob has not completed>'
-        
+
         # reuse the ipython traceback handler if we can get to it, otherwise
         # make a new one
         try:
@@ -413,7 +413,7 @@ class BackgroundJobBase(threading.Thread):
 
         # Hold a formatted traceback if one is generated.
         self._tb = None
-        
+
         threading.Thread.__init__(self)
 
     def __str__(self):
@@ -424,7 +424,7 @@ class BackgroundJobBase(threading.Thread):
 
     def traceback(self):
         print(self._tb)
-        
+
     def run(self):
         try:
             self.status    = BackgroundJobBase.stat_running
@@ -453,14 +453,14 @@ class BackgroundJobExpr(BackgroundJobBase):
 
         # fail immediately if the given expression can't be compiled
         self.code = compile(expression,'<BackgroundJob compilation>','eval')
-                
+
         glob = {} if glob is None else glob
         loc = {} if loc is None else loc
         self.expression = self.strform = expression
         self.glob = glob
         self.loc = loc
         self._init()
-        
+
     def call(self):
         return eval(self.code,self.glob,self.loc)
 
@@ -477,7 +477,7 @@ class BackgroundJobFunc(BackgroundJobBase):
         if not callable(func):
             raise TypeError(
                 'first argument to BackgroundJobFunc must be callable')
-        
+
         self.func = func
         self.args = args
         self.kwargs = kwargs

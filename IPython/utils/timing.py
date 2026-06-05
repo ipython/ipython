@@ -76,7 +76,7 @@ else:
         This just returns process_time() and zero."""
         return time.process_time(), 0.0
 
-    
+
 def timings_out(
     reps: int,
     func: Callable[..., Any],

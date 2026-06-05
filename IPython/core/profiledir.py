@@ -117,11 +117,11 @@ class ProfileDir(LoggingConfigurable):
                 raise
 
         return True
-    
+
     @observe('log_dir')
     def check_log_dir(self, change=None):
         self._mkdir(self.log_dir)
-    
+
     @observe('startup_dir')
     def check_startup_dir(self, change=None):
         if self._mkdir(self.startup_dir):
