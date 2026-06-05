@@ -129,21 +129,21 @@ def test_select_figure_formats_kwargs():
     assert png_bytes.startswith(_PNG)
 
 
-def test_select_figure_formats_set():
+@pytest.mark.parametrize("fmts", [
+    {"png", "svg"},
+    ["png"],
+    ("jpeg", "pdf", "retina"),
+    {"svg"},
+])
+def test_select_figure_formats_set(fmts):
     ip = get_ipython()
-    for fmts in [
-        {"png", "svg"},
-        ["png"],
-        ("jpeg", "pdf", "retina"),
-        {"svg"},
-    ]:
-        active_mimes = {_fmt_mime_map[fmt] for fmt in fmts}
-        pt.select_figure_formats(ip, fmts)
-        for mime, f in ip.display_formatter.formatters.items():
-            if mime in active_mimes:
-                assert Figure in f
-            else:
-                assert Figure not in f
+    active_mimes = {_fmt_mime_map[fmt] for fmt in fmts}
+    pt.select_figure_formats(ip, fmts)
+    for mime, f in ip.display_formatter.formatters.items():
+        if mime in active_mimes:
+            assert Figure in f
+        else:
+            assert Figure not in f
 
 
 def test_select_figure_formats_bad():
@@ -301,9 +301,9 @@ def test_backend_module_name_case_sensitive(shell_pylab_fixture):
         s.run_line_magic("matplotlib", some_uppercase)
 
 
-def test_no_gui_backends():
-    for k in ["agg", "svg", "pdf", "ps"]:
-        assert k not in pt.backend2gui
+@pytest.mark.parametrize("backend", ["agg", "svg", "pdf", "ps"])
+def test_no_gui_backends(backend):
+    assert backend not in pt.backend2gui
 
 
 def test_figure_no_canvas():
