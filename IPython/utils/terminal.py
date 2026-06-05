@@ -8,6 +8,7 @@ Authors:
 * Fernando Perez
 * Alexander Belchenko (e-mail: bialix AT ukr.net)
 """
+from __future__ import annotations
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.

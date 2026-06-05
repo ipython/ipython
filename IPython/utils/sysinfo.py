@@ -2,6 +2,7 @@
 """
 Utilities for getting information about IPython and the system it's running in.
 """
+from __future__ import annotations
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
@@ -105,7 +106,7 @@ def sys_info() -> str:
     Examples
     --------
     ::
-    
+
         In [2]: print(sys_info())
         {'commit_hash': '144fdae',      # random
          'commit_source': 'repository',

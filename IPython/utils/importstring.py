@@ -2,6 +2,7 @@
 """
 A simple utility to import something by its string name.
 """
+from __future__ import annotations
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
