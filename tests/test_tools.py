@@ -11,12 +11,12 @@ Tests for testing.tools
 # -----------------------------------------------------------------------------
 
 import os
-import unittest
 
 import pytest
 
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
+from IPython.utils.io import temp_pyfile
 
 
 @dec.skip_win32
@@ -81,44 +81,57 @@ def test_assert_prints_failing():
         func()
 
 
-class Test_ipexec_validate(tt.TempFileMixin):
-    def test_main_path(self):
-        """Test with only stdout results."""
-        self.mktmp("print('A')\n" "print('B')\n")
-        out = "A\nB"
-        tt.ipexec_validate(self.fname, out)
+@pytest.fixture
+def ipexec_tmpfile():
+    """Fixture providing a mktmp helper that creates and cleans up temp files."""
+    import os
+    created = []
 
-    def test_main_path2(self):
-        """Test with only stdout results, expecting windows line endings."""
-        self.mktmp("print('A')\n" "print('B')\n")
-        out = "A\r\nB"
-        tt.ipexec_validate(self.fname, out)
+    def mktmp(src, ext=".py"):
+        fname = temp_pyfile(src, ext)
+        created.append(fname)
+        return fname
 
-    def test_exception_path(self):
-        """Test exception path in exception_validate."""
-        self.mktmp(
-            "import sys\n"
-            "print('A')\n"
-            "print('B')\n"
-            "print('C', file=sys.stderr)\n"
-            "print('D', file=sys.stderr)\n"
-        )
-        out = "A\nB"
-        tt.ipexec_validate(self.fname, expected_out=out, expected_err="C\nD")
+    yield mktmp
 
-    def test_exception_path2(self):
-        """Test exception path in exception_validate, expecting windows line endings."""
-        self.mktmp(
-            "import sys\n"
-            "print('A')\n"
-            "print('B')\n"
-            "print('C', file=sys.stderr)\n"
-            "print('D', file=sys.stderr)\n"
-        )
-        out = "A\r\nB"
-        tt.ipexec_validate(self.fname, expected_out=out, expected_err="C\r\nD")
+    for fname in created:
+        try:
+            os.unlink(fname)
+        except OSError:
+            pass
 
-    def tearDown(self):
-        # tear down correctly the mixin,
-        # unittest.TestCase.tearDown does nothing
-        tt.TempFileMixin.tearDown(self)
+
+def test_ipexec_validate_main_path(ipexec_tmpfile):
+    """Test with only stdout results."""
+    fname = ipexec_tmpfile("print('A')\n" "print('B')\n")
+    tt.ipexec_validate(fname, "A\nB")
+
+
+def test_ipexec_validate_main_path2(ipexec_tmpfile):
+    """Test with only stdout results, expecting windows line endings."""
+    fname = ipexec_tmpfile("print('A')\n" "print('B')\n")
+    tt.ipexec_validate(fname, "A\r\nB")
+
+
+def test_ipexec_validate_exception_path(ipexec_tmpfile):
+    """Test exception path in exception_validate."""
+    fname = ipexec_tmpfile(
+        "import sys\n"
+        "print('A')\n"
+        "print('B')\n"
+        "print('C', file=sys.stderr)\n"
+        "print('D', file=sys.stderr)\n"
+    )
+    tt.ipexec_validate(fname, expected_out="A\nB", expected_err="C\nD")
+
+
+def test_ipexec_validate_exception_path2(ipexec_tmpfile):
+    """Test exception path in exception_validate, expecting windows line endings."""
+    fname = ipexec_tmpfile(
+        "import sys\n"
+        "print('A')\n"
+        "print('B')\n"
+        "print('C', file=sys.stderr)\n"
+        "print('D', file=sys.stderr)\n"
+    )
+    tt.ipexec_validate(fname, expected_out="A\r\nB", expected_err="C\r\nD")

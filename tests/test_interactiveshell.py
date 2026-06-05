@@ -18,7 +18,6 @@ import shutil
 import sys
 import tempfile
 import time
-import unittest
 import pytest
 from unittest import mock
 
@@ -65,11 +64,18 @@ def test_stream_performance(capsys) -> None:
 
 def test_naked_string_cells():
     """Test that cells with only naked strings are fully executed"""
+    # Use store_history=True so that quiet() checks this cell (not a previous
+    # semicolon-terminated cell), and the display hook actually fires.
+    # Also clear _ / __ / ___ so the hook can update them cleanly even if a
+    # previous test left them in a state that differs from the hook's tracking.
+    ip.user_ns.pop("_", None)
+    ip.user_ns.pop("__", None)
+    ip.user_ns.pop("___", None)
     # First, single-line inputs
-    ip.run_cell('"a"\n')
+    ip.run_cell('"a"\n', store_history=True)
     assert ip.user_ns["_"] == "a"
     # And also multi-line cells
-    ip.run_cell('"""a\nb"""\n')
+    ip.run_cell('"""a\nb"""\n', store_history=True)
     assert ip.user_ns["_"] == "a\nb"
 
 
