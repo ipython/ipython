@@ -252,11 +252,16 @@ def support_function_one(x, y=2, *a, **kw):
     """A simple function."""
 
 
-def test_calldef_none():
-    # We should ignore __call__ for all of these.
-    for obj in [support_function_one, SimpleClass().method, any, str.upper]:
-        i = inspector.info(obj)
-        assert i["call_def"] is None
+@pytest.mark.parametrize("obj", [
+    support_function_one,
+    SimpleClass().method,
+    any,
+    str.upper,
+])
+def test_calldef_none(obj):
+    # __call__ should be ignored for all of these
+    i = inspector.info(obj)
+    assert i["call_def"] is None
 
 
 def f_kwarg(pos, *, kwonly):
