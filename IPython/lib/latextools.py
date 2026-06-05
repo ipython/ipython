@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tools for handling LaTeX."""
+from __future__ import annotations
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
