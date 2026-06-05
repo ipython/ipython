@@ -31,7 +31,26 @@ from tempfile import TemporaryDirectory
 from IPython.core import debugger
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
-from IPython.utils.io import capture_output
+from IPython.utils.capture import capture_output
+from IPython.utils.io import temp_pyfile
+
+
+@pytest.fixture
+def run_tmpfile():
+    created = []
+
+    def mktmp(src, ext=".py"):
+        fname = temp_pyfile(src, ext)
+        created.append(fname)
+        return fname
+
+    yield mktmp
+
+    for fname in created:
+        try:
+            os.unlink(fname)
+        except OSError:
+            pass
 
 
 def doctest_refbug():
@@ -177,132 +196,108 @@ import sysconfig
 is_freethreaded = bool(sysconfig.get_config_var("Py_GIL_DISABLED"))
 
 
-class TestMagicRunPass(tt.TempFileMixin):
-    def setUp(self):
-        content = "a = [1,2,3]\nb = 1"
-        self.mktmp(content)
-
-    def run_tmpfile(self):
-        _ip = get_ipython()
-        # This fails on Windows if self.tmpfile.name has spaces or "~" in it.
-        # See below and ticket https://bugs.launchpad.net/bugs/366353
-        _ip.run_line_magic("run", self.fname)
-
-    def run_tmpfile_p(self):
-        _ip = get_ipython()
-        # This fails on Windows if self.tmpfile.name has spaces or "~" in it.
-        # See below and ticket https://bugs.launchpad.net/bugs/366353
-        _ip.run_line_magic("run", "-p %s" % self.fname)
-
-    def test_builtins_id(self):
-        """Check that %run doesn't damage __builtins__"""
-        _ip = get_ipython()
-        # Test that the id of __builtins__ is not modified by %run
-        bid1 = id(_ip.user_ns["__builtins__"])
-        self.run_tmpfile()
-        bid2 = id(_ip.user_ns["__builtins__"])
-        assert bid1 == bid2
-
-    def test_builtins_type(self):
-        """Check that the type of __builtins__ doesn't change with %run.
-
-        However, the above could pass if __builtins__ was already modified to
-        be a dict (it should be a module) by a previous use of %run.  So we
-        also check explicitly that it really is a module:
-        """
-        _ip = get_ipython()
-        self.run_tmpfile()
-        assert type(_ip.user_ns["__builtins__"]) == type(sys)
-
-    def test_run_profile(self):
-        """Test that the option -p, which invokes the profiler, do not
-        crash by invoking execfile"""
-        self.run_tmpfile_p()
-
-    def test_run_debug_twice(self):
-        # https://github.com/ipython/ipython/issues/10028
-        _ip = get_ipython()
-        with tt.fake_input(["c"]):
-            _ip.run_line_magic("run", "-d %s" % self.fname)
-        with tt.fake_input(["c"]):
-            _ip.run_line_magic("run", "-d %s" % self.fname)
-
-    def test_run_debug_twice_with_breakpoint(self):
-        """Make a valid python temp file."""
-        _ip = get_ipython()
-        with tt.fake_input(["b 2", "c", "c"]):
-            _ip.run_line_magic("run", "-d %s" % self.fname)
-
-        with tt.fake_input(["c"]):
-            with tt.AssertNotPrints("KeyError"):
-                _ip.run_line_magic("run", "-d %s" % self.fname)
+def test_builtins_id(run_tmpfile):
+    """Check that %run doesn't damage __builtins__"""
+    _ip = get_ipython()
+    fname = run_tmpfile("a = [1,2,3]\nb = 1")
+    bid1 = id(_ip.user_ns["__builtins__"])
+    _ip.run_line_magic("run", fname)
+    bid2 = id(_ip.user_ns["__builtins__"])
+    assert bid1 == bid2
 
 
-class TestMagicRunSimple(tt.TempFileMixin):
-    def test_simpledef(self):
-        """Test that simple class definitions work."""
-        src = "class foo: pass\n" "def f(): return foo()"
-        self.mktmp(src)
-        _ip.run_line_magic("run", str(self.fname))
-        _ip.run_cell("t = isinstance(f(), foo)")
-        assert _ip.user_ns["t"] is True
+def test_builtins_type(run_tmpfile):
+    """Check that the type of __builtins__ doesn't change with %run."""
+    _ip = get_ipython()
+    fname = run_tmpfile("a = [1,2,3]\nb = 1")
+    _ip.run_line_magic("run", fname)
+    assert type(_ip.user_ns["__builtins__"]) == type(sys)
 
-    @pytest.mark.xfail(
-        platform.python_implementation() == "PyPy",
-        reason="expecting __del__ call on exit is unreliable and doesn't happen on PyPy",
+
+def test_run_profile(run_tmpfile):
+    """Test that the option -p, which invokes the profiler, do not crash by invoking execfile"""
+    _ip = get_ipython()
+    fname = run_tmpfile("a = [1,2,3]\nb = 1")
+    _ip.run_line_magic("run", "-p %s" % fname)
+
+
+def test_run_debug_twice(run_tmpfile):
+    # https://github.com/ipython/ipython/issues/10028
+    _ip = get_ipython()
+    fname = run_tmpfile("a = [1,2,3]\nb = 1")
+    with tt.fake_input(["c"]):
+        _ip.run_line_magic("run", "-d %s" % fname)
+    with tt.fake_input(["c"]):
+        _ip.run_line_magic("run", "-d %s" % fname)
+
+
+def test_run_debug_twice_with_breakpoint(run_tmpfile):
+    """Make a valid python temp file."""
+    _ip = get_ipython()
+    fname = run_tmpfile("a = [1,2,3]\nb = 1")
+    with tt.fake_input(["b 2", "c", "c"]):
+        _ip.run_line_magic("run", "-d %s" % fname)
+
+    with tt.fake_input(["c"]):
+        with tt.AssertNotPrints("KeyError"):
+            _ip.run_line_magic("run", "-d %s" % fname)
+
+
+def test_simpledef(run_tmpfile):
+    """Test that simple class definitions work."""
+    fname = run_tmpfile("class foo: pass\ndef f(): return foo()")
+    _ip.run_line_magic("run", str(fname))
+    _ip.run_cell("t = isinstance(f(), foo)")
+    assert _ip.user_ns["t"] is True
+
+
+@pytest.mark.xfail(
+    platform.python_implementation() == "PyPy",
+    reason="expecting __del__ call on exit is unreliable and doesn't happen on PyPy",
+)
+def test_obj_del(run_tmpfile):
+    """Test that object's __del__ methods are called on exit."""
+    fname = run_tmpfile(
+        "class A(object):\n"
+        "    def __del__(self):\n"
+        "        print('object A deleted')\n"
+        "a = A()\n"
     )
-    def test_obj_del(self):
-        """Test that object's __del__ methods are called on exit."""
-        src = (
-            "class A(object):\n"
-            "    def __del__(self):\n"
-            "        print('object A deleted')\n"
-            "a = A()\n"
-        )
-        self.mktmp(src)
-        err = None
-        tt.ipexec_validate(self.fname, "object A deleted", err)
+    tt.ipexec_validate(fname, "object A deleted", None)
 
-    def test_aggressive_namespace_cleanup(self):
-        """Test that namespace cleanup is not too aggressive GH-238
 
-        Returning from another run magic deletes the namespace"""
-        # see ticket https://github.com/ipython/ipython/issues/238
+def test_aggressive_namespace_cleanup(run_tmpfile):
+    """Test that namespace cleanup is not too aggressive GH-238"""
+    empty_fname = run_tmpfile("")
+    src = (
+        "ip = get_ipython()\n"
+        "for i in range(5):\n"
+        "   try:\n"
+        "       ip.run_line_magic(%r, %r)\n"
+        "   except NameError as e:\n"
+        "       print(i)\n"
+        "       break\n" % ("run", empty_fname)
+    )
+    fname = run_tmpfile(src)
+    _ip.run_line_magic("run", str(fname))
+    _ip.run_cell("ip == get_ipython()")
+    assert _ip.user_ns["i"] == 4
 
-        with tt.TempFileMixin() as empty:
-            empty.mktmp("")
-            # On Windows, the filename will have \users in it, so we need to use the
-            # repr so that the \u becomes \\u.
-            src = (
-                "ip = get_ipython()\n"
-                "for i in range(5):\n"
-                "   try:\n"
-                "       ip.run_line_magic(%r, %r)\n"
-                "   except NameError as e:\n"
-                "       print(i)\n"
-                "       break\n" % ("run", empty.fname)
-            )
-            self.mktmp(src)
-            _ip.run_line_magic("run", str(self.fname))
-            _ip.run_cell("ip == get_ipython()")
-            assert _ip.user_ns["i"] == 4
 
-    def test_run_second(self):
-        """Test that running a second file doesn't clobber the first, gh-3547"""
-        self.mktmp("avar = 1\n" "def afunc():\n" "  return avar\n")
+def test_run_second(run_tmpfile):
+    """Test that running a second file doesn't clobber the first, gh-3547"""
+    fname = run_tmpfile("avar = 1\ndef afunc():\n  return avar\n")
+    empty_fname = run_tmpfile("")
+    _ip.run_line_magic("run", fname)
+    _ip.run_line_magic("run", empty_fname)
+    assert _ip.user_ns["afunc"]() == 1
 
-        with tt.TempFileMixin() as empty:
-            empty.mktmp("")
 
-            _ip.run_line_magic("run", self.fname)
-            _ip.run_line_magic("run", empty.fname)
-            assert _ip.user_ns["afunc"]() == 1
-
-    @pytest.mark.xfail(is_freethreaded, reason="C-third leaks on free-threaded python")
-    def test_tclass(self):
-        mydir = os.path.dirname(__file__)
-        tc = os.path.join(mydir, "tclass")
-        src = f"""\
+@pytest.mark.xfail(is_freethreaded, reason="C-third leaks on free-threaded python")
+def test_tclass(run_tmpfile):
+    mydir = os.path.dirname(__file__)
+    tc = os.path.join(mydir, "tclass")
+    src = f"""\
 import gc
 %run "{tc}" C-first
 gc.collect(0)
@@ -312,8 +307,8 @@ gc.collect(0)
 gc.collect(0)
 %reset -f
 """
-        self.mktmp(src, ".ipy")
-        out = """\
+    fname = run_tmpfile(src, ".ipy")
+    out = """\
 ARGV 1-: ['C-first']
 ARGV 1-: ['C-second']
 tclass.py: deleting object: C-first
@@ -321,124 +316,108 @@ ARGV 1-: ['C-third']
 tclass.py: deleting object: C-second
 tclass.py: deleting object: C-third
 """
-        err = None
-        tt.ipexec_validate(self.fname, out, err)
+    tt.ipexec_validate(fname, out, None)
 
-    def test_run_i_after_reset(self):
-        """Check that %run -i still works after %reset (gh-693)"""
-        src = "yy = zz\n"
-        self.mktmp(src)
-        _ip.run_cell("zz = 23")
-        try:
-            _ip.run_line_magic("run", "-i %s" % self.fname)
-            assert _ip.user_ns["yy"] == 23
-        finally:
-            _ip.run_line_magic("reset", "-f")
 
-        _ip.run_cell("zz = 23")
-        try:
-            _ip.run_line_magic("run", "-i %s" % self.fname)
-            assert _ip.user_ns["yy"] == 23
-        finally:
-            _ip.run_line_magic("reset", "-f")
+def test_run_i_after_reset(run_tmpfile):
+    """Check that %run -i still works after %reset (gh-693)"""
+    fname = run_tmpfile("yy = zz\n")
+    _ip.run_cell("zz = 23")
+    try:
+        _ip.run_line_magic("run", "-i %s" % fname)
+        assert _ip.user_ns["yy"] == 23
+    finally:
+        _ip.run_line_magic("reset", "-f")
 
-    def test_unicode(self):
-        """Check that files in odd encodings are accepted."""
-        mydir = os.path.dirname(__file__)
-        na = os.path.join(mydir, "nonascii.py")
-        _ip.run_line_magic("run", na)
-        assert _ip.user_ns["u"] == "Ўт№Ф"
+    _ip.run_cell("zz = 23")
+    try:
+        _ip.run_line_magic("run", "-i %s" % fname)
+        assert _ip.user_ns["yy"] == 23
+    finally:
+        _ip.run_line_magic("reset", "-f")
 
-    def test_run_py_file_attribute(self):
-        """Test handling of `__file__` attribute in `%run <file>.py`."""
-        src = "t = __file__\n"
-        self.mktmp(src)
-        _missing = object()
-        file1 = _ip.user_ns.get("__file__", _missing)
-        _ip.run_line_magic("run", self.fname)
-        file2 = _ip.user_ns.get("__file__", _missing)
 
-        # Check that __file__ was equal to the filename in the script's
-        # namespace.
-        assert _ip.user_ns["t"] == self.fname
+def test_unicode():
+    """Check that files in odd encodings are accepted."""
+    mydir = os.path.dirname(__file__)
+    na = os.path.join(mydir, "nonascii.py")
+    _ip.run_line_magic("run", na)
+    assert _ip.user_ns["u"] == "Ўт№Ф"
 
-        # Check that __file__ was not leaked back into user_ns.
-        assert file1 == file2
 
-    def test_run_ipy_file_attribute(self):
-        """Test handling of `__file__` attribute in `%run <file.ipy>`."""
-        src = "t = __file__\n"
-        self.mktmp(src, ext=".ipy")
-        _missing = object()
-        file1 = _ip.user_ns.get("__file__", _missing)
-        _ip.run_line_magic("run", self.fname)
-        file2 = _ip.user_ns.get("__file__", _missing)
+def test_run_py_file_attribute(run_tmpfile):
+    """Test handling of `__file__` attribute in `%run <file>.py`."""
+    fname = run_tmpfile("t = __file__\n")
+    _missing = object()
+    file1 = _ip.user_ns.get("__file__", _missing)
+    _ip.run_line_magic("run", fname)
+    file2 = _ip.user_ns.get("__file__", _missing)
+    assert _ip.user_ns["t"] == fname
+    assert file1 == file2
 
-        # Check that __file__ was equal to the filename in the script's
-        # namespace.
-        assert _ip.user_ns["t"] == self.fname
 
-        # Check that __file__ was not leaked back into user_ns.
-        assert file1 == file2
+def test_run_ipy_file_attribute(run_tmpfile):
+    """Test handling of `__file__` attribute in `%run <file.ipy>`."""
+    fname = run_tmpfile("t = __file__\n", ext=".ipy")
+    _missing = object()
+    file1 = _ip.user_ns.get("__file__", _missing)
+    _ip.run_line_magic("run", fname)
+    file2 = _ip.user_ns.get("__file__", _missing)
+    assert _ip.user_ns["t"] == fname
+    assert file1 == file2
 
-    def test_run_formatting(self):
-        """Test that %run -t -N<N> does not raise a TypeError for N > 1."""
-        src = "pass"
-        self.mktmp(src)
-        _ip.run_line_magic("run", "-t -N 1 %s" % self.fname)
-        _ip.run_line_magic("run", "-t -N 10 %s" % self.fname)
 
-    def test_ignore_sys_exit(self):
-        """Test the -e option to ignore sys.exit()"""
-        src = "import sys; sys.exit(1)"
-        self.mktmp(src)
-        with tt.AssertPrints("SystemExit"):
-            _ip.run_line_magic("run", self.fname)
+def test_run_formatting(run_tmpfile):
+    """Test that %run -t -N<N> does not raise a TypeError for N > 1."""
+    fname = run_tmpfile("pass")
+    _ip.run_line_magic("run", "-t -N 1 %s" % fname)
+    _ip.run_line_magic("run", "-t -N 10 %s" % fname)
 
-        with tt.AssertNotPrints("SystemExit"):
-            _ip.run_line_magic("run", "-e %s" % self.fname)
 
-    def test_run_nb(self):
-        """Test %run notebook.ipynb"""
-        pytest.importorskip("nbformat")
-        from nbformat import v4, writes
+def test_ignore_sys_exit(run_tmpfile):
+    """Test the -e option to ignore sys.exit()"""
+    fname = run_tmpfile("import sys; sys.exit(1)")
+    with tt.AssertPrints("SystemExit"):
+        _ip.run_line_magic("run", fname)
 
-        nb = v4.new_notebook(
-            cells=[
-                v4.new_markdown_cell("The Ultimate Question of Everything"),
-                v4.new_code_cell("answer=42"),
-            ]
-        )
-        src = writes(nb, version=4)
-        self.mktmp(src, ext=".ipynb")
+    with tt.AssertNotPrints("SystemExit"):
+        _ip.run_line_magic("run", "-e %s" % fname)
 
-        _ip.run_line_magic("run", self.fname)
 
-        assert _ip.user_ns["answer"] == 42
+def test_run_nb(run_tmpfile):
+    """Test %run notebook.ipynb"""
+    pytest.importorskip("nbformat")
+    from nbformat import v4, writes
 
-    def test_run_nb_error(self):
-        """Test %run notebook.ipynb error"""
-        pytest.importorskip("nbformat")
-        from nbformat import v4, writes
+    nb = v4.new_notebook(
+        cells=[
+            v4.new_markdown_cell("The Ultimate Question of Everything"),
+            v4.new_code_cell("answer=42"),
+        ]
+    )
+    fname = run_tmpfile(writes(nb, version=4), ext=".ipynb")
+    _ip.run_line_magic("run", fname)
+    assert _ip.user_ns["answer"] == 42
 
-        # %run when a file name isn't provided
-        pytest.raises(Exception, _ip.run_line_magic, "run")
 
-        # %run when a file doesn't exist
-        pytest.raises(Exception, _ip.run_line_magic, "run", "foobar.ipynb")
+def test_run_nb_error(run_tmpfile):
+    """Test %run notebook.ipynb error"""
+    pytest.importorskip("nbformat")
+    from nbformat import v4, writes
 
-        # %run on a notebook with an error
-        nb = v4.new_notebook(cells=[v4.new_code_cell("0/0")])
-        src = writes(nb, version=4)
-        self.mktmp(src, ext=".ipynb")
-        pytest.raises(Exception, _ip.run_line_magic, "run", self.fname)
+    pytest.raises(Exception, _ip.run_line_magic, "run")
+    pytest.raises(Exception, _ip.run_line_magic, "run", "foobar.ipynb")
 
-    def test_file_options(self):
-        src = "import sys\n" 'a = " ".join(sys.argv[1:])\n'
-        self.mktmp(src)
-        test_opts = "-x 3 --verbose"
-        _ip.run_line_magic("run", "{0} {1}".format(self.fname, test_opts))
-        assert _ip.user_ns["a"] == test_opts
+    nb = v4.new_notebook(cells=[v4.new_code_cell("0/0")])
+    fname = run_tmpfile(writes(nb, version=4), ext=".ipynb")
+    pytest.raises(Exception, _ip.run_line_magic, "run", fname)
+
+
+def test_file_options(run_tmpfile):
+    fname = run_tmpfile("import sys\n" 'a = " ".join(sys.argv[1:])\n')
+    test_opts = "-x 3 --verbose"
+    _ip.run_line_magic("run", "{0} {1}".format(fname, test_opts))
+    assert _ip.user_ns["a"] == test_opts
 
 
 def _fake_debugger(func):
