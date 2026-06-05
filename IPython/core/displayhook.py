@@ -3,6 +3,7 @@
 
 This defines a callable class that IPython uses for `sys.displayhook`.
 """
+from __future__ import annotations
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.

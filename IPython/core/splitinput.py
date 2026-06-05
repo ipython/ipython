@@ -2,6 +2,7 @@
 Simple utility for splitting user input. This is used by both inputsplitter and
 prefilter.
 """
+from __future__ import annotations
 
 # -----------------------------------------------------------------------------
 # Imports

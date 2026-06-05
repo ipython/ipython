@@ -1,4 +1,5 @@
 """Support for interactive macros in IPython"""
+from __future__ import annotations
 
 #*****************************************************************************
 #       Copyright (C) 2001-2005 Fernando Perez <fperez@colorado.edu>
@@ -48,7 +49,7 @@ class Macro:
     def __setstate__(self, state):
         self.value = state['value']
 
-    def __add__(self, other: "Macro | str") -> "Macro":
+    def __add__(self, other: Macro | str) -> Macro:
         if isinstance(other, Macro):
             return Macro(self.value + other.value)
         elif isinstance(other, str):

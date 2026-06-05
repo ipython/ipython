@@ -1,5 +1,6 @@
 # encoding: utf-8
 """A class for managing IPython extensions."""
+from __future__ import annotations
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.

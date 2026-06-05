@@ -7,6 +7,7 @@ Authors:
 * Robert Kern
 * Brian Granger
 """
+from __future__ import annotations
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
