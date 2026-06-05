@@ -25,8 +25,6 @@ import sys
 import tempfile
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest import TestCase
-
 import pytest
 
 from IPython.core.profileapp import list_bundled_profiles, list_profiles_in
@@ -71,36 +69,31 @@ def teardown_module():
 # -----------------------------------------------------------------------------
 # Test functions
 # -----------------------------------------------------------------------------
-class ProfileStartupTest(TestCase):
-    def setUp(self):
-        # create profile dir
-        self.pd = ProfileDir.create_profile_dir_by_name(IP_TEST_DIR, "test")
-        self.options = ["--ipython-dir", IP_TEST_DIR, "--profile", "test"]
-        self.fname = TMP_TEST_DIR / "test.py"
+@pytest.fixture
+def profile_startup(tmp_path):
+    pd = ProfileDir.create_profile_dir_by_name(IP_TEST_DIR, "test")
+    fname = TMP_TEST_DIR / "test.py"
+    options = ["--ipython-dir", IP_TEST_DIR, "--profile", "test"]
+    yield pd, fname, options
+    shutil.rmtree(pd.location)
 
-    def tearDown(self):
-        # We must remove this profile right away so its presence doesn't
-        # confuse other tests.
-        shutil.rmtree(self.pd.location)
 
-    def init(self, startup_file, startup, test):
-        # write startup python file
-        with open(Path(self.pd.startup_dir) / startup_file, "w", encoding="utf-8") as f:
-            f.write(startup)
-        # write simple test file, to check that the startup file was run
-        with open(self.fname, "w", encoding="utf-8") as f:
-            f.write(test)
+def test_startup_py(profile_startup):
+    pd, fname, options = profile_startup
+    with open(Path(pd.startup_dir) / "00-start.py", "w", encoding="utf-8") as f:
+        f.write("zzz=123\n")
+    with open(fname, "w", encoding="utf-8") as f:
+        f.write("print(zzz)\n")
+    tt.ipexec_validate(fname, "123", "", options=options)
 
-    def validate(self, output):
-        tt.ipexec_validate(self.fname, output, "", options=self.options)
 
-    def test_startup_py(self):
-        self.init("00-start.py", "zzz=123\n", "print(zzz)\n")
-        self.validate("123")
-
-    def test_startup_ipy(self):
-        self.init("00-start.ipy", "%xmode plain\n", "")
-        self.validate("Exception reporting mode: Plain")
+def test_startup_ipy(profile_startup):
+    pd, fname, options = profile_startup
+    with open(Path(pd.startup_dir) / "00-start.ipy", "w", encoding="utf-8") as f:
+        f.write("%xmode plain\n")
+    with open(fname, "w", encoding="utf-8") as f:
+        f.write("")
+    tt.ipexec_validate(fname, "Exception reporting mode: Plain", "", options=options)
 
 
 @pytest.mark.skipif(
