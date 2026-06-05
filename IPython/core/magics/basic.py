@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Implementation of basic magic functions."""
 
 

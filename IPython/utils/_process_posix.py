@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Posix-specific implementation of process utilities.
 
 This file is only meant to be imported by process.py, not by end-users.

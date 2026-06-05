@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Implementation of magic functions that control various automatic behaviors.
 """
 #-----------------------------------------------------------------------------

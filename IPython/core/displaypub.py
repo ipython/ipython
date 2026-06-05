@@ -1,3 +1,4 @@
+from __future__ import annotations
 """An interface for publishing rich data to frontends.
 
 There are two components of the display system:
@@ -23,8 +24,6 @@ from traitlets import List
 # This used to be defined here - it is imported for backwards compatibility
 from .display_functions import publish_display_data
 from .history import HistoryOutput
-
-import typing as t
 
 # -----------------------------------------------------------------------------
 # Main payload class
@@ -143,7 +142,7 @@ class DisplayPublisher(Configurable):
                 stacklevel=2,
             )
 
-        handlers: t.Dict = {}
+        handlers: dict = {}
         if self.shell is not None:
             handlers = getattr(self.shell, "mime_renderers", {})
 

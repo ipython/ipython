@@ -1,3 +1,4 @@
+from __future__ import annotations
 """prompt-toolkit utilities
 
 Everything in this module is a private API,
