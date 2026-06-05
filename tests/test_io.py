@@ -4,11 +4,10 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-
 import sys
 from io import StringIO
 
-import unittest
+import pytest
 
 from IPython.utils.io import Tee, capture_output
 
@@ -23,38 +22,50 @@ def test_tee_simple():
     tee.close()
 
 
-class TeeTestCase(unittest.TestCase):
-    def tchan(self, channel):
-        trap = StringIO()
-        chan = StringIO()
-        text = "Hello"
+@pytest.mark.parametrize("channel", ["stdout", "stderr"])
+def test_tee_channel(channel):
+    trap = StringIO()
+    chan = StringIO()
+    text = "Hello"
 
-        std_ori = getattr(sys, channel)
-        setattr(sys, channel, trap)
+    std_ori = getattr(sys, channel)
+    setattr(sys, channel, trap)
 
-        tee = Tee(chan, channel=channel)
+    tee = Tee(chan, channel=channel)
 
-        print(text, end="", file=chan)
-        trap_val = trap.getvalue()
-        self.assertEqual(chan.getvalue(), text)
+    print(text, end="", file=chan)
+    assert chan.getvalue() == text
 
-        tee.close()
+    tee.close()
 
-        setattr(sys, channel, std_ori)
-        assert getattr(sys, channel) == std_ori
-
-    def test(self):
-        for chan in ["stdout", "stderr"]:
-            self.tchan(chan)
+    setattr(sys, channel, std_ori)
+    assert getattr(sys, channel) == std_ori
 
 
-class TestIOStream(unittest.TestCase):
-    def test_capture_output(self):
-        """capture_output() context works"""
+def test_tee_invalid_channel():
+    with pytest.raises(ValueError, match="Invalid channel spec"):
+        Tee(StringIO(), channel="invalid")
 
-        with capture_output() as io:
-            print("hi, stdout")
-            print("hi, stderr", file=sys.stderr)
 
-        self.assertEqual(io.stdout, "hi, stdout\n")
-        self.assertEqual(io.stderr, "hi, stderr\n")
+def test_capture_output():
+    with capture_output() as io:
+        print("hi, stdout")
+        print("hi, stderr", file=sys.stderr)
+
+    assert io.stdout == "hi, stdout\n"
+    assert io.stderr == "hi, stderr\n"
+
+
+def test_capture_output_empty():
+    with capture_output() as io:
+        pass
+
+    assert io.stdout == ""
+    assert io.stderr == ""
+
+
+def test_tee_isatty():
+    chan = StringIO()
+    tee = Tee(chan, channel="stdout")
+    assert tee.isatty() is False
+    tee.close()

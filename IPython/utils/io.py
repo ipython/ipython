@@ -42,6 +42,7 @@ class Tee:
             If a filename was give, open with this mode.
         channel : str, one of ['stdout', 'stderr']
         """
+        self._closed = True
         if channel not in ['stdout', 'stderr']:
             raise ValueError('Invalid channel spec %s' % channel)
 
@@ -53,7 +54,7 @@ class Tee:
         self.channel = channel
         self.ostream = getattr(sys, channel)
         setattr(sys, channel, self)
-        self._closed = False
+        self._closed = False  # fully initialized, mark as open
 
     def close(self):
         """Close the file and restore the channel."""
