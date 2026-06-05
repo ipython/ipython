@@ -1,5 +1,6 @@
 """String dispatch class to match regexps and dispatch commands.
 """
+from __future__ import annotations
 
 # Stdlib imports
 import re
