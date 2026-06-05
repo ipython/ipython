@@ -1,4 +1,5 @@
 """Tests for IPython.utils.frame"""
+import collections.abc
 import pytest
 from IPython.utils.frame import extract_vars, extract_vars_above, extract_module_locals
 
@@ -33,7 +34,8 @@ def test_extract_vars_above():
 def test_extract_module_locals_returns_tuple():
     module, locals_ = extract_module_locals()
     assert hasattr(module, "__name__")
-    assert isinstance(locals_, dict)
+    # On Python 3.13+, f.f_locals returns FrameLocalsProxy, not dict
+    assert isinstance(locals_, collections.abc.Mapping)
 
 
 def test_extract_module_locals_module_name():
