@@ -10,7 +10,6 @@ import sys
 import tempfile
 import textwrap
 import time
-import unittest
 from types import ModuleType
 
 from IPython.extensions.autoreload import AutoreloadMagics
@@ -87,605 +86,632 @@ def squish_text(text: str) -> str:
     return textwrap.dedent("\n".join(transformed_text_lines))
 
 
-class AutoreloadDetectionSuite(unittest.TestCase):
+# ---------------------------------------------------------------------------
+# AutoreloadDetectionSuite
+# ---------------------------------------------------------------------------
+
+
+def test_compare_ast():
+    code1 = squish_text(
+        """
+        def factorial(n):
+            def fn(sdfsdf):
+                print(sdfsdf)
+            if n < 0:
+                return "Factorial is not defined for negative numbers."
+            elif n == 0 or n == 1:
+                return 1
+            else:
+                result = 1
+                for i in range(2, n + 1):
+                    result *= i
+                return result
+            y = 12
+            print(y)
+        print(1)
+        x = 1212121
     """
-    Unit tests for autoreload testing logic
+    )
+    code2 = squish_text(
+        """
+        def factorial(n):
+            def fn(sdfsdf):
+                print(sdfsdf+"!!!")
+            if n < 0:
+                return "Factorial is not defined for negative numbers."
+            elif n == 0 or n == 1:
+                return 1
+            else:
+                result = 1
+                for i in range(2, n + 1):
+                    result *= i
+                return result
+            y = 12
+            print(y)
+        print(1)
+        x = 1212121
     """
+    )
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
 
-    def test_compare_ast(self):
-        code1 = squish_text(
-            """
-            def factorial(n):
-                def fn(sdfsdf):
-                    print(sdfsdf)
-                if n < 0:
-                    return "Factorial is not defined for negative numbers."
-                elif n == 0 or n == 1:
-                    return 1
-                else:
-                    result = 1
-                    for i in range(2, n + 1):
-                        result *= i
-                    return result
-                y = 12
-                print(y)
-            print(1)
-            x = 1212121
+    assert not compare_ast(ast_1, ast_2)
+
+
+def test_compare_ast2():
+    code1 = squish_text(
         """
-        )
-        code2 = squish_text(
-            """
-            def factorial(n):
-                def fn(sdfsdf):
-                    print(sdfsdf+"!!!")
-                if n < 0:
-                    return "Factorial is not defined for negative numbers."
-                elif n == 0 or n == 1:
-                    return 1
-                else:
-                    result = 1
-                    for i in range(2, n + 1):
-                        result *= i
-                    return result
-                y = 12
-                print(y)
-            print(1)
-            x = 1212121
-        """
-        )
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert not compare_ast(ast_1, ast_2)
-
-    def test_compare_ast2(self):
-        code1 = squish_text(
-            """
-            def factorial(n):
-                def fn(sdfsdf):
-                    print(sdfsdf)
-                if n < 0:
-                    return "Factorial is not defined for negative numbers."
-                elif n == 0 or n == 1:
-                    return 1
-                else:
-                    result = 1
-                    for i in range(2, n + 1):
-                        result *= i
-                    return result
-                y = 12
-                print(y)
-            print(1)
-            x = 1212121
-        """
-        )
-        code2 = squish_text(
-            """
-            def factorial(n):
-                def fn(sdfsdf):
-                    print(sdfsdf)
-                if n < 0:
-                    return "Factorial is not defined for negative numbers."
-                elif n == 0 or n == 1:
-                    return 1
-                else:
-                    result = 1
-                    for i in range(2, n + 1):
-                        result *= i
-                    return result
-                y = 12
-                print(y)
-            print(1)
-            x = 1212121
-        """
-        )
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert compare_ast(ast_1, ast_2)
-
-    def test_autoreload_no_changes(self):
-        code1 = squish_text(
-            """
-            def factorial(n):
-                print(n)
-            print(1)
-            x = 1212121
-        """
-        )
-        code2 = squish_text(
-            """
-            def factorial(n):
-                print(n)
-            print(1)
-            x = 1212121
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-        assert deduperreloader._to_autoreload.defs_to_reload == []
-
-    def test_autoreload_static_assign_change_outside_function(self):
-        code1 = squish_text(
-            """
-            def factorial(n):
-                print(n)
-            print(1)
-        """
-        )
-        code2 = squish_text(
-            """
-            def factorial(n):
-                print(n)
-            print(1)
-            x = 1212121
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-
-    def test_autoreload_changes_inside_function(self):
-        code1 = squish_text(
-            """
-            def factorial(n):
-                print(n)
-            print(1)
-        """
-        )
-        code2 = squish_text(
-            """
-            def factorial(n):
-                print(n + "edit!")
-            print(1)
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-        assert len(deduperreloader._to_autoreload.defs_to_reload) == 1
-
-    def test_autoreload_changes_inside_and_outside_function(self):
-        code1 = squish_text(
-            """
-            def factorial(n):
-                print(n)
-            print(1)
-        """
-        )
-        code2 = squish_text(
-            """
-            def factorial(n):
-                print(n + "edit!")
-            print(2)
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert not deduperreloader.detect_autoreload(ast_1, ast_2)
-
-    def test_autoreload_changes_inner_function(self):
-        code1 = squish_text(
-            """
-            def factorial(n):
-                def foo():
-                    x = 3   
-                    return x
-                return foo
-        """
-        )
-        code2 = squish_text(
-            """
-            def factorial(n):
-                def foo():
-                    x = 4  
-                    return x
-                return foo
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-        assert len(deduperreloader._to_autoreload.defs_to_reload) == 1
-
-    def test_autoreload_changes_multiple_function(self):
-        code1 = squish_text(
-            """
-            def factorial(n):
-                def foo():
-                    x = 3   
-                    return x
-                return foo
-            def bar():
+        def factorial(n):
+            def fn(sdfsdf):
+                print(sdfsdf)
+            if n < 0:
+                return "Factorial is not defined for negative numbers."
+            elif n == 0 or n == 1:
                 return 1
+            else:
+                result = 1
+                for i in range(2, n + 1):
+                    result *= i
+                return result
+            y = 12
+            print(y)
+        print(1)
+        x = 1212121
+    """
+    )
+    code2 = squish_text(
         """
-        )
-        code2 = squish_text(
-            """
-            def factorial(n):
-                def foo():
-                    x = 4  
-                    return x
-                return foo
-            def bar():
-                return 2
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-        assert len(deduperreloader._to_autoreload.defs_to_reload) == 2
-
-    def test_autoreload_change_one_function_of_multiple(self):
-        code1 = squish_text(
-            """
-            def factorial(n):
-                def foo():
-                    x = 3   
-                    return x
-                return foo
-            def bar():
+        def factorial(n):
+            def fn(sdfsdf):
+                print(sdfsdf)
+            if n < 0:
+                return "Factorial is not defined for negative numbers."
+            elif n == 0 or n == 1:
                 return 1
-        """
-        )
-        code2 = squish_text(
-            """
-            def factorial(n):
-                def foo():
-                    x = 4  
-                    return x
-                return foo
-            def bar():
-                return 1
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
+            else:
+                result = 1
+                for i in range(2, n + 1):
+                    result *= i
+                return result
+            y = 12
+            print(y)
+        print(1)
+        x = 1212121
+    """
+    )
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
 
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-        assert len(deduperreloader._to_autoreload.defs_to_reload) == 1
+    assert compare_ast(ast_1, ast_2)
 
-    def test_autoreload_handling_moves(self):
-        code1 = squish_text(
-            """
-            def factorial(n):
-                return 1
-            x = 1
+
+def test_autoreload_no_changes():
+    code1 = squish_text(
         """
-        )
-        code2 = squish_text(
-            """
-            x = 1
-            def factorial(n):
-                return 1
+        def factorial(n):
+            print(n)
+        print(1)
+        x = 1212121
+    """
+    )
+    code2 = squish_text(
         """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
+        def factorial(n):
+            print(n)
+        print(1)
+        x = 1212121
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
 
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-        assert len(deduperreloader._to_autoreload.defs_to_reload) == 0
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+    assert deduperreloader._to_autoreload.defs_to_reload == []
 
-    def test_autoreload_handling_function_moves_success(self):
-        code1 = squish_text(
-            """
-            def factorial(n):
-                return 1
-            x = 1
+
+def test_autoreload_static_assign_change_outside_function():
+    code1 = squish_text(
+        """
+        def factorial(n):
+            print(n)
+        print(1)
+    """
+    )
+    code2 = squish_text(
+        """
+        def factorial(n):
+            print(n)
+        print(1)
+        x = 1212121
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+
+
+def test_autoreload_changes_inside_function():
+    code1 = squish_text(
+        """
+        def factorial(n):
+            print(n)
+        print(1)
+    """
+    )
+    code2 = squish_text(
+        """
+        def factorial(n):
+            print(n + "edit!")
+        print(1)
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+    assert len(deduperreloader._to_autoreload.defs_to_reload) == 1
+
+
+def test_autoreload_changes_inside_and_outside_function():
+    code1 = squish_text(
+        """
+        def factorial(n):
+            print(n)
+        print(1)
+    """
+    )
+    code2 = squish_text(
+        """
+        def factorial(n):
+            print(n + "edit!")
+        print(2)
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert not deduperreloader.detect_autoreload(ast_1, ast_2)
+
+
+def test_autoreload_changes_inner_function():
+    code1 = squish_text(
+        """
+        def factorial(n):
             def foo():
-                return 23
-            x = 2
+                x = 3
+                return x
+            return foo
+    """
+    )
+    code2 = squish_text(
         """
-        )
-        code2 = squish_text(
-            """
+        def factorial(n):
+            def foo():
+                x = 4
+                return x
+            return foo
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+    assert len(deduperreloader._to_autoreload.defs_to_reload) == 1
+
+
+def test_autoreload_changes_multiple_function():
+    code1 = squish_text(
+        """
+        def factorial(n):
+            def foo():
+                x = 3
+                return x
+            return foo
+        def bar():
+            return 1
+    """
+    )
+    code2 = squish_text(
+        """
+        def factorial(n):
+            def foo():
+                x = 4
+                return x
+            return foo
+        def bar():
+            return 2
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+    assert len(deduperreloader._to_autoreload.defs_to_reload) == 2
+
+
+def test_autoreload_change_one_function_of_multiple():
+    code1 = squish_text(
+        """
+        def factorial(n):
+            def foo():
+                x = 3
+                return x
+            return foo
+        def bar():
+            return 1
+    """
+    )
+    code2 = squish_text(
+        """
+        def factorial(n):
+            def foo():
+                x = 4
+                return x
+            return foo
+        def bar():
+            return 1
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+    assert len(deduperreloader._to_autoreload.defs_to_reload) == 1
+
+
+def test_autoreload_handling_moves():
+    code1 = squish_text(
+        """
+        def factorial(n):
+            return 1
         x = 1
-        x = 2
+    """
+    )
+    code2 = squish_text(
+        """
+        x = 1
+        def factorial(n):
+            return 1
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+    assert len(deduperreloader._to_autoreload.defs_to_reload) == 0
+
+
+def test_autoreload_handling_function_moves_success():
+    code1 = squish_text(
+        """
+        def factorial(n):
+            return 1
+        x = 1
         def foo():
             return 23
-        def factorial(n):
-            return 1
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-        assert len(deduperreloader._to_autoreload.defs_to_reload) == 0
-
-    def test_autoreload_handling_function_moves_only(self):
-        code1 = squish_text(
-            """
-        def factorial(n):
-            return 1
-        x = 1
         x = 2
+    """
+    )
+    code2 = squish_text(
         """
-        )
-        code2 = squish_text(
-            """
-        x = 1
-        x = 2
-        def factorial(n):
+    x = 1
+    x = 2
+    def foo():
+        return 23
+    def factorial(n):
+        return 1
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+    assert len(deduperreloader._to_autoreload.defs_to_reload) == 0
+
+
+def test_autoreload_handling_function_moves_only():
+    code1 = squish_text(
+        """
+    def factorial(n):
+        return 1
+    x = 1
+    x = 2
+    """
+    )
+    code2 = squish_text(
+        """
+    x = 1
+    x = 2
+    def factorial(n):
+        return 1
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+
+
+def test_autoreload_handles_new_imports():
+    code1 = squish_text(
+        """
+    def factorial(n):
+        return 1
+    x = 1
+    """
+    )
+    code2 = squish_text(
+        """
+    import ast
+    def factorial(n):
+        return 1
+    x = 1
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+
+
+def test_autoreload_async_function():
+    code1 = squish_text(
+        """
+    async def sleep():
+        print(f'Time: {time.time() - start:.2f}')
+        await asyncio.sleep(1)
+    """
+    )
+    code2 = squish_text(
+        """
+    async def sleep():
+        print(f'Time: {time.time() - start:.2f}')
+        await asyncio.sleep(10)
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+    assert len(deduperreloader._to_autoreload.defs_to_reload) == 1
+
+
+def test_autoreload_add_function():
+    code1 = squish_text(
+        """
+    async def sleep():
+        print(f'Time: {time.time() - start:.2f}')
+        await asyncio.sleep(1)
+    """
+    )
+    code2 = squish_text(
+        """
+    async def sleep():
+        print(f'Time: {time.time() - start:.2f}')
+        await asyncio.sleep(1)
+    def add(x,y):
+        pass
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+    assert list(d[0][0] for d in deduperreloader._to_autoreload.defs_to_reload) == [
+        "add"
+    ]
+
+
+def test_autoreload_add_function_ellipsis():
+    code1 = squish_text(
+        """
+    async def sleep():
+        print(f'Time: {time.time() - start:.2f}')
+        await asyncio.sleep(1)
+    """
+    )
+    code2 = squish_text(
+        """
+    async def sleep():
+        print(f'Time: {time.time() - start:.2f}')
+        await asyncio.sleep(1)
+    def add(x,y):
+        ...
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+    assert list(d[0][0] for d in deduperreloader._to_autoreload.defs_to_reload) == [
+        "add"
+    ]
+
+
+# ---------------------------------------------------------------------------
+# AutoreloadPatchingSuite — fixture
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def deduperreloader():
+    return DeduperTestReloader()
+
+
+def test_patching(deduperreloader):
+    code1 = squish_text(
+        """
+        def foo():
             return 1
+    """
+    )
+    code2 = squish_text(
         """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
+        def foo():
+            return 2
+    """
+    )
+    deduperreloader._to_autoreload.defs_to_reload = [
+        (("foo",), ast.parse(code2))
+    ]
+    mod = ModuleType("mod")
+    exec(code1, mod.__dict__)
+    deduperreloader._patch_namespace(mod)
+    assert mod.foo() == 2
 
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
 
-    def test_autoreload_handles_new_imports(self):
-        code1 = squish_text(
-            """
-        def factorial(n):
+def test_patching_parameters(deduperreloader):
+    code1 = squish_text(
+        """
+        def foo(n,s):
+            return n+s
+    """
+    )
+    code2 = squish_text(
+        """
+        def foo(n):
+            return n
+    """
+    )
+    deduperreloader._to_autoreload.defs_to_reload = [
+        (("foo",), ast.parse(code2))
+    ]
+    mod = ModuleType("mod")
+    exec(code1, mod.__dict__)
+    deduperreloader._patch_namespace(mod)
+    assert mod.foo(2) == 2
+
+
+def test_add_function(deduperreloader):
+    code1 = squish_text(
+        """
+        def foo2(n):
+            return n
+    """
+    )
+    code2 = squish_text(
+        """
+        def foo(n):
+            return 55
+    """
+    )
+    deduperreloader._to_autoreload.defs_to_reload = [
+        (("foo",), ast.parse(code2))
+    ]
+    mod = ModuleType("mod")
+    exec(code1, mod.__dict__)
+    deduperreloader._patch_namespace(mod)
+    assert mod.foo(2) == 55
+    assert mod.foo2(2) == 2
+
+
+def test_two_operations(deduperreloader):
+    code1 = squish_text(
+        """
+        def foo(n):
             return 1
-        x = 1
+    """
+    )
+    code2 = squish_text(
         """
-        )
-        code2 = squish_text(
-            """
-        import ast
-        def factorial(n):
+        def foo(n):
+            return 55
+    """
+    )
+    code3 = squish_text(
+        """
+        def goo():
+            return -1
+        def foo(n):
+            x = 2
+            return x+n
+        def bar():
+            return 200
+    """
+    )
+    deduperreloader._to_autoreload.defs_to_reload = [
+        (("foo",), ast.parse(code2))
+    ]
+    mod = ModuleType("mod")
+    exec(code1, mod.__dict__)
+    assert mod.foo(2) == 1
+    deduperreloader._patch_namespace(mod)
+    assert mod.foo(2) == 55
+    deduperreloader._to_autoreload.defs_to_reload = [
+        (("foo",), ast.parse(code3))
+    ]
+    deduperreloader._patch_namespace(mod)
+    assert mod.foo(2) == 4
+
+
+def test_using_outside_param(deduperreloader):
+    code1 = squish_text(
+        """
+        x=1
+        def foo(n):
             return 1
-        x = 1
+    """
+    )
+    code2 = squish_text(
         """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
+        x=1
+        def foo(n):
+            return 55+x
+    """
+    )
+    deduperreloader._to_autoreload.defs_to_reload = [
+        (("foo",), ast.parse(code2))
+    ]
+    mod = ModuleType("mod")
+    exec(code1, mod.__dict__)
+    assert mod.foo(2) == 1
+    deduperreloader._patch_namespace(mod)
+    assert mod.foo(2) == 56
 
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
 
-    def test_autoreload_async_function(self):
-        code1 = squish_text(
-            """
-        async def sleep():
-            print(f'Time: {time.time() - start:.2f}')
-            await asyncio.sleep(1)
+def test_importing_func(deduperreloader):
+    code1 = squish_text(
         """
-        )
-        code2 = squish_text(
-            """
-        async def sleep():
-            print(f'Time: {time.time() - start:.2f}')
-            await asyncio.sleep(10)
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-        assert len(deduperreloader._to_autoreload.defs_to_reload) == 1
-
-    def test_autoreload_add_function(self):
-        code1 = squish_text(
-            """
-        async def sleep():
-            print(f'Time: {time.time() - start:.2f}')
-            await asyncio.sleep(1)
-        """
-        )
-        code2 = squish_text(
-            """
-        async def sleep():
-            print(f'Time: {time.time() - start:.2f}')
-            await asyncio.sleep(1)
-        def add(x,y):
+        from os import environ
+        def foo(n):
             pass
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-        assert list(d[0][0] for d in deduperreloader._to_autoreload.defs_to_reload) == [
-            "add"
-        ]
-
-    def test_autoreload_add_function_ellipsis(self):
-        code1 = squish_text(
-            """
-        async def sleep():
-            print(f'Time: {time.time() - start:.2f}')
-            await asyncio.sleep(1)
-        """
-        )
-        code2 = squish_text(
-            """
-        async def sleep():
-            print(f'Time: {time.time() - start:.2f}')
-            await asyncio.sleep(1)
-        def add(x,y):
-            ...
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-        assert list(d[0][0] for d in deduperreloader._to_autoreload.defs_to_reload) == [
-            "add"
-        ]
-
-
-class AutoreloadPatchingSuite(unittest.TestCase):
     """
-    Unit tests for autoreload patching logic
+    )
+    code2 = squish_text(
+        """
+        from os import environ
+        def foo():
+            environ._data
+            return 1
     """
+    )
+    deduperreloader._to_autoreload.defs_to_reload = [
+        (("foo",), ast.parse(code2))
+    ]
+    mod = ModuleType("mod")
+    exec(code1, mod.__dict__)
+    deduperreloader._patch_namespace(mod)
+    assert mod.foo() == 1
 
-    def setUp(self) -> None:
-        self.deduperreloader = DeduperTestReloader()
 
-    def test_patching(self):
-        code1 = squish_text(
-            """
-            def foo():
-                return 1
-        """
-        )
-        code2 = squish_text(
-            """
-            def foo():
-                return 2
-        """
-        )
-        self.deduperreloader._to_autoreload.defs_to_reload = [
-            (("foo",), ast.parse(code2))
-        ]
-        mod = ModuleType("mod")
-        exec(code1, mod.__dict__)
-        self.deduperreloader._patch_namespace(mod)
-        assert mod.foo() == 2
-
-    def test_patching_parameters(self):
-        code1 = squish_text(
-            """
-            def foo(n,s):
-                return n+s
-        """
-        )
-        code2 = squish_text(
-            """
-            def foo(n):
-                return n
-        """
-        )
-        self.deduperreloader._to_autoreload.defs_to_reload = [
-            (("foo",), ast.parse(code2))
-        ]
-        mod = ModuleType("mod")
-        exec(code1, mod.__dict__)
-        self.deduperreloader._patch_namespace(mod)
-        assert mod.foo(2) == 2
-
-    def test_add_function(self):
-        code1 = squish_text(
-            """
-            def foo2(n):
-                return n
-        """
-        )
-        code2 = squish_text(
-            """
-            def foo(n):
-                return 55
-        """
-        )
-        self.deduperreloader._to_autoreload.defs_to_reload = [
-            (("foo",), ast.parse(code2))
-        ]
-        mod = ModuleType("mod")
-        exec(code1, mod.__dict__)
-        self.deduperreloader._patch_namespace(mod)
-        assert mod.foo(2) == 55
-        assert mod.foo2(2) == 2
-
-    def test_two_operations(self):
-        code1 = squish_text(
-            """
-            def foo(n):
-                return 1
-        """
-        )
-        code2 = squish_text(
-            """
-            def foo(n):
-                return 55
-        """
-        )
-        code3 = squish_text(
-            """
-            def goo():
-                return -1
-            def foo(n):
-                x = 2
-                return x+n
-            def bar():
-                return 200
-        """
-        )
-        self.deduperreloader._to_autoreload.defs_to_reload = [
-            (("foo",), ast.parse(code2))
-        ]
-        mod = ModuleType("mod")
-        exec(code1, mod.__dict__)
-        assert mod.foo(2) == 1
-        self.deduperreloader._patch_namespace(mod)
-        assert mod.foo(2) == 55
-        self.deduperreloader._to_autoreload.defs_to_reload = [
-            (("foo",), ast.parse(code3))
-        ]
-        self.deduperreloader._patch_namespace(mod)
-        assert mod.foo(2) == 4
-
-    def test_using_outside_param(self):
-        code1 = squish_text(
-            """
-            x=1
-            def foo(n):
-                return 1
-        """
-        )
-        code2 = squish_text(
-            """
-            x=1
-            def foo(n):
-                return 55+x
-        """
-        )
-        self.deduperreloader._to_autoreload.defs_to_reload = [
-            (("foo",), ast.parse(code2))
-        ]
-        mod = ModuleType("mod")
-        exec(code1, mod.__dict__)
-        assert mod.foo(2) == 1
-        self.deduperreloader._patch_namespace(mod)
-        assert mod.foo(2) == 56
-
-    def test_importing_func(self):
-        code1 = squish_text(
-            """
-            from os import environ
-            def foo(n):
-                pass
-        """
-        )
-        code2 = squish_text(
-            """
-            from os import environ
-            def foo():
-                environ._data
-                return 1
-        """
-        )
-        self.deduperreloader._to_autoreload.defs_to_reload = [
-            (("foo",), ast.parse(code2))
-        ]
-        mod = ModuleType("mod")
-        exec(code1, mod.__dict__)
-        self.deduperreloader._patch_namespace(mod)
-        assert mod.foo() == 1
+# ---------------------------------------------------------------------------
+# ShellFixture — helper class and pytest fixture
+# ---------------------------------------------------------------------------
 
 
 class FakeShell:
@@ -727,29 +753,23 @@ class FakeShell:
         self.auto_magics.autoreload(parameter)
 
 
-class ShellFixture(unittest.TestCase):
-    """Fixture for creating test module files"""
+class _ShellFixtureHelper:
+    """Helper for creating test module files"""
 
-    test_dir = None
-    old_sys_path = None
     filename_chars = "abcdefghijklmopqrstuvwxyz0123456789"
 
-    def setUp(self):
+    def __init__(self):
         self.created_temp_modules = set()
         self.test_dir = tempfile.mkdtemp()
         self.old_sys_path = list(sys.path)
         sys.path.insert(0, self.test_dir)
         self.shell = FakeShell()
 
-    def tearDown(self):
+    def teardown(self):
         for mod_name in self.created_temp_modules:
             sys.modules.pop(mod_name, None)
         shutil.rmtree(self.test_dir)
         sys.path = self.old_sys_path
-
-        self.test_dir = None
-        self.old_sys_path = None
-        self.shell = None
 
     def get_module(self):
         module_name = "tmpmod_" + "".join(random.sample(self.filename_chars, 20))
@@ -788,1560 +808,1621 @@ class ShellFixture(unittest.TestCase):
         return mod_name, mod_fn
 
 
-class AutoreloadHookSuite(ShellFixture):
-    def test_deduperreloader_basic(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            x = 9
-            def foo(y):
-                return y + 3
-        """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            x = 9
-            def foo(y):
-                return y + 5
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.foo(0) == 5
+@pytest.fixture
+def shell_fixture():
+    helper = _ShellFixtureHelper()
+    yield helper
+    helper.teardown()
 
-    def test_deduperreloader_basic2(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            x = 9
-            def foo(y):
-                return y + 3
-        """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            x = 9
-            def foo(y):
-                return y + 5
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.foo(0) == 5
 
-    def test_deduperreloader_basic3(self):
-        mod_name, mod_fn = self.new_module(
-            """
-            x = 9
-            def foo(y):
-                return y + 3
-        """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.magic_autoreload("2")
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            x = 9
-            def foo(y):
-                return y + 5
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.foo(0) == 5
+# ---------------------------------------------------------------------------
+# AutoreloadHookSuite
+# ---------------------------------------------------------------------------
 
-    def test_deduperreloader_basic4(self):
-        mod_name, mod_fn = self.new_module(
-            """
-            x = 9
-            def foo(y):
-                return y + 3
-        """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.magic_autoreload("2")
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            x = 9
-            def foo(y):
-                return y + 5
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.foo(0) == 5
 
-    def test_deduperreloader_basic5(self):
-        mod_name, mod_fn = self.new_module(
-            """
-            x = 9
-            def foo(y):
-                return y + 3
+def test_deduperreloader_basic(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
         """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.shell.magic_autoreload("2")
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            x = 9
-            def foo(y):
-                return y + 5
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.foo(0) == 5
+        x = 9
+        def foo(y):
+            return y + 3
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        x = 9
+        def foo(y):
+            return y + 5
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.foo(0) == 5
 
-    def test_deduperreloader_basic6(self):
-        mod_name, mod_fn = self.new_module(
-            """
-            x = 9
-            def foo(y):
-                return y + 3
-        """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.shell.magic_autoreload("2")
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            x = 9
-            def foo(y):
-                return y + 5
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.foo(0) == 5
 
-    def test_super(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            class Foo:
-                def foo(self):
-                    return 1
-            class Bar(Foo):
-                def bar(self):
-                    return super().foo() + 1
+def test_deduperreloader_basic2(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
         """
-        )
-        self.shell.run_code(f"from {mod_name} import Bar; bar = Bar()")
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            class Foo:
-                def foo(self):
-                    return 1
-            class Bar(Foo):
-                def bar(self):
-                    return super().foo() + 2
-            """,
-        )
-        self.shell.run_code("result = bar.bar()")
-        # NOTE : only works on CPython, requires read-only patching.
-        if platform.python_implementation() == "CPython":
-            assert self.shell.user_ns["result"] == 3
+        x = 9
+        def foo(y):
+            return y + 3
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        x = 9
+        def foo(y):
+            return y + 5
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.foo(0) == 5
 
-    def test_deduperreloader_need_to_default_back(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            x = 9
-            def foo(y):
-                return y + 3
-        """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            x = 200
-            def foo(y):
-                return y + 5
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.foo(0) == 5
 
-    def test_deduperreloader_failure(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            x = 9
-            def foo(y):
-                return y + 3
+def test_deduperreloader_basic3(shell_fixture):
+    mod_name, mod_fn = shell_fixture.new_module(
         """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            broken broken broken
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.foo(0) == 3
+        x = 9
+        def foo(y):
+            return y + 3
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.magic_autoreload("2")
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        x = 9
+        def foo(y):
+            return y + 5
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.foo(0) == 5
 
-    def test_deduperreloader_imported_mod(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            from os import environ
-            def foo(n):
-                pass
+
+def test_deduperreloader_basic4(shell_fixture):
+    mod_name, mod_fn = shell_fixture.new_module(
         """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            from os import environ
+        x = 9
+        def foo(y):
+            return y + 3
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.magic_autoreload("2")
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        x = 9
+        def foo(y):
+            return y + 5
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.foo(0) == 5
+
+
+def test_deduperreloader_basic5(shell_fixture):
+    mod_name, mod_fn = shell_fixture.new_module(
+        """
+        x = 9
+        def foo(y):
+            return y + 3
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.shell.magic_autoreload("2")
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        x = 9
+        def foo(y):
+            return y + 5
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.foo(0) == 5
+
+
+def test_deduperreloader_basic6(shell_fixture):
+    mod_name, mod_fn = shell_fixture.new_module(
+        """
+        x = 9
+        def foo(y):
+            return y + 3
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.shell.magic_autoreload("2")
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        x = 9
+        def foo(y):
+            return y + 5
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.foo(0) == 5
+
+
+def test_super(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
+        """
+        class Foo:
+            def foo(self):
+                return 1
+        class Bar(Foo):
+            def bar(self):
+                return super().foo() + 1
+    """
+    )
+    shell_fixture.shell.run_code(f"from {mod_name} import Bar; bar = Bar()")
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        class Foo:
+            def foo(self):
+                return 1
+        class Bar(Foo):
+            def bar(self):
+                return super().foo() + 2
+        """,
+    )
+    shell_fixture.shell.run_code("result = bar.bar()")
+    # NOTE : only works on CPython, requires read-only patching.
+    if platform.python_implementation() == "CPython":
+        assert shell_fixture.shell.user_ns["result"] == 3
+
+
+def test_deduperreloader_need_to_default_back(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
+        """
+        x = 9
+        def foo(y):
+            return y + 3
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        x = 200
+        def foo(y):
+            return y + 5
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.foo(0) == 5
+
+
+def test_deduperreloader_failure(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
+        """
+        x = 9
+        def foo(y):
+            return y + 3
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        broken broken broken
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.foo(0) == 3
+
+
+def test_deduperreloader_imported_mod(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
+        """
+        from os import environ
+        def foo(n):
+            pass
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        from os import environ
+        def foo():
+            environ._data
+            return 1
+    """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.foo() == 1
+
+
+# ---------------------------------------------------------------------------
+# AutoreloadClassMethodsDetectionSuite
+# ---------------------------------------------------------------------------
+
+
+def test_autoreload_method():
+    code1 = squish_text(
+        """
+        class C(n):
             def foo():
-                environ._data
+                pass
+    """
+    )
+    code2 = squish_text(
+        """
+        class C(n):
+            def foo():
+                x = 1
+                return x
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+    assert deduperreloader._to_autoreload.defs_to_reload == []
+    assert "C" in deduperreloader._to_autoreload.children
+    assert ["foo"] == list(
+        d[0][0] for d in deduperreloader._to_autoreload.children["C"].defs_to_reload
+    )
+    assert deduperreloader._to_autoreload.children["C"].children == {}
+
+
+def test_autoreload_no_changes_class():
+    code1 = squish_text(
+        """
+        class D(n):
+            def foo():
+                pass
+        def foo():
+            pass
+    """
+    )
+    code2 = squish_text(
+        """
+        class D(n):
+            def foo():
+                pass
+        def foo():
+            pass
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+    assert deduperreloader._to_autoreload.defs_to_reload == []
+    assert deduperreloader._to_autoreload.children == {}
+
+
+def test_autoreload_add_function_class():
+    code1 = squish_text(
+        """
+        class C:
+            def foo():
+                pass
+        def foo():
+            pass
+    """
+    )
+    code2 = squish_text(
+        """
+        class C:
+            def foo():
+                x = 1
+                return x
+            def bar():
+                return -1
+        def foo():
+            pass
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+    assert deduperreloader._to_autoreload.defs_to_reload == []
+    assert "C" in deduperreloader._to_autoreload.children
+    assert ["foo", "bar"] == list(
+        d[0][0] for d in deduperreloader._to_autoreload.children["C"].defs_to_reload
+    )
+    assert len(deduperreloader._to_autoreload.children["C"].children) == 0
+
+
+def test_autoreload_remove_method():
+    code1 = squish_text(
+        """
+        class C:
+            def foo():
+                pass
+        def foo():
+            pass
+    """
+    )
+    code2 = squish_text(
+        """
+        class C:
+            pass
+        def foo():
+            pass
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+
+
+def test_autoreload_remove_class():
+    code1 = squish_text(
+        """
+        class C:
+            def foo():
+                pass
+        def foo():
+            pass
+    """
+    )
+    code2 = squish_text(
+        """
+        def foo():
+            pass
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+
+
+def test_autoreload_add_class_in_class():
+    code1 = squish_text(
+        """
+        class C:
+            pass
+        def foo():
+            pass
+    """
+    )
+    code2 = squish_text(
+        """
+        class C:
+            class D:
+                pass
+        def foo():
+            pass
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+
+
+def test_autoreload_add_method_in_class_in_class():
+    code1 = squish_text(
+        """
+        class C:
+            class D:
+                x = 1
+        def foo():
+            pass
+    """
+    )
+    code2 = squish_text(
+        """
+        class C:
+            class D:
+                x = 1
+                def foo():
+                    return 1
+        def foo():
+            pass
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+    assert deduperreloader._to_autoreload.defs_to_reload == []
+    assert list(deduperreloader._to_autoreload.children.keys()) == ["C"]
+    assert deduperreloader._to_autoreload.children["C"].defs_to_reload == []
+    assert list(deduperreloader._to_autoreload.children["C"].children.keys()) == [
+        "D"
+    ]
+    assert list(
+        d[0][0]
+        for d in deduperreloader._to_autoreload.children["C"]
+        .children["D"]
+        .defs_to_reload
+    ) == ["foo"]
+    assert deduperreloader._to_autoreload.children["C"].children["D"].children == {}
+
+
+def test_autoreload_add_var_and_method_in_class_in_class():
+    code1 = squish_text(
+        """
+        class C:
+            class D:
+                pass
+        def foo():
+            pass
+    """
+    )
+    code2 = squish_text(
+        """
+        class C:
+            class D:
+                x = 1
+                def foo():
+                    return 1
+        def foo():
+            pass
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+
+
+def test_autoreload_add_method_in_class_in_class_pass():
+    code1 = squish_text(
+        """
+        class C:
+            class D:
+                pass
+        def foo():
+            pass
+    """
+    )
+    code2 = squish_text(
+        """
+        class C:
+            class D:
+                def foo():
+                    return 1
+        def foo():
+            pass
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+    assert deduperreloader._to_autoreload.defs_to_reload == []
+    assert list(deduperreloader._to_autoreload.children.keys()) == ["C"]
+    assert deduperreloader._to_autoreload.children["C"].defs_to_reload == []
+    assert list(deduperreloader._to_autoreload.children["C"].children.keys()) == [
+        "D"
+    ]
+    assert list(
+        d[0][0]
+        for d in deduperreloader._to_autoreload.children["C"]
+        .children["D"]
+        .defs_to_reload
+    ) == ["foo"]
+    assert deduperreloader._to_autoreload.children["C"].children["D"].children == {}
+
+
+def test_autoreload_add_method_in_class_in_class_more():
+    code1 = squish_text(
+        """
+        class C:
+            class D:
+                pass
+        def foo():
+            pass
+    """
+    )
+    code2 = squish_text(
+        """
+        class C:
+            def bar():
+                return -1
+            class D:
+                def foo():
+                    return 1
+        def foo():
+            pass
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+    assert deduperreloader._to_autoreload.defs_to_reload == []
+    assert list(deduperreloader._to_autoreload.children.keys()) == ["C"]
+    assert list(
+        d[0][0] for d in deduperreloader._to_autoreload.children["C"].defs_to_reload
+    ) == ["bar"]
+    assert list(deduperreloader._to_autoreload.children["C"].children.keys()) == [
+        "D"
+    ]
+    assert list(
+        d[0][0]
+        for d in deduperreloader._to_autoreload.children["C"]
+        .children["D"]
+        .defs_to_reload
+    ) == ["foo"]
+    assert deduperreloader._to_autoreload.children["C"].children["D"].children == {}
+
+
+def test_autoreload_add_method_in_class_in_class_with_members():
+    code1 = squish_text(
+        """
+        class C:
+            class D:
+                pass
+        def foo():
+            pass
+    """
+    )
+    code2 = squish_text(
+        """
+        class C:
+            def bar():
+                return -1
+            class D:
+                s = 2
+                def foo():
+                    return 1
+        def foo():
+            pass
+    """
+    )
+    deduperreloader = DeduperTestReloader()
+    ast_1 = ast.parse(code1)
+    ast_2 = ast.parse(code2)
+
+    assert deduperreloader.detect_autoreload(ast_1, ast_2)
+
+
+# ---------------------------------------------------------------------------
+# AutoreloadReliabilitySuite
+# ---------------------------------------------------------------------------
+
+
+def test_autoreload_class_basic(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
+        """
+        x = 9
+        class C:
+            def foo():
+                return 1
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        x = 9
+        class C:
+            def foo():
                 return 1
         """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.foo() == 1
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.C.foo() == 1
 
 
-class AutoreloadClassMethodsDetectionSuite(unittest.TestCase):
+def test_remove_overridden_method(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
+        """
+        class A:
+            def foo(self):
+                return 1
+        class B(A):
+            def foo(self):
+                return 42
     """
-    Unit tests for autoreload testing logic
+    )
+    shell_fixture.shell.run_code(f"from {mod_name} import B; b = B()")
+    shell_fixture.shell.run_code("assert b.foo() == 42")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        class A:
+            def foo(self):
+                return 1
+        class B(A):
+            pass
+        """,
+    )
+    shell_fixture.shell.run_code("assert b.foo() == 1")
+
+
+def test_autoreload_class_use_outside_func(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
+        """
+        x = 9
+        class C:
+            def foo():
+                return 1
     """
-
-    def test_autoreload_method(self):
-        code1 = squish_text(
-            """
-            class C(n):
-                def foo():
-                    pass
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
         """
-        )
-        code2 = squish_text(
-            """
-            class C(n):
-                def foo():
-                    x = 1
-                    return x
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-        assert deduperreloader._to_autoreload.defs_to_reload == []
-        assert "C" in deduperreloader._to_autoreload.children
-        assert ["foo"] == list(
-            d[0][0] for d in deduperreloader._to_autoreload.children["C"].defs_to_reload
-        )
-        assert deduperreloader._to_autoreload.children["C"].children == {}
-
-    def test_autoreload_no_changes(self):
-        code1 = squish_text(
-            """
-            class D(n):
-                def foo():
-                    pass
+        x = 9
+        class C:
             def foo():
-                pass
+                return 1+x
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.C.foo() == 10
+
+
+def test_autoreload_class_use_class_member(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
         """
-        )
-        code2 = squish_text(
-            """
-            class D(n):
-                def foo():
-                    pass
+        x = 9
+        class C:
             def foo():
-                pass
+                return 1
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
         """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-        assert deduperreloader._to_autoreload.defs_to_reload == []
-        assert deduperreloader._to_autoreload.children == {}
-
-    def test_autoreload_add_function(self):
-        code1 = squish_text(
-            """
-            class C:
-                def foo():
-                    pass
-            def foo():
-                pass
-        """
-        )
-        code2 = squish_text(
-            """
-            class C:
-                def foo():
-                    x = 1
-                    return x
-                def bar():
-                    return -1
-            def foo():
-                pass
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-        assert deduperreloader._to_autoreload.defs_to_reload == []
-        assert "C" in deduperreloader._to_autoreload.children
-        assert ["foo", "bar"] == list(
-            d[0][0] for d in deduperreloader._to_autoreload.children["C"].defs_to_reload
-        )
-        assert len(deduperreloader._to_autoreload.children["C"].children) == 0
-
-    def test_autoreload_remove_method(self):
-        code1 = squish_text(
-            """
-            class C:
-                def foo():
-                    pass
-            def foo():
-                pass
-        """
-        )
-        code2 = squish_text(
-            """
-            class C:
-                pass
-            def foo():
-                pass
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-
-    def test_autoreload_remove_class(self):
-        code1 = squish_text(
-            """
-            class C:
-                def foo():
-                    pass
-            def foo():
-                pass
-        """
-        )
-        code2 = squish_text(
-            """
-            def foo():
-                pass
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-
-    def test_autoreload_add_class_in_class(self):
-        code1 = squish_text(
-            """
-            class C:
-                pass
-            def foo():
-                pass
-        """
-        )
-        code2 = squish_text(
-            """
-            class C:
-                class D:
-                    pass
-            def foo():
-                pass
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-
-    def test_autoreload_add_method_in_class_in_class(self):
-        code1 = squish_text(
-            """
-            class C:
-                class D:
-                    x = 1
-            def foo():
-                pass
-        """
-        )
-        code2 = squish_text(
-            """
-            class C:
-                class D:
-                    x = 1
-                    def foo():
-                        return 1
-            def foo():
-                pass
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-        assert deduperreloader._to_autoreload.defs_to_reload == []
-        assert list(deduperreloader._to_autoreload.children.keys()) == ["C"]
-        assert deduperreloader._to_autoreload.children["C"].defs_to_reload == []
-        assert list(deduperreloader._to_autoreload.children["C"].children.keys()) == [
-            "D"
-        ]
-        assert list(
-            d[0][0]
-            for d in deduperreloader._to_autoreload.children["C"]
-            .children["D"]
-            .defs_to_reload
-        ) == ["foo"]
-        assert deduperreloader._to_autoreload.children["C"].children["D"].children == {}
-
-    def test_autoreload_add_var_and_method_in_class_in_class(self):
-        code1 = squish_text(
-            """
-            class C:
-                class D:
-                    pass
-            def foo():
-                pass
-        """
-        )
-        code2 = squish_text(
-            """
-            class C:
-                class D:
-                    x = 1
-                    def foo():
-                        return 1
-            def foo():
-                pass
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-
-    def test_autoreload_add_method_in_class_in_class_pass(self):
-        code1 = squish_text(
-            """
-            class C:
-                class D:
-                    pass
-            def foo():
-                pass
-        """
-        )
-        code2 = squish_text(
-            """
-            class C:
-                class D:
-                    def foo():
-                        return 1
-            def foo():
-                pass
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-        assert deduperreloader._to_autoreload.defs_to_reload == []
-        assert list(deduperreloader._to_autoreload.children.keys()) == ["C"]
-        assert deduperreloader._to_autoreload.children["C"].defs_to_reload == []
-        assert list(deduperreloader._to_autoreload.children["C"].children.keys()) == [
-            "D"
-        ]
-        assert list(
-            d[0][0]
-            for d in deduperreloader._to_autoreload.children["C"]
-            .children["D"]
-            .defs_to_reload
-        ) == ["foo"]
-        assert deduperreloader._to_autoreload.children["C"].children["D"].children == {}
-
-    def test_autoreload_add_method_in_class_in_class_more(self):
-        code1 = squish_text(
-            """
-            class C:
-                class D:
-                    pass
-            def foo():
-                pass
-        """
-        )
-        code2 = squish_text(
-            """
-            class C:
-                def bar():
-                    return -1
-                class D:
-                    def foo():
-                        return 1
-            def foo():
-                pass
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-        assert deduperreloader._to_autoreload.defs_to_reload == []
-        assert list(deduperreloader._to_autoreload.children.keys()) == ["C"]
-        assert list(
-            d[0][0] for d in deduperreloader._to_autoreload.children["C"].defs_to_reload
-        ) == ["bar"]
-        assert list(deduperreloader._to_autoreload.children["C"].children.keys()) == [
-            "D"
-        ]
-        assert list(
-            d[0][0]
-            for d in deduperreloader._to_autoreload.children["C"]
-            .children["D"]
-            .defs_to_reload
-        ) == ["foo"]
-        assert deduperreloader._to_autoreload.children["C"].children["D"].children == {}
-
-    def test_autoreload_add_method_in_class_in_class_with_members(self):
-        code1 = squish_text(
-            """
-            class C:
-                class D:
-                    pass
-            def foo():
-                pass
-        """
-        )
-        code2 = squish_text(
-            """
-            class C:
-                def bar():
-                    return -1
-                class D:
-                    s = 2
-                    def foo():
-                        return 1
-            def foo():
-                pass
-        """
-        )
-        deduperreloader = DeduperTestReloader()
-        ast_1 = ast.parse(code1)
-        ast_2 = ast.parse(code2)
-
-        assert deduperreloader.detect_autoreload(ast_1, ast_2)
-
-
-class AutoreloadReliabilitySuite(ShellFixture):
-    def test_autoreload_class_basic(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
+        class C:
             x = 9
-            class C:
-                def foo():
-                    return 1
+            def foo():
+                return 1+C.x
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.C.foo() == 10
+
+
+def test_autoreload_class_pass(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
         """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
+        x = 9
+        class C:
+            pass
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        class C:
             x = 9
-            class C:
-                def foo():
-                    return 1
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.C.foo() == 1
+            def foo():
+                return 1+C.x
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.C.foo() == 10
 
-    def test_remove_overridden_method(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            class A:
-                def foo(self):
-                    return 1
-            class B(A):
-                def foo(self):
-                    return 42
+
+def test_autoreload_class_ellipsis(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
         """
-        )
-        self.shell.run_code(f"from {mod_name} import B; b = B()")
-        self.shell.run_code("assert b.foo() == 42")
-        self.write_file(
-            mod_fn,
-            """
-            class A:
-                def foo(self):
-                    return 1
-            class B(A):
-                pass
-            """,
-        )
-        self.shell.run_code("assert b.foo() == 1")
-
-    def test_autoreload_class_use_outside_func(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
+        x = 9
+        class C:
+            ...
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        class C:
             x = 9
-            class C:
-                def foo():
-                    return 1
+            def foo():
+                return 1+C.x
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.C.foo() == 10
+
+
+def test_autoreload_class_default_autoreload(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
         """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
+        class C:
             x = 9
-            class C:
-                def foo():
-                    return 1+x
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.C.foo() == 10
+            def foo():
+                return 1+C.x
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        class C:
+            x = 20
+            def foo():
+                return 1+C.x
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.C.foo() == 21
 
-    def test_autoreload_class_use_class_member(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
+
+def test_autoreload_class_nested(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
+        """
+        class C:
             x = 9
-            class C:
-                def foo():
-                    return 1
-        """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            class C:
-                x = 9
-                def foo():
-                    return 1+C.x
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.C.foo() == 10
-
-    def test_autoreload_class_pass(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            x = 9
-            class C:
-                pass
-        """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            class C:
-                x = 9
-                def foo():
-                    return 1+C.x
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.C.foo() == 10
-
-    def test_autoreload_class_ellipsis(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            x = 9
-            class C:
-                ...
-        """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            class C:
-                x = 9
-                def foo():
-                    return 1+C.x
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.C.foo() == 10
-
-    def test_autoreload_class_default_autoreload(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            class C:
-                x = 9
-                def foo():
-                    return 1+C.x
-        """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            class C:
-                x = 20
-                def foo():
-                    return 1+C.x
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.C.foo() == 21
-
-    def test_autoreload_class_nested(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            class C:
-                x = 9
-                class D:
-                    def foo():
-                        pass
-        """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            class C:
-                x = 9
-                class D:
-                    def foo():
-                        return 10
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.C.D.foo() == 10
-
-    def test_autoreload_class_nested2(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            class C:
-                x = 9
-                def c():
-                    return 1
-                class D:
-                    def foo():
-                        pass
-        """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            class C:
-                x = 9
-                def c():
-                    return 1
-                class D:
-                    def foo():
-                        return 10
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.C.D.foo() == 10
-        assert mod.C.c() == 1
-
-    def test_autoreload_class_nested3(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            class C:
-                x = 9
-                def c():
-                    return 1
-                class D:
-                    def foo():
-                        pass
-        """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            class C:
-                x = 9
-                def c():
-                    return 13
-                class D:
-                    def foo():
-                        return 10
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.C.D.foo() == 10
-        assert mod.C.c() == 13
-
-    def test_autoreload_new_class_added(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            class C:
-                x = 9
-                def c():
-                    return 1
-        """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            class C:
-                x = 9
-                def c():
-                    return 13
             class D:
-                def c():
-                    return 1
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.C.c() == 13
-        assert mod.D.c() == 1
-
-    def test_autoreload_class_nested_default(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            class C:
-                pass
+                def foo():
+                    pass
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
         """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            class C:
-                x = 9
-                def c():
-                    return 13
-                class D:
-                    def foo():
-                        return 10
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.C.D.foo() == 10
-        assert mod.C.c() == 13
+        class C:
+            x = 9
+            class D:
+                def foo():
+                    return 10
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.C.D.foo() == 10
 
-    def test_autoreload_class_nested_using_members(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            class C:
-                x = 9
-                def c():
-                    return 13
-                class D:
-                    def foo():
-                        return 10
-            """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            class C:
-                x = 9
-                def c():
-                    return 13
-                class D:
-                    def foo():
-                        return 10 + C.x
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.C.D.foo() == 19
-        assert mod.C.c() == 13
 
-    def test_autoreload_class_nested_using_members_ellipsis(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            class C:
-                x = 9
-                def c():
-                    return 13
-                class D:
-                    def foo():
-                        ...
-            """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            class C:
-                x = 9
-                def c():
-                    return 13
-                class D:
-                    def foo():
-                        return 10 + C.x
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.C.D.foo() == 19
-        assert mod.C.c() == 13
-
-    def test_method_decorators_no_changes(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_file = self.new_module(
-            """
-            class Foo:
-                @classmethod
-                def bar(cls):
-                    return 0
-                    
-                @classmethod
-                def foo(cls):
-                    return 42 + cls.bar()
-            
-            foo = Foo.foo
-            """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.foo() == 42
-
-        self.shell.run_code(f"assert {mod_name}.foo() == 42")
-        self.write_file(
-            mod_file,
-            """
-            class Foo:
-                @classmethod
-                def bar(cls):
-                    return 0
-            
-                @classmethod
-                def foo(cls):
-                    return 42 + cls.bar()
-            
-            foo = Foo.foo
-            """,
-        )
-        self.shell.run_code(f"assert {mod_name}.foo() == 42")
-
-    def test_method_decorators_no_changes1(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_file = self.new_module(
-            """
-            class Foo:
-                @classmethod
-                def bar(cls):
-                    return 0
-                    
-                @classmethod
-                def foo(cls):
-                    return 42 + cls.bar()
-            
-            foo = Foo.foo
-            """
-        )
-
-        self.shell.run_code(f"from {mod_name} import foo")
-        self.shell.run_code("assert foo() == 42")
-        self.write_file(
-            mod_file,
-            """
-            class Foo:
-                @classmethod
-                def bar(cls):
-                    return 0
-            
-                @classmethod
-                def foo(cls):
-                    return 42 + cls.bar()
-            
-            foo = Foo.foo
-            """,
-        )
-        self.shell.run_code("assert foo() == 42")
-
-    def test_method_classmethod_one_change(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_file = self.new_module(
-            """
-            class Foo:
-                @classmethod
-                def bar(cls):
-                    return 0
-                    
-                @classmethod
-                def func(cls):
-                    return 42 + cls.bar()
-            
-            func = Foo.func
-            """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code(f"assert {mod_name}.func() == 42")
-        self.write_file(
-            mod_file,
-            """
-            class Foo:
-                @classmethod
-                def bar(cls):
-                    return 1
-            
-                @classmethod
-                def func(cls):
-                    return 42 + cls.bar()
-            
-            func = Foo.func
-            """,
-        )
-        mod = sys.modules[mod_name]
-        self.shell.run_code(f"assert {mod_name}.func() == 43")
-
-    def test_method_staticmethod_one_change(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_file = self.new_module(
-            """
-            class Foo:
-                @staticmethod
-                def bar():
-                    return 0
-                    
-                @staticmethod
-                def func():
-                    return 42 + Foo.bar()
-            
-            func = Foo.func
-            """
-        )
-        self.shell.run_code(f"from {mod_name} import func")
-        self.shell.run_code("assert func() == 42")
-        self.write_file(
-            mod_file,
-            """
-            class Foo:
-                @staticmethod
-                def bar():
-                    return 1
-            
-                @staticmethod
-                def func():
-                    return 42 + Foo.bar()
-            
-            func = Foo.func
-            """,
-        )
-        self.shell.run_code("assert func() == 43")
-
-    def test_autoreload_class_default_args(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            x = 42
-            class Foo:
-                def foo(self, y): return y
+def test_autoreload_class_nested2(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
         """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            x = 42
-            class Foo:
-                def foo(self, y=x): return y
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        obj = mod.Foo()
-        assert obj.foo(2) == 2
-        assert obj.foo() == 42
-
-    def test_autoreload_class_change_default_args(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            x = 42
-            class Foo:
-                def foo(y): return y
+        class C:
+            x = 9
+            def c():
+                return 1
+            class D:
+                def foo():
+                    pass
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
         """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        self.write_file(
-            mod_fn,
-            """
-            x = 44
-            class Foo:
-                def foo(y=x): return y
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        mod = sys.modules[mod_name]
-        assert mod.Foo.foo() == 44
+        class C:
+            x = 9
+            def c():
+                return 1
+            class D:
+                def foo():
+                    return 10
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.C.D.foo() == 10
+    assert mod.C.c() == 1
 
-    def test_autoreload_class_new_class(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            x = 42
-            class Foo:
-                def foo(y=x): return y
+
+def test_autoreload_class_nested3(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
         """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        prev_foo = self.shell.user_ns[mod_name].Foo.foo
-        self.write_file(
-            mod_fn,
-            """
-            x = 42
-            class Foo:
-                def foo(y=x): return y
-            class C:
-                def foo(): return 200
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        self.assertIs(prev_foo, self.shell.user_ns[mod_name].Foo.foo)
-        mod = sys.modules[mod_name]
-        assert mod.Foo.foo() == 42
-        assert mod.C.foo() == 200
-
-    def test_autoreload_overloaded_vars(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            x = 42
-            class Foo:
-                pass
+        class C:
+            x = 9
+            def c():
+                return 1
+            class D:
+                def foo():
+                    pass
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
         """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        mod = sys.modules[mod_name]
-        self.write_file(
-            mod_fn,
-            """
-            x = 44
-            class Foo:
-                def foo(): 
-                    x = 2
-                    return x
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        assert mod.Foo.foo() == 2
+        class C:
+            x = 9
+            def c():
+                return 13
+            class D:
+                def foo():
+                    return 10
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.C.D.foo() == 10
+    assert mod.C.c() == 13
 
-    def test_autoreload_overloaded_vars2(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            x = 42
+
+def test_autoreload_new_class_added(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
+        """
+        class C:
+            x = 9
+            def c():
+                return 1
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        class C:
+            x = 9
+            def c():
+                return 13
+        class D:
+            def c():
+                return 1
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.C.c() == 13
+    assert mod.D.c() == 1
+
+
+def test_autoreload_class_nested_default(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
+        """
+        class C:
+            pass
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        class C:
+            x = 9
+            def c():
+                return 13
+            class D:
+                def foo():
+                    return 10
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.C.D.foo() == 10
+    assert mod.C.c() == 13
+
+
+def test_autoreload_class_nested_using_members(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
+        """
+        class C:
+            x = 9
+            def c():
+                return 13
+            class D:
+                def foo():
+                    return 10
+        """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        class C:
+            x = 9
+            def c():
+                return 13
+            class D:
+                def foo():
+                    return 10 + C.x
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.C.D.foo() == 19
+    assert mod.C.c() == 13
+
+
+def test_autoreload_class_nested_using_members_ellipsis(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
+        """
+        class C:
+            x = 9
+            def c():
+                return 13
+            class D:
+                def foo():
+                    ...
+        """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        class C:
+            x = 9
+            def c():
+                return 13
+            class D:
+                def foo():
+                    return 10 + C.x
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.C.D.foo() == 19
+    assert mod.C.c() == 13
+
+
+def test_method_decorators_no_changes(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_file = shell_fixture.new_module(
+        """
+        class Foo:
+            @classmethod
+            def bar(cls):
+                return 0
+
+            @classmethod
+            def foo(cls):
+                return 42 + cls.bar()
+
+        foo = Foo.foo
+        """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.foo() == 42
+
+    shell_fixture.shell.run_code(f"assert {mod_name}.foo() == 42")
+    shell_fixture.write_file(
+        mod_file,
+        """
+        class Foo:
+            @classmethod
+            def bar(cls):
+                return 0
+
+            @classmethod
+            def foo(cls):
+                return 42 + cls.bar()
+
+        foo = Foo.foo
+        """,
+    )
+    shell_fixture.shell.run_code(f"assert {mod_name}.foo() == 42")
+
+
+def test_method_decorators_no_changes1(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_file = shell_fixture.new_module(
+        """
+        class Foo:
+            @classmethod
+            def bar(cls):
+                return 0
+
+            @classmethod
+            def foo(cls):
+                return 42 + cls.bar()
+
+        foo = Foo.foo
+        """
+    )
+
+    shell_fixture.shell.run_code(f"from {mod_name} import foo")
+    shell_fixture.shell.run_code("assert foo() == 42")
+    shell_fixture.write_file(
+        mod_file,
+        """
+        class Foo:
+            @classmethod
+            def bar(cls):
+                return 0
+
+            @classmethod
+            def foo(cls):
+                return 42 + cls.bar()
+
+        foo = Foo.foo
+        """,
+    )
+    shell_fixture.shell.run_code("assert foo() == 42")
+
+
+def test_method_classmethod_one_change(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_file = shell_fixture.new_module(
+        """
+        class Foo:
+            @classmethod
+            def bar(cls):
+                return 0
+
+            @classmethod
+            def func(cls):
+                return 42 + cls.bar()
+
+        func = Foo.func
+        """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code(f"assert {mod_name}.func() == 42")
+    shell_fixture.write_file(
+        mod_file,
+        """
+        class Foo:
+            @classmethod
+            def bar(cls):
+                return 1
+
+            @classmethod
+            def func(cls):
+                return 42 + cls.bar()
+
+        func = Foo.func
+        """,
+    )
+    shell_fixture.shell.run_code(f"assert {mod_name}.func() == 43")
+
+
+def test_method_staticmethod_one_change(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_file = shell_fixture.new_module(
+        """
+        class Foo:
+            @staticmethod
+            def bar():
+                return 0
+
+            @staticmethod
+            def func():
+                return 42 + Foo.bar()
+
+        func = Foo.func
+        """
+    )
+    shell_fixture.shell.run_code(f"from {mod_name} import func")
+    shell_fixture.shell.run_code("assert func() == 42")
+    shell_fixture.write_file(
+        mod_file,
+        """
+        class Foo:
+            @staticmethod
+            def bar():
+                return 1
+
+            @staticmethod
+            def func():
+                return 42 + Foo.bar()
+
+        func = Foo.func
+        """,
+    )
+    shell_fixture.shell.run_code("assert func() == 43")
+
+
+def test_autoreload_class_default_args(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
+        """
+        x = 42
+        class Foo:
+            def foo(self, y): return y
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        x = 42
+        class Foo:
+            def foo(self, y=x): return y
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    obj = mod.Foo()
+    assert obj.foo(2) == 2
+    assert obj.foo() == 42
+
+
+def test_autoreload_class_change_default_args(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
+        """
+        x = 42
+        class Foo:
+            def foo(y): return y
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        x = 44
+        class Foo:
+            def foo(y=x): return y
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    mod = sys.modules[mod_name]
+    assert mod.Foo.foo() == 44
+
+
+def test_autoreload_class_new_class(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
+        """
+        x = 42
+        class Foo:
+            def foo(y=x): return y
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    prev_foo = shell_fixture.shell.user_ns[mod_name].Foo.foo
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        x = 42
+        class Foo:
+            def foo(y=x): return y
+        class C:
+            def foo(): return 200
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    assert prev_foo is shell_fixture.shell.user_ns[mod_name].Foo.foo
+    mod = sys.modules[mod_name]
+    assert mod.Foo.foo() == 42
+    assert mod.C.foo() == 200
+
+
+def test_autoreload_overloaded_vars(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
+        """
+        x = 42
+        class Foo:
+            pass
+    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    mod = sys.modules[mod_name]
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        x = 44
+        class Foo:
             def foo():
-                return x
-        """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        mod = sys.modules[mod_name]
-        self.write_file(
-            mod_fn,
-            """
-            x = 44
-            def foo(): 
                 x = 2
                 return x
-            """,
-        )
-        self.shell.run_code("pass")
-        self.assertIn(mod_name, self.shell.user_ns)
-        assert mod.foo() == 2
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    assert mod.Foo.foo() == 2
 
 
-class DecoratorPatchingSuite(ShellFixture):
+def test_autoreload_overloaded_vars2(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
+        """
+        x = 42
+        def foo():
+            return x
     """
-    Unit tests for autoreload patching logic
-    """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    mod = sys.modules[mod_name]
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        x = 44
+        def foo():
+            x = 2
+            return x
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod_name in shell_fixture.shell.user_ns
+    assert mod.foo() == 2
 
-    def test_modify_property(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_file = self.new_module(
-            """
-            class Foo:
-                @property
-                def foo(self):
-                    return 42
-            """
-        )
-        self.shell.run_code(f"from {mod_name} import Foo")
-        self.shell.run_code("foo = Foo()")
-        self.shell.run_code("assert foo.foo == 42")
-        self.write_file(
-            mod_file,
-            """
-            class Foo:
-                @property
-                def foo(self):
-                    return 43
-            """,
-        )
-        self.shell.run_code("pass")
-        self.shell.run_code("assert foo.foo == 43")
 
-    def test_method_decorator(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_file = self.new_module(
-            """
-            def incremented(f):
-                return lambda *args: f(*args) + 1
+# ---------------------------------------------------------------------------
+# DecoratorPatchingSuite
+# ---------------------------------------------------------------------------
 
-            class Foo:
-                @classmethod
-                @incremented
-                def foo(cls):
-                    return 42
-            
-            foo = Foo.foo
-            """
-        )
-        self.shell.run_code(f"from {mod_name} import foo")
-        self.shell.run_code("assert foo() == 43")
-        self.write_file(
-            mod_file,
-            """
-            def incremented(f):
-                return lambda *args: f(*args) + 1
 
-            class Foo:
-                @classmethod
-                def foo(cls):
-                    return 42
-            
-            foo = Foo.foo
-            """,
-        )
-        self.shell.run_code("assert foo() == 42")
+def test_modify_property(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_file = shell_fixture.new_module(
+        """
+        class Foo:
+            @property
+            def foo(self):
+                return 42
+        """
+    )
+    shell_fixture.shell.run_code(f"from {mod_name} import Foo")
+    shell_fixture.shell.run_code("foo = Foo()")
+    shell_fixture.shell.run_code("assert foo.foo == 42")
+    shell_fixture.write_file(
+        mod_file,
+        """
+        class Foo:
+            @property
+            def foo(self):
+                return 43
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.shell.run_code("assert foo.foo == 43")
 
-    def test_method_modified_decorator(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_file = self.new_module(
-            """
-            def incremented(f):
-                return lambda *args: f(*args) + 1
 
-            class Foo:
-                @classmethod
-                @incremented
-                def foo(cls):
-                    return 42
-            
-            foo = Foo.foo
-            """
-        )
-        self.shell.run_code(f"from {mod_name} import foo")
-        self.shell.run_code("assert foo() == 43")
-        self.write_file(
-            mod_file,
-            """
-            def incremented(f):
-                return lambda *args: f(*args) + 0
+def test_method_decorator(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_file = shell_fixture.new_module(
+        """
+        def incremented(f):
+            return lambda *args: f(*args) + 1
 
-            class Foo:
-                @classmethod
-                @incremented
-                def foo(cls):
-                    return 42
-            
-            foo = Foo.foo
-            """,
-        )
-        self.shell.run_code("assert foo() == 42")
-
-    def test_function_decorators(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_file = self.new_module(
-            """
-            def incremented(f):
-                return lambda *args: f(*args) + 1
-            
+        class Foo:
+            @classmethod
             @incremented
-            def foo():
+            def foo(cls):
                 return 42
-            """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        mod = sys.modules[mod_name]
-        assert mod.foo() == 43
-        self.write_file(
-            mod_file,
-            """
-            def incremented(f):
-                return lambda *args: f(*args) + 1
 
-            def foo():
+        foo = Foo.foo
+        """
+    )
+    shell_fixture.shell.run_code(f"from {mod_name} import foo")
+    shell_fixture.shell.run_code("assert foo() == 43")
+    shell_fixture.write_file(
+        mod_file,
+        """
+        def incremented(f):
+            return lambda *args: f(*args) + 1
+
+        class Foo:
+            @classmethod
+            def foo(cls):
                 return 42
-            """,
-        )
-        self.shell.run_code("pass")
-        assert mod.foo() == 42
-        self.write_file(
-            mod_file,
-            """
-            def incremented(v):
-                def deco(f):
-                    return lambda *args: f(*args) + v
-                return deco
 
-            @incremented(2)
-            def foo():
-                return 43
-            """,
-        )
-        self.shell.run_code("pass")
-        assert mod.foo() == 45
+        foo = Foo.foo
+        """,
+    )
+    shell_fixture.shell.run_code("assert foo() == 42")
 
-    def test_method_decorators_again(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_file = self.new_module(
-            """
-            class Foo:
-                @classmethod
-                def bar(cls):
-                    return 0
-                    
-                @classmethod
-                def foo(cls):
-                    return 42 + cls.bar()
-            
-            foo = Foo.foo
-            """
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        mod = sys.modules[mod_name]
-        assert mod.foo() == 42
-        self.write_file(
-            mod_file,
-            """
-            class Foo:
-                @classmethod
-                def bar(cls):
-                    return 1
-            
-                @classmethod
-                def foo(cls):
-                    return 42 + cls.bar()
-            
-            foo = Foo.foo
-            """,
-        )
-        self.shell.run_code("pass")
-        assert mod.Foo.foo() == 43
-        assert mod.foo() == 43
 
-    # This test verifies that the correct globals are used when patching a function
-    # decorated by a function from another module. For this example, we should always
-    # use <mod_name>.__dict__ as the global environment when patching foo, which comes
-    # from <mod_name>, and never <other_mod_name>.__dict__, which is what we would get
-    # if we use foo.__globals__ after it has been decorated.
-    def test_function_decorator_from_other_module(self):
-        self.shell.magic_autoreload("2")
-        other_mod_name, _ = self.new_module(
-            """
-            import functools
+def test_method_modified_decorator(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_file = shell_fixture.new_module(
+        """
+        def incremented(f):
+            return lambda *args: f(*args) + 1
 
-            def incremented(f):
-                @functools.wraps(f)
-                def wrapper(*args, **kwargs):
-                    return f(*args, **kwargs) + 1
-                return wrapper
-            """
-        )
-        mod_name, mod_file = self.new_module(
-            f"""
-            from {other_mod_name} import incremented as deco
-            @deco
-            def foo():
+        class Foo:
+            @classmethod
+            @incremented
+            def foo(cls):
                 return 42
-            """
-        )
-        self.shell.run_code(f"from {mod_name} import foo")
-        self.shell.run_code("assert foo() == 43")
-        self.write_file(
-            mod_file,
-            f"""
-            from {other_mod_name} import incremented as deco
-            @deco
-            def foo():
-                return 43
-            """,
-        )
-        self.shell.run_code("assert foo() == 44")
 
-    def test_decorators_with_freevars(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_file = self.new_module(
-            """
-            def decorate(func):
-                free_var_x = "x"
-                free_var_y = "y"
-                def wrapper(*args, **kwargs):
-                    return func(*args, **kwargs), free_var_x, free_var_y
-                return wrapper
-            @decorate
-            def f():
-                return "v1"
-            """
-        )
-        self.shell.run_code(f"from {mod_name} import f")
-        mod = sys.modules[mod_name]
-        assert mod.f() == ("v1", "x", "y")
-        self.write_file(
-            mod_file,
-            """
-            def decorate(func):
-                free_var_ax = "ax"
-                free_var_by = "by"
-                def wrapper(*args, **kwargs):
-                    return func(*args, **kwargs), free_var_ax, free_var_by
-                return wrapper
-            @decorate
-            def f():
-                return "v2"
-            """,
-        )
-        self.shell.run_code("pass")
-        val = mod.f()
-        assert val == ("v2", "ax", "by"), val
+        foo = Foo.foo
+        """
+    )
+    shell_fixture.shell.run_code(f"from {mod_name} import foo")
+    shell_fixture.shell.run_code("assert foo() == 43")
+    shell_fixture.write_file(
+        mod_file,
+        """
+        def incremented(f):
+            return lambda *args: f(*args) + 0
+
+        class Foo:
+            @classmethod
+            @incremented
+            def foo(cls):
+                return 42
+
+        foo = Foo.foo
+        """,
+    )
+    shell_fixture.shell.run_code("assert foo() == 42")
 
 
-class TestAutoreloadEnum(ShellFixture):
-    def test_reload_enums(self):
-        self.shell.magic_autoreload("2")
-        mod_name, mod_fn = self.new_module(
-            """
-            from enum import Enum
-            class MyEnum(Enum):
-                A = 'A'
-                B = 'B'
-            """,
-        )
-        self.shell.run_code("import %s" % mod_name)
-        self.shell.run_code("pass")
-        mod = sys.modules[mod_name]
-        self.write_file(
-            mod_fn,
-            """
-            from enum import Enum
-            class MyEnum(Enum):
-                A = 'A'
-                B = 'B'
-                C = 'C'
-            """,
-        )
-        self.shell.run_code("pass")
-        assert mod.MyEnum.C.value == "C"
+def test_function_decorators(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_file = shell_fixture.new_module(
+        """
+        def incremented(f):
+            return lambda *args: f(*args) + 1
+
+        @incremented
+        def foo():
+            return 42
+        """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    mod = sys.modules[mod_name]
+    assert mod.foo() == 43
+    shell_fixture.write_file(
+        mod_file,
+        """
+        def incremented(f):
+            return lambda *args: f(*args) + 1
+
+        def foo():
+            return 42
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod.foo() == 42
+    shell_fixture.write_file(
+        mod_file,
+        """
+        def incremented(v):
+            def deco(f):
+                return lambda *args: f(*args) + v
+            return deco
+
+        @incremented(2)
+        def foo():
+            return 43
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod.foo() == 45
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_method_decorators_again(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_file = shell_fixture.new_module(
+        """
+        class Foo:
+            @classmethod
+            def bar(cls):
+                return 0
+
+            @classmethod
+            def foo(cls):
+                return 42 + cls.bar()
+
+        foo = Foo.foo
+        """
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    mod = sys.modules[mod_name]
+    assert mod.foo() == 42
+    shell_fixture.write_file(
+        mod_file,
+        """
+        class Foo:
+            @classmethod
+            def bar(cls):
+                return 1
+
+            @classmethod
+            def foo(cls):
+                return 42 + cls.bar()
+
+        foo = Foo.foo
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod.Foo.foo() == 43
+    assert mod.foo() == 43
+
+
+# This test verifies that the correct globals are used when patching a function
+# decorated by a function from another module. For this example, we should always
+# use <mod_name>.__dict__ as the global environment when patching foo, which comes
+# from <mod_name>, and never <other_mod_name>.__dict__, which is what we would get
+# if we use foo.__globals__ after it has been decorated.
+def test_function_decorator_from_other_module(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    other_mod_name, _ = shell_fixture.new_module(
+        """
+        import functools
+
+        def incremented(f):
+            @functools.wraps(f)
+            def wrapper(*args, **kwargs):
+                return f(*args, **kwargs) + 1
+            return wrapper
+        """
+    )
+    mod_name, mod_file = shell_fixture.new_module(
+        f"""
+        from {other_mod_name} import incremented as deco
+        @deco
+        def foo():
+            return 42
+        """
+    )
+    shell_fixture.shell.run_code(f"from {mod_name} import foo")
+    shell_fixture.shell.run_code("assert foo() == 43")
+    shell_fixture.write_file(
+        mod_file,
+        f"""
+        from {other_mod_name} import incremented as deco
+        @deco
+        def foo():
+            return 43
+        """,
+    )
+    shell_fixture.shell.run_code("assert foo() == 44")
+
+
+def test_decorators_with_freevars(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_file = shell_fixture.new_module(
+        """
+        def decorate(func):
+            free_var_x = "x"
+            free_var_y = "y"
+            def wrapper(*args, **kwargs):
+                return func(*args, **kwargs), free_var_x, free_var_y
+            return wrapper
+        @decorate
+        def f():
+            return "v1"
+        """
+    )
+    shell_fixture.shell.run_code(f"from {mod_name} import f")
+    mod = sys.modules[mod_name]
+    assert mod.f() == ("v1", "x", "y")
+    shell_fixture.write_file(
+        mod_file,
+        """
+        def decorate(func):
+            free_var_ax = "ax"
+            free_var_by = "by"
+            def wrapper(*args, **kwargs):
+                return func(*args, **kwargs), free_var_ax, free_var_by
+            return wrapper
+        @decorate
+        def f():
+            return "v2"
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    val = mod.f()
+    assert val == ("v2", "ax", "by"), val
+
+
+# ---------------------------------------------------------------------------
+# TestAutoreloadEnum
+# ---------------------------------------------------------------------------
+
+
+def test_reload_enums(shell_fixture):
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
+        """
+        from enum import Enum
+        class MyEnum(Enum):
+            A = 'A'
+            B = 'B'
+        """,
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    mod = sys.modules[mod_name]
+    shell_fixture.write_file(
+        mod_fn,
+        """
+        from enum import Enum
+        class MyEnum(Enum):
+            A = 'A'
+            B = 'B'
+            C = 'C'
+        """,
+    )
+    shell_fixture.shell.run_code("pass")
+    assert mod.MyEnum.C.value == "C"
