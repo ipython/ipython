@@ -1,6 +1,7 @@
 '''A decorator-based method of constructing IPython magics with `argparse`
 option handling.
 
+
 New magic functions can be defined like so::
 
     from IPython.core.magic_arguments import (argument, magic_arguments,
@@ -75,6 +76,7 @@ Inheritance diagram:
    :parts: 3
 
 '''
+from __future__ import annotations
 #-----------------------------------------------------------------------------
 # Copyright (C) 2010-2011, IPython Development Team.
 #
