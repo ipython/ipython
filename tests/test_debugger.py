@@ -16,6 +16,7 @@ from unittest.mock import patch
 from IPython.core import debugger
 from IPython.testing import IPYTHON_TESTING_TIMEOUT_SCALE
 from IPython.testing.decorators import skip_win32
+from IPython.utils import py3compat
 import pytest
 
 # -----------------------------------------------------------------------------
@@ -290,6 +291,34 @@ def test_exception_command_aliases_exceptions():
         assert ipdb.onecmd("exception 0") is True
 
     do_exceptions.assert_called_once_with("0")
+
+
+def test_execfile_marks_debugger_internal_frames_hidden():
+    with TemporaryDirectory() as td:
+        script = Path(td) / "fails.py"
+        script.write_text(
+            "def user_frame():\n"
+            "    raise RuntimeError('boom')\n"
+            "user_frame()\n",
+            encoding="utf-8",
+        )
+
+        with pytest.raises(RuntimeError) as exc_info:
+            py3compat.execfile(script, {})
+
+    ipdb = debugger.Pdb()
+    stack, _ = ipdb.get_stack(None, exc_info.value.__traceback__)
+    hidden_frames = ipdb.hidden_frames(stack)
+    frame_names = [frame.f_code.co_name for frame, _ in stack]
+    execfile_index = frame_names.index("execfile")
+
+    assert (
+        stack[execfile_index][0].f_locals["__tracebackhide__"]
+        == "__ipython_bottom__"
+    )
+    assert hidden_frames[execfile_index] is True
+    assert all(hidden_frames[:execfile_index])
+    assert hidden_frames[execfile_index + 1 :] == [False, False]
 
 
 @skip_win32
