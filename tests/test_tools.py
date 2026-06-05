@@ -10,29 +10,23 @@ Tests for testing.tools
 #  the file COPYING, distributed as part of this software.
 # -----------------------------------------------------------------------------
 
-# -----------------------------------------------------------------------------
-# Imports
-# -----------------------------------------------------------------------------
-
 import os
 import unittest
 
+import pytest
+
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
-
-# -----------------------------------------------------------------------------
-# Tests
-# -----------------------------------------------------------------------------
 
 
 @dec.skip_win32
 def test_full_path_posix():
     spath = "/foo/bar.py"
     result = tt.full_path(spath, ["a.txt", "b.txt"])
-    assert result, ["/foo/a.txt" == "/foo/b.txt"]
+    assert result == ["/foo/a.txt", "/foo/b.txt"]
     spath = "/foo"
     result = tt.full_path(spath, ["a.txt", "b.txt"])
-    assert result, ["/a.txt" == "/b.txt"]
+    assert result == ["/a.txt", "/b.txt"]
     result = tt.full_path(spath, ["a.txt"])
     assert result == ["/a.txt"]
 
@@ -41,22 +35,23 @@ def test_full_path_posix():
 def test_full_path_win32():
     spath = "c:\\foo\\bar.py"
     result = tt.full_path(spath, ["a.txt", "b.txt"])
-    assert result, ["c:\\foo\\a.txt" == "c:\\foo\\b.txt"]
+    assert result == ["c:\\foo\\a.txt", "c:\\foo\\b.txt"]
     spath = "c:\\foo"
     result = tt.full_path(spath, ["a.txt", "b.txt"])
-    assert result, ["c:\\a.txt" == "c:\\b.txt"]
+    assert result == ["c:\\a.txt", "c:\\b.txt"]
     result = tt.full_path(spath, ["a.txt"])
     assert result == ["c:\\a.txt"]
 
 
-def test_parser():
-    err = ("FAILED (errors=1)", 1, 0)
-    fail = ("FAILED (failures=1)", 0, 1)
-    both = ("FAILED (errors=1, failures=1)", 1, 1)
-    for txt, nerr, nfail in [err, fail, both]:
-        nerr1, nfail1 = tt.parse_test_output(txt)
-        assert nerr == nerr1
-        assert nfail == nfail1
+@pytest.mark.parametrize("txt,expected_nerr,expected_nfail", [
+    ("FAILED (errors=1)", 1, 0),
+    ("FAILED (failures=1)", 0, 1),
+    ("FAILED (errors=1, failures=1)", 1, 1),
+])
+def test_parser(txt, expected_nerr, expected_nfail):
+    nerr, nfail = tt.parse_test_output(txt)
+    assert nerr == expected_nerr
+    assert nfail == expected_nfail
 
 
 def test_temp_pyfile():
@@ -68,21 +63,22 @@ def test_temp_pyfile():
     assert src2 == src
 
 
-class TestAssertPrints(unittest.TestCase):
-    def test_passing(self):
+def test_assert_prints_passing():
+    with tt.AssertPrints("abc"):
+        print("abcd")
+        print("def")
+        print(b"ghi")
+
+
+def test_assert_prints_failing():
+    def func():
         with tt.AssertPrints("abc"):
-            print("abcd")
+            print("acd")
             print("def")
             print(b"ghi")
 
-    def test_failing(self):
-        def func():
-            with tt.AssertPrints("abc"):
-                print("acd")
-                print("def")
-                print(b"ghi")
-
-        self.assertRaises(AssertionError, func)
+    with pytest.raises(AssertionError):
+        func()
 
 
 class Test_ipexec_validate(tt.TempFileMixin):
