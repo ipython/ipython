@@ -14,7 +14,7 @@
 from tempfile import NamedTemporaryFile, mkdtemp
 from os.path import split, join as pjoin, dirname
 import pathlib
-from unittest import TestCase, mock
+from unittest import mock
 import struct
 import wave
 from io import BytesIO
@@ -198,64 +198,108 @@ def test_audio_from_file():
     display.Audio(filename=path)
 
 
-class TestAudioDataWithNumpy(TestCase):
-    @skipif_not_numpy
-    def test_audio_from_numpy_array(self):
-        test_tone = get_test_tone()
-        audio = display.Audio(test_tone, rate=44100)
-        assert len(read_wav(audio.data)) == len(test_tone)
-
-    @skipif_not_numpy
-    def test_audio_from_list(self):
-        test_tone = get_test_tone()
-        audio = display.Audio(list(test_tone), rate=44100)
-        assert len(read_wav(audio.data)) == len(test_tone)
-
-    @skipif_not_numpy
-    def test_audio_from_numpy_array_without_rate_raises(self):
-        pytest.raises(ValueError, display.Audio, get_test_tone())
-
-    @skipif_not_numpy
-    def test_audio_data_normalization(self):
-        expected_max_value = numpy.iinfo(numpy.int16).max
-        for scale in [1, 0.5, 2]:
-            audio = display.Audio(get_test_tone(scale), rate=44100)
-            actual_max_value = numpy.max(numpy.abs(read_wav(audio.data)))
-            assert actual_max_value == expected_max_value
-
-    @skipif_not_numpy
-    def test_audio_data_without_normalization(self):
-        max_int16 = numpy.iinfo(numpy.int16).max
-        for scale in [1, 0.5, 0.2]:
-            test_tone = get_test_tone(scale)
-            test_tone_max_abs = numpy.max(numpy.abs(test_tone))
-            expected_max_value = int(max_int16 * test_tone_max_abs)
-            audio = display.Audio(test_tone, rate=44100, normalize=False)
-            actual_max_value = numpy.max(numpy.abs(read_wav(audio.data)))
-            assert actual_max_value == expected_max_value
-
-    def test_audio_data_without_normalization_raises_for_invalid_data(self):
-        pytest.raises(ValueError, display.Audio, [1.001], rate=44100, normalize=False)
-        pytest.raises(ValueError, display.Audio, [-1.001], rate=44100, normalize=False)
+@skipif_not_numpy
+def test_audio_from_numpy_array():
+    test_tone = get_test_tone()
+    audio = display.Audio(test_tone, rate=44100)
+    assert len(read_wav(audio.data)) == len(test_tone)
 
 
-def simulate_numpy_not_installed():
-    try:
-        import numpy
-
-        return mock.patch("numpy.array", mock.MagicMock(side_effect=ImportError))
-    except ModuleNotFoundError:
-        return lambda x: x
+@skipif_not_numpy
+def test_audio_from_list():
+    test_tone = get_test_tone()
+    audio = display.Audio(list(test_tone), rate=44100)
+    assert len(read_wav(audio.data)) == len(test_tone)
 
 
-@simulate_numpy_not_installed()
-class TestAudioDataWithoutNumpy(TestAudioDataWithNumpy):
-    # All tests from `TestAudioDataWithNumpy` are inherited.
+@skipif_not_numpy
+def test_audio_from_numpy_array_without_rate_raises():
+    pytest.raises(ValueError, display.Audio, get_test_tone())
 
-    @skipif_not_numpy
-    def test_audio_raises_for_nested_list(self):
-        stereo_signal = [list(get_test_tone())] * 2
-        self.assertRaises(TypeError, lambda: display.Audio(stereo_signal, rate=44100))
+
+@skipif_not_numpy
+def test_audio_data_normalization():
+    expected_max_value = numpy.iinfo(numpy.int16).max
+    for scale in [1, 0.5, 2]:
+        audio = display.Audio(get_test_tone(scale), rate=44100)
+        actual_max_value = numpy.max(numpy.abs(read_wav(audio.data)))
+        assert actual_max_value == expected_max_value
+
+
+@skipif_not_numpy
+def test_audio_data_without_normalization():
+    max_int16 = numpy.iinfo(numpy.int16).max
+    for scale in [1, 0.5, 0.2]:
+        test_tone = get_test_tone(scale)
+        test_tone_max_abs = numpy.max(numpy.abs(test_tone))
+        expected_max_value = int(max_int16 * test_tone_max_abs)
+        audio = display.Audio(test_tone, rate=44100, normalize=False)
+        actual_max_value = numpy.max(numpy.abs(read_wav(audio.data)))
+        assert actual_max_value == expected_max_value
+
+
+def test_audio_data_without_normalization_raises_for_invalid_data():
+    pytest.raises(ValueError, display.Audio, [1.001], rate=44100, normalize=False)
+    pytest.raises(ValueError, display.Audio, [-1.001], rate=44100, normalize=False)
+
+
+@mock.patch("numpy.array", mock.MagicMock(side_effect=ImportError))
+@skipif_not_numpy
+def test_audio_from_numpy_array_no_numpy():
+    test_tone = get_test_tone()
+    audio = display.Audio(test_tone, rate=44100)
+    assert len(read_wav(audio.data)) == len(test_tone)
+
+
+@mock.patch("numpy.array", mock.MagicMock(side_effect=ImportError))
+@skipif_not_numpy
+def test_audio_from_list_no_numpy():
+    test_tone = get_test_tone()
+    audio = display.Audio(list(test_tone), rate=44100)
+    assert len(read_wav(audio.data)) == len(test_tone)
+
+
+@mock.patch("numpy.array", mock.MagicMock(side_effect=ImportError))
+@skipif_not_numpy
+def test_audio_from_numpy_array_without_rate_raises_no_numpy():
+    pytest.raises(ValueError, display.Audio, get_test_tone())
+
+
+@mock.patch("numpy.array", mock.MagicMock(side_effect=ImportError))
+@skipif_not_numpy
+def test_audio_data_normalization_no_numpy():
+    expected_max_value = numpy.iinfo(numpy.int16).max
+    for scale in [1, 0.5, 2]:
+        audio = display.Audio(get_test_tone(scale), rate=44100)
+        actual_max_value = numpy.max(numpy.abs(read_wav(audio.data)))
+        assert actual_max_value == expected_max_value
+
+
+@mock.patch("numpy.array", mock.MagicMock(side_effect=ImportError))
+@skipif_not_numpy
+def test_audio_data_without_normalization_no_numpy():
+    max_int16 = numpy.iinfo(numpy.int16).max
+    for scale in [1, 0.5, 0.2]:
+        test_tone = get_test_tone(scale)
+        test_tone_max_abs = numpy.max(numpy.abs(test_tone))
+        expected_max_value = int(max_int16 * test_tone_max_abs)
+        audio = display.Audio(test_tone, rate=44100, normalize=False)
+        actual_max_value = numpy.max(numpy.abs(read_wav(audio.data)))
+        assert actual_max_value == expected_max_value
+
+
+@mock.patch("numpy.array", mock.MagicMock(side_effect=ImportError))
+@skipif_not_numpy
+def test_audio_data_without_normalization_raises_for_invalid_data_no_numpy():
+    pytest.raises(ValueError, display.Audio, [1.001], rate=44100, normalize=False)
+    pytest.raises(ValueError, display.Audio, [-1.001], rate=44100, normalize=False)
+
+
+@mock.patch("numpy.array", mock.MagicMock(side_effect=ImportError))
+@skipif_not_numpy
+def test_audio_raises_for_nested_list():
+    stereo_signal = [list(get_test_tone())] * 2
+    pytest.raises(TypeError, display.Audio, stereo_signal, rate=44100)
 
 
 @skipif_not_numpy
