@@ -22,7 +22,7 @@ def pyfunc():
     ...     print(i, end=' ')
     ...     print(i+1, end=' ')
     ...
-    0 1 1 2 2 3 
+    0 1 1 2 2 3
     """
     return 'pyfunc'
 
@@ -154,7 +154,7 @@ def iprand_all():
     """Some ipython tests with fully random output.
 
     # all-random
-    
+
     In [7]: 1
     Out[7]: 99
 

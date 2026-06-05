@@ -9,7 +9,7 @@ artificially).
 
 def doctest_simple():
     """ipdoctest must handle simple inputs
-    
+
     In [1]: 1
     Out[1]: 1
 
@@ -22,7 +22,7 @@ def doctest_multiline1():
 
     In [2]: for i in range(4):
        ...:     print(i)
-       ...:      
+       ...:
     0
     1
     2
@@ -34,14 +34,14 @@ def doctest_multiline2():
 
     In [7]: def f(x):
        ...:     return x+1
-       ...: 
+       ...:
 
     In [8]: f(1)
     Out[8]: 2
 
     In [9]: def g(x):
        ...:     print('x is:',x)
-       ...:      
+       ...:
 
     In [10]: g(1)
     x is: 1
@@ -63,7 +63,7 @@ def doctest_multiline3():
        ....:     # otherwise the doctest parser gets confused.
        ....:     else:
        ....:         return -1
-       ....:      
+       ....:
 
     In [13]: h(5)
     Out[13]: 25
