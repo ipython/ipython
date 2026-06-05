@@ -116,25 +116,16 @@ def test_iso8859_5():
                 ip.run_cell("fail()")
 
 
-def test_nonascii_msg():
-    cell = "raise Exception('é')"
-    expected = "Exception('é')"
-    ip.run_cell("%xmode plain")
+@pytest.mark.parametrize("xmode,expected", [
+    ("plain", "Exception('é')"),
+    ("verbose", "Exception('é')"),
+    ("context", "Exception('é')"),
+    ("minimal", "Exception: é"),
+])
+def test_nonascii_msg(xmode, expected):
+    ip.run_cell(f"%xmode {xmode}")
     with tt.AssertPrints(expected):
-        ip.run_cell(cell)
-
-    ip.run_cell("%xmode verbose")
-    with tt.AssertPrints(expected):
-        ip.run_cell(cell)
-
-    ip.run_cell("%xmode context")
-    with tt.AssertPrints(expected):
-        ip.run_cell(cell)
-
-    ip.run_cell("%xmode minimal")
-    with tt.AssertPrints("Exception: é"):
-        ip.run_cell(cell)
-
+        ip.run_cell("raise Exception('é')")
     ip.run_cell("%xmode context")
 
 

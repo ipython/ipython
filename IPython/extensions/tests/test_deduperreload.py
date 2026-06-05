@@ -820,152 +820,34 @@ def shell_fixture():
 # ---------------------------------------------------------------------------
 
 
-def test_deduperreloader_basic(shell_fixture):
-    shell_fixture.shell.magic_autoreload("2")
-    mod_name, mod_fn = shell_fixture.new_module(
-        """
+@pytest.mark.parametrize("autoreload_when", [
+    "before_import",
+    "after_import",
+    "after_first_pass",
+])
+def test_deduperreloader_basic(shell_fixture, autoreload_when):
+    """Test autoreload works regardless of when magic_autoreload("2") is called."""
+    src_v1 = """
         x = 9
         def foo(y):
             return y + 3
     """
-    )
-    shell_fixture.shell.run_code("import %s" % mod_name)
-    shell_fixture.shell.run_code("pass")
-    shell_fixture.write_file(
-        mod_fn,
-        """
+    src_v2 = """
         x = 9
         def foo(y):
             return y + 5
-        """,
-    )
-    shell_fixture.shell.run_code("pass")
-    assert mod_name in shell_fixture.shell.user_ns
-    mod = sys.modules[mod_name]
-    assert mod.foo(0) == 5
-
-
-def test_deduperreloader_basic2(shell_fixture):
-    shell_fixture.shell.magic_autoreload("2")
-    mod_name, mod_fn = shell_fixture.new_module(
         """
-        x = 9
-        def foo(y):
-            return y + 3
-    """
-    )
+    if autoreload_when == "before_import":
+        shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(src_v1)
     shell_fixture.shell.run_code("import %s" % mod_name)
+    if autoreload_when == "after_import":
+        shell_fixture.shell.magic_autoreload("2")
     shell_fixture.shell.run_code("pass")
-    shell_fixture.write_file(
-        mod_fn,
-        """
-        x = 9
-        def foo(y):
-            return y + 5
-        """,
-    )
+    if autoreload_when == "after_first_pass":
+        shell_fixture.shell.magic_autoreload("2")
     shell_fixture.shell.run_code("pass")
-    assert mod_name in shell_fixture.shell.user_ns
-    mod = sys.modules[mod_name]
-    assert mod.foo(0) == 5
-
-
-def test_deduperreloader_basic3(shell_fixture):
-    mod_name, mod_fn = shell_fixture.new_module(
-        """
-        x = 9
-        def foo(y):
-            return y + 3
-    """
-    )
-    shell_fixture.shell.run_code("import %s" % mod_name)
-    shell_fixture.shell.magic_autoreload("2")
-    shell_fixture.shell.run_code("pass")
-    shell_fixture.write_file(
-        mod_fn,
-        """
-        x = 9
-        def foo(y):
-            return y + 5
-        """,
-    )
-    shell_fixture.shell.run_code("pass")
-    assert mod_name in shell_fixture.shell.user_ns
-    mod = sys.modules[mod_name]
-    assert mod.foo(0) == 5
-
-
-def test_deduperreloader_basic4(shell_fixture):
-    mod_name, mod_fn = shell_fixture.new_module(
-        """
-        x = 9
-        def foo(y):
-            return y + 3
-    """
-    )
-    shell_fixture.shell.run_code("import %s" % mod_name)
-    shell_fixture.shell.magic_autoreload("2")
-    shell_fixture.shell.run_code("pass")
-    shell_fixture.write_file(
-        mod_fn,
-        """
-        x = 9
-        def foo(y):
-            return y + 5
-        """,
-    )
-    shell_fixture.shell.run_code("pass")
-    assert mod_name in shell_fixture.shell.user_ns
-    mod = sys.modules[mod_name]
-    assert mod.foo(0) == 5
-
-
-def test_deduperreloader_basic5(shell_fixture):
-    mod_name, mod_fn = shell_fixture.new_module(
-        """
-        x = 9
-        def foo(y):
-            return y + 3
-    """
-    )
-    shell_fixture.shell.run_code("import %s" % mod_name)
-    shell_fixture.shell.run_code("pass")
-    shell_fixture.shell.magic_autoreload("2")
-    shell_fixture.shell.run_code("pass")
-    shell_fixture.write_file(
-        mod_fn,
-        """
-        x = 9
-        def foo(y):
-            return y + 5
-        """,
-    )
-    shell_fixture.shell.run_code("pass")
-    assert mod_name in shell_fixture.shell.user_ns
-    mod = sys.modules[mod_name]
-    assert mod.foo(0) == 5
-
-
-def test_deduperreloader_basic6(shell_fixture):
-    mod_name, mod_fn = shell_fixture.new_module(
-        """
-        x = 9
-        def foo(y):
-            return y + 3
-    """
-    )
-    shell_fixture.shell.run_code("import %s" % mod_name)
-    shell_fixture.shell.run_code("pass")
-    shell_fixture.shell.magic_autoreload("2")
-    shell_fixture.shell.run_code("pass")
-    shell_fixture.write_file(
-        mod_fn,
-        """
-        x = 9
-        def foo(y):
-            return y + 5
-        """,
-    )
+    shell_fixture.write_file(mod_fn, src_v2)
     shell_fixture.shell.run_code("pass")
     assert mod_name in shell_fixture.shell.user_ns
     mod = sys.modules[mod_name]
