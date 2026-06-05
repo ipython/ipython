@@ -8,32 +8,27 @@
 #  The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-# -----------------------------------------------------------------------------
-# Imports
-# -----------------------------------------------------------------------------
-
-# Stdlib imports
 import linecache
 import sys
 
-# Our own imports
+import pytest
+
 from IPython.core import compilerop
 
-# -----------------------------------------------------------------------------
-# Test functions
-# -----------------------------------------------------------------------------
+
+@pytest.mark.parametrize("cell_number,prefix", [
+    (0, "<ipython-input-0"),
+    (9, "<ipython-input-9"),
+    (42, "<ipython-input-42"),
+])
+def test_code_name_cell_number(cell_number, prefix):
+    name = compilerop.code_name("x=1", cell_number)
+    assert name.startswith(prefix)
 
 
-def test_code_name():
-    code = "x=1"
-    name = compilerop.code_name(code)
+def test_code_name_default_is_zero():
+    name = compilerop.code_name("x=1")
     assert name.startswith("<ipython-input-0")
-
-
-def test_code_name2():
-    code = "x=1"
-    name = compilerop.code_name(code, 9)
-    assert name.startswith("<ipython-input-9")
 
 
 def test_cache():
@@ -45,24 +40,25 @@ def test_cache():
 
 
 def test_proper_default_encoding():
-    # Check we're in a proper Python 2 environment (some imports, such
-    # as GTK, can change the default encoding, which can hide bugs.)
     assert sys.getdefaultencoding() == "utf-8"
 
 
-def test_cache_unicode():
+@pytest.mark.parametrize("src", [
+    "a_unique_var_for_test_1 = 1",
+    "t = 'žćčšđ_unique'",
+    "y = '日本語_unique'",
+])
+def test_cache_source(src):
     cp = compilerop.CachingCompiler()
     ncache = len(linecache.cache)
-    cp.cache("t = 'žćčšđ'")
+    cp.cache(src)
     assert len(linecache.cache) > ncache
 
 
 def test_compiler_check_cache():
     """Test the compiler properly manages the cache."""
-    # Rather simple-minded tests that just exercise the API
     cp = compilerop.CachingCompiler()
     cp.cache("x=1", 99)
-    # Ensure now that after clearing the cache, our entries survive
     linecache.checkcache()
     assert any(
         k.startswith("<ipython-input-99") for k in linecache.cache
