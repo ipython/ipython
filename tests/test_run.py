@@ -22,7 +22,6 @@ import random
 import string
 import sys
 import textwrap
-import unittest
 from os.path import join as pjoin
 from unittest.mock import patch
 
@@ -442,116 +441,75 @@ tclass.py: deleting object: C-third
         assert _ip.user_ns["a"] == test_opts
 
 
-class TestMagicRunWithPackage(unittest.TestCase):
-    def writefile(self, name, content):
-        path = os.path.join(self.tempdir.name, name)
-        d = os.path.dirname(path)
-        if not os.path.isdir(d):
-            os.makedirs(d)
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(textwrap.dedent(content))
+def _fake_debugger(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwds):
+        with patch.object(debugger.Pdb, "run", staticmethod(eval)):
+            return func(*args, **kwds)
+    return wrapper
 
-    def setUp(self):
-        self.package = package = "tmp{0}".format(
-            "".join([random.choice(string.ascii_letters) for i in range(10)])
-        )
-        """Temporary  (probably) valid python package name."""
 
-        self.value = int(random.random() * 10000)
+@pytest.fixture
+def run_with_package(tmp_path, monkeypatch):
+    package = "tmp{0}".format(
+        "".join([random.choice(string.ascii_letters) for i in range(10)])
+    )
+    value = int(random.random() * 10000)
 
-        self.tempdir = TemporaryDirectory()
-        self.__orig_cwd = os.getcwd()
-        sys.path.insert(0, self.tempdir.name)
+    monkeypatch.syspath_prepend(str(tmp_path))
 
-        self.writefile(os.path.join(package, "__init__.py"), "")
-        self.writefile(
-            os.path.join(package, "sub.py"),
-            """
-        x = {0!r}
-        """.format(
-                self.value
-            ),
-        )
-        self.writefile(
-            os.path.join(package, "relative.py"),
-            """
-        from .sub import x
-        """,
-        )
-        self.writefile(
-            os.path.join(package, "absolute.py"),
-            """
-        from {0}.sub import x
-        """.format(
-                package
-            ),
-        )
-        self.writefile(
-            os.path.join(package, "args.py"),
-            """
-        import sys
-        a = " ".join(sys.argv[1:])
-        """.format(
-                package
-            ),
-        )
+    def writefile(name, content):
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(textwrap.dedent(content), encoding="utf-8")
 
-    def tearDown(self):
-        os.chdir(self.__orig_cwd)
-        sys.path[:] = [p for p in sys.path if p != self.tempdir.name]
-        self.tempdir.cleanup()
+    writefile(os.path.join(package, "__init__.py"), "")
+    writefile(os.path.join(package, "sub.py"), f"x = {value!r}\n")
+    writefile(os.path.join(package, "relative.py"), "from .sub import x\n")
+    writefile(os.path.join(package, "absolute.py"), f"from {package}.sub import x\n")
+    writefile(os.path.join(package, "args.py"), 'import sys\na = " ".join(sys.argv[1:])\n')
 
-    def check_run_submodule(self, submodule, opts=""):
-        _ip.user_ns.pop("x", None)
-        _ip.run_line_magic(
-            "run", "{2} -m {0}.{1}".format(self.package, submodule, opts)
-        )
-        self.assertEqual(
-            _ip.user_ns["x"],
-            self.value,
-            "Variable `x` is not loaded from module `{0}`.".format(submodule),
-        )
+    return package, value
 
-    def test_run_submodule_with_absolute_import(self):
-        self.check_run_submodule("absolute")
 
-    def test_run_submodule_with_relative_import(self):
-        """Run submodule that has a relative import statement (#2727)."""
-        self.check_run_submodule("relative")
+def _check_run_submodule(package, value, submodule, opts=""):
+    _ip.user_ns.pop("x", None)
+    _ip.run_line_magic("run", f"{opts} -m {package}.{submodule}")
+    assert _ip.user_ns["x"] == value, f"Variable `x` is not loaded from module `{submodule}`."
 
-    def test_prun_submodule_with_absolute_import(self):
-        self.check_run_submodule("absolute", "-p")
 
-    def test_prun_submodule_with_relative_import(self):
-        self.check_run_submodule("relative", "-p")
+@pytest.mark.parametrize("submodule,opts", [
+    ("absolute", ""),
+    ("relative", ""),
+    ("absolute", "-p"),
+    ("relative", "-p"),
+])
+def test_run_submodule(run_with_package, submodule, opts):
+    package, value = run_with_package
+    _check_run_submodule(package, value, submodule, opts)
 
-    def with_fake_debugger(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwds):
-            with patch.object(debugger.Pdb, "run", staticmethod(eval)):
-                return func(*args, **kwds)
 
-        return wrapper
+@pytest.mark.parametrize("submodule", ["absolute", "relative"])
+@_fake_debugger
+def test_debug_run_submodule(run_with_package, submodule):
+    package, value = run_with_package
+    _check_run_submodule(package, value, submodule, "-d")
 
-    @with_fake_debugger
-    def test_debug_run_submodule_with_absolute_import(self):
-        self.check_run_submodule("absolute", "-d")
 
-    @with_fake_debugger
-    def test_debug_run_submodule_with_relative_import(self):
-        self.check_run_submodule("relative", "-d")
+def test_module_options(run_with_package):
+    package, _ = run_with_package
+    _ip.user_ns.pop("a", None)
+    test_opts = "-x abc -m test"
+    _ip.run_line_magic("run", f"-m {package}.args {test_opts}")
+    assert _ip.user_ns["a"] == test_opts
 
-    def test_module_options(self):
-        _ip.user_ns.pop("a", None)
-        test_opts = "-x abc -m test"
-        _ip.run_line_magic("run", "-m {0}.args {1}".format(self.package, test_opts))
-        assert _ip.user_ns["a"] == test_opts
 
-    def test_module_options_with_separator(self):
-        _ip.user_ns.pop("a", None)
-        test_opts = "-x abc -m test"
-        _ip.run_line_magic("run", "-m {0}.args -- {1}".format(self.package, test_opts))
-        assert _ip.user_ns["a"] == test_opts
+def test_module_options_with_separator(run_with_package):
+    package, _ = run_with_package
+    _ip.user_ns.pop("a", None)
+    test_opts = "-x abc -m test"
+    _ip.run_line_magic("run", f"-m {package}.args -- {test_opts}")
+    assert _ip.user_ns["a"] == test_opts
 
 
 def test_run_quoted_glob_arg_is_not_expanded():
