@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import keyword
 import os
 import sys
@@ -5,7 +7,7 @@ import token
 import tokenize
 import warnings
 from io import StringIO
-from typing import Any, Type, TypeAlias
+from typing import Any, TypeAlias
 
 import pygments
 from pygments.formatters.terminal256 import Terminal256Formatter
@@ -58,7 +60,7 @@ class Theme:
         self._formatter = Terminal256Formatter(style=self.as_pygments_style())
 
     @cache
-    def as_pygments_style(self) -> Type[Style]:
+    def as_pygments_style(self) -> type[Style]:
         if self.base is not None:
             base_styles = get_style_by_name(self.base).styles
         else:
