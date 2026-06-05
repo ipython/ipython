@@ -950,3 +950,64 @@ def test_ignore_module_all_commands():
 
         child.sendline("continue")
         child.close()
+
+
+# -----------------------------------------------------------------------------
+# Signature compatibility with stdlib's ``pdb.Pdb``
+# -----------------------------------------------------------------------------
+
+import inspect
+import pdb as _stdlib_pdb
+
+from IPython.terminal.debugger import TerminalPdb
+
+_PDB_SUBCLASSES = [debugger.Pdb, debugger.InterruptiblePdb, TerminalPdb]
+
+# TerminalPdb instantiates a prompt_toolkit session, which needs a real
+# console and cannot be created on Windows CI (NoConsoleScreenBufferError),
+# so we skip instantiating it there.
+_PDB_SUBCLASSES_INSTANTIABLE = [
+    debugger.Pdb,
+    debugger.InterruptiblePdb,
+    pytest.param(TerminalPdb, marks=skip_win32),
+]
+
+
+@pytest.mark.parametrize(
+    "cls", _PDB_SUBCLASSES, ids=lambda c: c.__name__
+)
+def test_pdb_subclass_signature_compatible(cls):
+    """IPython debuggers derived from ``pdb.Pdb`` should be drop-in
+    replacements, i.e. accept every keyword argument that the stdlib
+    ``pdb.Pdb`` accepts (directly or via ``**kwargs``)."""
+    assert issubclass(cls, _stdlib_pdb.Pdb)
+
+    stdlib_params = inspect.signature(_stdlib_pdb.Pdb.__init__).parameters
+    ip_params = inspect.signature(cls.__init__).parameters
+    accepts_var_keyword = any(
+        p.kind is inspect.Parameter.VAR_KEYWORD for p in ip_params.values()
+    )
+
+    for name, param in stdlib_params.items():
+        if name == "self":
+            continue
+        if param.kind in (
+            inspect.Parameter.VAR_POSITIONAL,
+            inspect.Parameter.VAR_KEYWORD,
+        ):
+            continue
+        assert accepts_var_keyword or name in ip_params, (
+            f"{cls.__name__} does not accept the {name!r} argument "
+            "supported by stdlib pdb.Pdb"
+        )
+
+
+@pytest.mark.parametrize(
+    "cls", _PDB_SUBCLASSES_INSTANTIABLE, ids=lambda c: c.__name__
+)
+@pytest.mark.parametrize("mode", [None, "inline", "cli"])
+def test_pdb_subclass_accepts_mode(cls, mode):
+    """The ``mode`` argument (added to ``pdb.Pdb`` in Python 3.14) should be
+    accepted on every supported Python version and stored on the instance."""
+    inst = cls(mode=mode)
+    assert inst.mode == mode

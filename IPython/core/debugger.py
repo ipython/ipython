@@ -243,6 +243,8 @@ class Pdb(OldPdb):
         stdin=None,
         stdout=None,
         context: int | None | str = 5,
+        *,
+        mode: str | None = None,
         **kwargs,
     ):
         """Create a new IPython debugger.
@@ -258,6 +260,13 @@ class Pdb(OldPdb):
         context : int
             Number of lines of source code context to show when
             displaying stacktrace information.
+        mode : str, optional
+            How the debugger was invoked, one of ``'inline'`` (used by the
+            ``breakpoint()`` builtin), ``'cli'`` (used by the command line
+            invocation) or ``None`` (backwards compatible behaviour). This
+            argument was added to stdlib's ``pdb.Pdb`` in Python 3.14; it is
+            accepted on every supported Python version here but only forwarded
+            to the underlying ``pdb.Pdb`` when it is actually supported.
         **kwargs
             Passed to pdb.Pdb.
 
@@ -272,6 +281,15 @@ class Pdb(OldPdb):
         if isinstance(context, str):
             context = int(context)
         self.context = context
+
+        # The `mode` argument was added to `pdb.Pdb` in Python 3.14. We accept
+        # it on every supported Python version so that callers written against
+        # 3.14+ keep working, but only forward it to the underlying `pdb.Pdb`
+        # when it understands it.
+        if sys.version_info >= (3, 14):
+            kwargs["mode"] = mode
+        else:
+            self.mode = mode
 
         # `kwargs` ensures full compatibility with stdlib's `pdb.Pdb`.
         OldPdb.__init__(self, completekey, stdin, stdout, **kwargs)
@@ -351,11 +369,11 @@ class Pdb(OldPdb):
         self._theme_name = scheme.lower()
         self.parser.theme_name = scheme.lower()
 
-    def set_trace(self, frame=None):
+    def set_trace(self, frame=None, **kwargs):
         if frame is None:
             frame = sys._getframe().f_back
         self.initial_frame = frame
-        return super().set_trace(frame)
+        return super().set_trace(frame, **kwargs)
 
     def get_stack(self, *args, **kwargs):
         stack, pos = super().get_stack(*args, **kwargs)
