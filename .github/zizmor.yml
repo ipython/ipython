@@ -1,0 +1,9 @@
+# Configuration for zizmor (https://docs.zizmor.sh)
+# Require actions to be pinned to a full-length commit hash, so a moved tag or
+# branch can never silently change which code runs in CI. The version each
+# hash corresponds to is kept as a trailing comment on every `uses:`.
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        "*": hash-pin
