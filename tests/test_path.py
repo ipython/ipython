@@ -8,7 +8,6 @@ import os
 import shutil
 import sys
 import tempfile
-import unittest
 from contextlib import contextmanager
 from importlib import reload
 from os.path import abspath, join
@@ -352,73 +351,50 @@ def test_unicode_in_filename():
         str(ex)
 
 
-class TestShellGlob(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.filenames_start_with_a = ["a0", "a1", "a2"]
-        cls.filenames_end_with_b = ["0b", "1b", "2b"]
-        cls.filenames = cls.filenames_start_with_a + cls.filenames_end_with_b
-        cls.tempdir = TemporaryDirectory()
-        td = cls.tempdir.name
+_GLOB_FILENAMES_A = ["a0", "a1", "a2"]
+_GLOB_FILENAMES_B = ["0b", "1b", "2b"]
+_GLOB_FILENAMES = _GLOB_FILENAMES_A + _GLOB_FILENAMES_B
 
-        with cls.in_tempdir():
-            # Create empty files
-            for fname in cls.filenames:
-                open(os.path.join(td, fname), "w", encoding="utf-8").close()
+_SHELLGLOB_COMMON = [
+    (["*"], _GLOB_FILENAMES),
+    (["a*"], _GLOB_FILENAMES_A),
+    (["*c"], ["*c"]),
+    (["*", "a*", "*b", "*c"], _GLOB_FILENAMES + _GLOB_FILENAMES_A + _GLOB_FILENAMES_B + ["*c"]),
+    (["a[012]"], _GLOB_FILENAMES_A),
+]
 
-    @classmethod
-    def tearDownClass(cls):
-        cls.tempdir.cleanup()
+_SHELLGLOB_POSIX_EXTRA = [
+    ([r"\*"], ["*"]),
+    ([r"a\*", "a*"], ["a*"] + _GLOB_FILENAMES_A),
+    ([r"a\[012]"], ["a[012]"]),
+]
 
-    @classmethod
-    @contextmanager
-    def in_tempdir(cls):
-        save = os.getcwd()
-        try:
-            os.chdir(cls.tempdir.name)
-            yield
-        finally:
-            os.chdir(save)
+_SHELLGLOB_WINDOWS_EXTRA = [
+    ([r"a\*", "a*"], [r"a\*"] + _GLOB_FILENAMES_A),
+    ([r"a\[012]"], [r"a\[012]"]),
+]
 
-    def check_match(self, patterns, matches):
-        with self.in_tempdir():
-            # glob returns unordered list. that's why sorted is required.
-            assert sorted(path.shellglob(patterns)) == sorted(matches)
 
-    def common_cases(self):
-        return [
-            (["*"], self.filenames),
-            (["a*"], self.filenames_start_with_a),
-            (["*c"], ["*c"]),
-            (
-                ["*", "a*", "*b", "*c"],
-                self.filenames
-                + self.filenames_start_with_a
-                + self.filenames_end_with_b
-                + ["*c"],
-            ),
-            (["a[012]"], self.filenames_start_with_a),
-        ]
+@pytest.fixture(scope="module")
+def shellglob_tempdir(tmp_path_factory):
+    td = tmp_path_factory.mktemp("shellglob")
+    for fname in _GLOB_FILENAMES:
+        (td / fname).write_text("", encoding="utf-8")
+    return td
 
-    @skip_win32
-    def test_match_posix(self):
-        for patterns, matches in self.common_cases() + [
-            ([r"\*"], ["*"]),
-            ([r"a\*", "a*"], ["a*"] + self.filenames_start_with_a),
-            ([r"a\[012]"], ["a[012]"]),
-        ]:
-            self.check_match(patterns, matches)
 
-    @skip_if_not_win32
-    def test_match_windows(self):
-        for patterns, matches in self.common_cases() + [
-            # In windows, backslash is interpreted as path
-            # separator.  Therefore, you can't escape glob
-            # using it.
-            ([r"a\*", "a*"], [r"a\*"] + self.filenames_start_with_a),
-            ([r"a\[012]"], [r"a\[012]"]),
-        ]:
-            self.check_match(patterns, matches)
+@skip_win32
+@pytest.mark.parametrize("patterns,matches", _SHELLGLOB_COMMON + _SHELLGLOB_POSIX_EXTRA)
+def test_shellglob_posix(shellglob_tempdir, monkeypatch, patterns, matches):
+    monkeypatch.chdir(shellglob_tempdir)
+    assert sorted(path.shellglob(patterns)) == sorted(matches)
+
+
+@skip_if_not_win32
+@pytest.mark.parametrize("patterns,matches", _SHELLGLOB_COMMON + _SHELLGLOB_WINDOWS_EXTRA)
+def test_shellglob_windows(shellglob_tempdir, monkeypatch, patterns, matches):
+    monkeypatch.chdir(shellglob_tempdir)
+    assert sorted(path.shellglob(patterns)) == sorted(matches)
 
 
 @pytest.mark.parametrize(
@@ -448,78 +424,63 @@ def test_ensure_dir_exists():
             path.ensure_dir_exists(f)
 
 
-class TestLinkOrCopy(unittest.TestCase):
-    def setUp(self):
-        self.tempdir = TemporaryDirectory()
-        self.src = self.dst("src")
-        with open(self.src, "w", encoding="utf-8") as f:
-            f.write("Hello, world!")
+@pytest.fixture
+def link_or_copy_src(tmp_path):
+    src = tmp_path / "src"
+    src.write_text("Hello, world!", encoding="utf-8")
+    return src
 
-    def tearDown(self):
-        self.tempdir.cleanup()
 
-    def dst(self, *args):
-        return os.path.join(self.tempdir.name, *args)
+@skip_win32
+def test_link_successful(link_or_copy_src, tmp_path):
+    dst = str(tmp_path / "target")
+    path.link_or_copy(str(link_or_copy_src), dst)
+    assert os.stat(str(link_or_copy_src)).st_ino == os.stat(dst).st_ino
 
-    def assert_inode_not_equal(self, a, b):
-        assert (
-            os.stat(a).st_ino != os.stat(b).st_ino
-        ), "%r and %r do reference the same indoes" % (a, b)
 
-    def assert_inode_equal(self, a, b):
-        assert (
-            os.stat(a).st_ino == os.stat(b).st_ino
-        ), "%r and %r do not reference the same indoes" % (a, b)
+@skip_win32
+def test_link_into_dir(link_or_copy_src, tmp_path):
+    dst_dir = tmp_path / "some_dir"
+    dst_dir.mkdir()
+    path.link_or_copy(str(link_or_copy_src), str(dst_dir))
+    expected_dst = dst_dir / link_or_copy_src.name
+    assert os.stat(str(link_or_copy_src)).st_ino == os.stat(str(expected_dst)).st_ino
 
-    def assert_content_equal(self, a, b):
-        with open(a, "rb") as a_f:
-            with open(b, "rb") as b_f:
-                assert a_f.read() == b_f.read()
 
-    @skip_win32
-    def test_link_successful(self):
-        dst = self.dst("target")
-        path.link_or_copy(self.src, dst)
-        self.assert_inode_equal(self.src, dst)
+@skip_win32
+def test_link_target_exists(link_or_copy_src, tmp_path):
+    dst = tmp_path / "target"
+    dst.write_text("", encoding="utf-8")
+    path.link_or_copy(str(link_or_copy_src), str(dst))
+    assert os.stat(str(link_or_copy_src)).st_ino == os.stat(str(dst)).st_ino
 
-    @skip_win32
-    def test_link_into_dir(self):
-        dst = self.dst("some_dir")
-        os.mkdir(dst)
-        path.link_or_copy(self.src, dst)
-        expected_dst = self.dst("some_dir", os.path.basename(self.src))
-        self.assert_inode_equal(self.src, expected_dst)
 
-    @skip_win32
-    def test_target_exists(self):
-        dst = self.dst("target")
-        open(dst, "w", encoding="utf-8").close()
-        path.link_or_copy(self.src, dst)
-        self.assert_inode_equal(self.src, dst)
+@skip_win32
+def test_link_no_link(link_or_copy_src, tmp_path):
+    real_link = os.link
+    try:
+        del os.link
+        dst = str(tmp_path / "target")
+        path.link_or_copy(str(link_or_copy_src), dst)
+        with open(str(link_or_copy_src), "rb") as a_f, open(dst, "rb") as b_f:
+            assert a_f.read() == b_f.read()
+        assert os.stat(str(link_or_copy_src)).st_ino != os.stat(dst).st_ino
+    finally:
+        os.link = real_link
 
-    @skip_win32
-    def test_no_link(self):
-        real_link = os.link
-        try:
-            del os.link
-            dst = self.dst("target")
-            path.link_or_copy(self.src, dst)
-            self.assert_content_equal(self.src, dst)
-            self.assert_inode_not_equal(self.src, dst)
-        finally:
-            os.link = real_link
 
-    @skip_if_not_win32
-    def test_windows(self):
-        dst = self.dst("target")
-        path.link_or_copy(self.src, dst)
-        self.assert_content_equal(self.src, dst)
+@skip_if_not_win32
+def test_link_windows(link_or_copy_src, tmp_path):
+    dst = str(tmp_path / "target")
+    path.link_or_copy(str(link_or_copy_src), dst)
+    with open(str(link_or_copy_src), "rb") as a_f, open(dst, "rb") as b_f:
+        assert a_f.read() == b_f.read()
 
-    def test_link_twice(self):
-        # Linking the same file twice shouldn't leave duplicates around.
-        # See https://github.com/ipython/ipython/issues/6450
-        dst = self.dst("target")
-        path.link_or_copy(self.src, dst)
-        path.link_or_copy(self.src, dst)
-        self.assert_inode_equal(self.src, dst)
-        assert sorted(os.listdir(self.tempdir.name)) == ["src", "target"]
+
+def test_link_twice(link_or_copy_src, tmp_path):
+    # Linking the same file twice shouldn't leave duplicates around.
+    # See https://github.com/ipython/ipython/issues/6450
+    dst = str(tmp_path / "target")
+    path.link_or_copy(str(link_or_copy_src), dst)
+    path.link_or_copy(str(link_or_copy_src), dst)
+    assert os.stat(str(link_or_copy_src)).st_ino == os.stat(dst).st_ino
