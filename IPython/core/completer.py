@@ -1266,19 +1266,20 @@ class Completer(Configurable):
         except tokenize.TokenError:
             pass
 
-        obj = self._evaluate_expr(expr)
-        if obj is not_found:
-            if context:
-                # try to evaluate on full buffer
-                previous_lines = "\n".join(
-                    context.full_text.split("\n")[: context.cursor_line]
+        obj = not_found
+        if context:
+            # try to evaluate on full buffer
+            previous_lines = "\n".join(
+                context.full_text.split("\n")[: context.cursor_line]
+            )
+            if previous_lines:
+                all_code_lines_before_cursor = (
+                    self._extract_code(previous_lines) + "\n" + expr
                 )
-                if previous_lines:
-                    all_code_lines_before_cursor = (
-                        self._extract_code(previous_lines) + "\n" + expr
-                    )
-                    obj = self._evaluate_expr(all_code_lines_before_cursor)
+                obj = self._evaluate_expr(all_code_lines_before_cursor)
 
+        if obj is not_found:
+            obj = self._evaluate_expr(expr)
             if obj is not_found:
                 return [], ""
 
