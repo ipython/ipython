@@ -6,6 +6,7 @@ import tempfile
 
 import pytest
 
+sphinx = pytest.importorskip("sphinx")
 from sphinx.application import Sphinx
 from IPython.sphinxext.ipython_directive import IPythonDirective
 
