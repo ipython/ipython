@@ -1562,15 +1562,14 @@ async def test_script_bg_proc():
     assert p.stderr.at_eof()
 
 
-def test_script_defaults():
+@pytest.mark.parametrize("cmd", ["sh", "bash", "perl", "ruby"])
+def test_script_defaults(cmd):
     ip = get_ipython()
-    for cmd in ["sh", "bash", "perl", "ruby"]:
-        try:
-            find_cmd(cmd)
-        except Exception:
-            pass
-        else:
-            assert cmd in ip.magics_manager.magics["cell"]
+    try:
+        find_cmd(cmd)
+    except Exception:
+        pytest.skip(f"{cmd} not found")
+    assert cmd in ip.magics_manager.magics["cell"]
 
 
 @pytest.mark.asyncio
