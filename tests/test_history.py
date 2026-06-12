@@ -263,10 +263,18 @@ def test_hist_file_config(hmmax3):
     cfg = Config()
     tfile = tempfile.NamedTemporaryFile(delete=False)
     cfg.HistoryManager.hist_file = Path(tfile.name)
+    hm = None
     try:
         hm = HistoryManager(shell=get_ipython(), config=cfg)
         assert hm.hist_file == cfg.HistoryManager.hist_file
     finally:
+        if hm is not None:
+            # Stop the saving thread and close the database, otherwise the
+            # thread can briefly hold a strong reference to the manager,
+            # making the instance-leak check in the fixture teardown flaky
+            # (gh-15161).
+            hm.save_thread.stop()
+            hm.db.close()
         try:
             Path(tfile.name).unlink()
         except OSError:
@@ -274,7 +282,6 @@ def test_hist_file_config(hmmax3):
             # On Windows, even though we close the file, we still can't
             # delete it.  I have no clue why
             pass
-            HistoryManager.__max_inst = 1
 
 
 def test_histmanager_memory_fallback_reopens_db(hmmax3, tmp_path, caplog):
