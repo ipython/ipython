@@ -12,32 +12,20 @@ The Jupyter Notebook and other frontends automatically ensure that the IPython k
 However, if you want to use a kernel with a different version of Python, or in a virtualenv or conda environment,
 you'll need to install that manually.
 
-Kernels for Python 2 and 3
---------------------------
+Kernels for different Python versions
+-------------------------------------
 
-If you're running Jupyter on Python 3, you can set up a Python 2 kernel after
-checking your version of pip is greater than 9.0::
+If you want a kernel for a different version of Python than the one Jupyter is
+running on, install ``ipykernel`` using that Python and register it::
 
-    python2 -m pip --version
+    /path/to/python -m pip install ipykernel
+    /path/to/python -m ipykernel install --user
 
-Then install with ::
+Or using conda, create an environment with the desired Python version::
 
-    python2 -m pip install ipykernel
-    python2 -m ipykernel install --user
-
-Or using conda, create a Python 2 environment::
-
-    conda create -n ipykernel_py2 python=2 ipykernel
-    source activate ipykernel_py2    # On Windows, remove the word 'source'
-    python -m ipykernel install --user
-
-.. note::
-
-    IPython 6.0 stopped support for Python 2, so
-    installing IPython on Python 2 will give you an older version (5.x series).
-
-If you're running Jupyter on Python 2 and want to set up a Python 3 kernel,
-follow the same steps, replacing ``2`` with ``3``.
+    conda create -n py312 python=3.12 ipykernel
+    conda activate py312
+    python -m ipykernel install --user --name py312 --display-name "Python 3.12"
 
 The last command installs a :ref:`kernel spec <jupyterclient:kernelspecs>` file
 for the current python installation. Kernel spec files are JSON files, which
@@ -57,7 +45,7 @@ installed:
 
 .. sourcecode:: bash
 
-    source activate myenv
+    conda activate myenv
     conda install pip
     conda install ipykernel # or pip install ipykernel
 
@@ -66,14 +54,14 @@ environment:
 
 .. sourcecode:: bash
 
-    source activate myenv
+    conda activate myenv
     python -m ipykernel install --user --name myenv --display-name "Python (myenv)"
 
 And in a second environment, after making sure ipykernel is installed in it:
 
 .. sourcecode:: bash
 
-    source activate other-env
+    conda activate other-env
     python -m ipykernel install --user --name other-env --display-name "Python (other-env)"
 
 The ``--name`` value is used by Jupyter internally. These commands will overwrite

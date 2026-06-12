@@ -217,16 +217,11 @@ which will be something like ``--existing kernel-19732.json`` but with
 different numbers which correspond to the Process ID of the kernel.
 
 You can read more about using `jupyter qtconsole
-<https://jupyter.org/qtconsole/>`_, and
+<https://qtconsole.readthedocs.io/>`_, and
 `jupyter notebook <https://jupyter-notebook.readthedocs.io/en/latest/>`_. There
 is also a :ref:`message spec <messaging>` which documents the protocol for
 communication between kernels
 and clients.
-
-.. seealso::
-
-    `Frontend/Kernel Model`_ example notebook
-
 
 Interactive parallel computing
 ==============================
@@ -243,9 +238,9 @@ IPython requires Python 3.11 or newer.
 IPython is known to work on the following operating systems:
 
 	* Linux
-	* Most other Unix-like OSs (AIX, Solaris, BSD, etc.)
-	* Mac OS X
-	* Windows (CygWin, XP, Vista, etc.)
+	* macOS
+	* Windows
+	* Most other Unix-like OSs (BSD, Solaris, etc.)
 
 See :ref:`here <install_index>` for instructions on how to install IPython.
 

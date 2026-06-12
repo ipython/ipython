@@ -18,7 +18,6 @@
 
 .. Main IPython links
 .. _ipython: https://ipython.org
-.. _`ipython manual`: https://ipython.org/documentation.html
 .. _ipython_github: https://github.com/ipython/ipython/
 .. _nbviewer: https://nbviewer.org
 
@@ -44,9 +43,6 @@
 .. _scipy: https://www.scipy.org
 .. _scipy_conference: https://conference.scipy.org
 .. _matplotlib: https://matplotlib.org
-.. _pythonxy: https://python-xy.github.io/
-.. _ETS: https://docs.enthought.com/ets/
-.. _EPD: https://www.enthought.com/products/epd/
 .. _python: https://www.python.org
 .. _mayavi: https://docs.enthought.com/mayavi/mayavi/
 .. _sympy: https://www.sympy.org
@@ -66,32 +62,7 @@
 .. _netlib: https://netlib.org
 
 .. Other tools and projects
-.. _indefero: https://www.indefero.net
 .. _git: https://git-scm.com
 .. _github: https://github.com
 .. _Markdown: https://daringfireball.net/projects/markdown/syntax
-
-.. _Running Code in the IPython Notebook: notebook_p1_
-.. _notebook_p1: https://nbviewer.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Part%25201%2520-%2520Running%2520Code.ipynb
-
-.. _Basic Output: notebook_p2_
-.. _notebook_p2: https://nbviewer.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Part%202%20-%20Basic%20Output.ipynb
-
-.. _Plotting with Matplotlib: notebook_p3_
-.. _notebook_p3: https://nbviewer.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Part%203%20-%20Plotting%20with%20Matplotlib.ipynb
-
-.. _Markdown Cells: notebook_p4_
-.. _notebook_p4: https://nbviewer.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Part%204%20-%20Markdown%20Cells.ipynb
-
-.. _Rich Display System: notebook_p5_
-.. _notebook_p5: https://nbviewer.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Part%205%20-%20Rich%20Display%20System.ipynb
-
-.. _notebook_custom_display: https://nbviewer.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Custom%20Display%20Logic.ipynb
-
-.. _Frontend/Kernel Model: notebook_two_proc_
-.. _notebook_two_proc: https://nbviewer.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Frontend-Kernel%20Model.ipynb
-
-.. _Cell magics: notebook_cell_magics_
-.. _notebook_cell_magics: https://nbviewer.org/urls/raw.github.com/ipython/ipython/1.x/examples/notebooks/Cell%20Magics.ipynb
-
 

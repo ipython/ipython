@@ -187,21 +187,21 @@ Commit the changes to release.py::
     git commit -am "release $VERSION" -S
     git push origin $BRANCH
 
-(omit the ``-S`` if you are no signing the package)
+(omit the ``-S`` if you are not signing the package)
 
 Create and push the tag::
 
     git tag -am "release $VERSION" "$VERSION" -s
     git push origin $VERSION
 
-(omit the ``-s`` if you are no signing the package)
+(omit the ``-s`` if you are not signing the package)
 
 Update release.py back to ``x.y-dev`` or ``x.y-maint`` commit and push::
 
     git commit -am "back to development" -S
     git push origin $BRANCH
 
-(omit the ``-S`` if you are no signing the package)
+(omit the ``-S`` if you are not signing the package)
 
 Now checkout the tag we just made::
 
@@ -210,23 +210,20 @@ Now checkout the tag we just made::
 7. Run the release script
 -------------------------
 
-Run the ``release`` script, this step requires having a current wheel, Python
->=3.4 and Python 2.7.::
+Run the ``release`` script::
 
     ./tools/release
 
 This makes the tarballs and wheels, and puts them under the ``dist/``
-folder. Be sure to test the ``wheels``  and the ``sdist`` locally before
-uploading them to PyPI. We do not use an universal wheel as each wheel
-installs an ``ipython2`` or ``ipython3`` script, depending on the version of
-Python it is built for. Using an universal wheel would prevent this.
+folder. Be sure to test the ``wheels`` and the ``sdist`` locally before
+uploading them to PyPI.
 
 Check the shasum of files with::
 
     shasum -a 256 dist/*
 
-and takes notes of them you might need them to update the conda-forge recipes.
-Rerun the command and check the hash have not changed::
+and take notes of them; you might need them to update the conda-forge recipes.
+Rerun the command and check the hashes have not changed::
 
     ./tools/release
     shasum -a 256 dist/*
@@ -235,7 +232,7 @@ Use the following to actually upload the result of the build::
 
     ./tools/release upload
 
-It should posts them to ``archive.ipython.org`` and to PyPI.
+It should post them to ``archive.ipython.org`` and to PyPI.
 
 PyPI/Warehouse will automatically hide previous releases. If you are uploading
 a non-stable version, make sure to log-in to PyPI and un-hide previous version.
@@ -250,7 +247,8 @@ The announcement should include:
 - a link to the html version of the *What's new* section of the documentation
 - a link to upgrade or installation tips (if necessary)
 
-Post the announcement to the mailing list and or blog, and link from Twitter.
+Post the announcement to the mailing list and/or blog, and link to it from
+social media.
 
 .. note::
 
