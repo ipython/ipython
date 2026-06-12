@@ -9,8 +9,10 @@ import io
 import gc
 import os
 import sqlite3
+import subprocess
 import sys
 import tempfile
+from contextlib import closing
 from datetime import datetime
 from pathlib import Path
 
@@ -468,3 +470,67 @@ def test_calling_run_cell(hmmax2):
 
             ip.history_manager = hist_manager_ori
     assert session_number == new_session_number, ValueError(f"{session_number} != {new_session_number}")
+
+
+def _make_history_db(hist_file: Path, n_entries: int) -> None:
+    """Create a history database with the standard schema and some entries."""
+    with closing(sqlite3.connect(hist_file)) as con:
+        con.execute(
+            """CREATE TABLE sessions (session integer
+                primary key autoincrement, start timestamp,
+                end timestamp, num_cmds integer, remark text)"""
+        )
+        con.execute(
+            """CREATE TABLE history
+                (session integer, line integer, source text, source_raw text,
+                PRIMARY KEY (session, line))"""
+        )
+        con.execute(
+            """CREATE TABLE output_history
+                (session integer, line integer, output text,
+                PRIMARY KEY (session, line))"""
+        )
+        now = datetime.now().isoformat(sep=" ")
+        con.execute(
+            "INSERT INTO sessions VALUES (1, ?, ?, ?, '')", (now, now, n_entries)
+        )
+        con.executemany(
+            "INSERT INTO history VALUES (1, ?, ?, ?)",
+            [(i, "code %d" % i, "code %d" % i) for i in range(n_entries)],
+        )
+        con.commit()
+
+
+@pytest.mark.parametrize(
+    "subcommand, kept",
+    [
+        (["trim", "--keep=2"], 2),
+        (["clear", "-f"], 0),
+    ],
+)
+def test_history_trim_cli(tmp_path, subcommand, kept):
+    """`ipython history trim/clear` must replace the database file.
+
+    All sqlite connections to the old database have to be closed before it is
+    unlinked, otherwise this fails on Windows and leaves a stray
+    ``history.sqlite.new`` file behind (gh-15241).
+    """
+    profile_dir = tmp_path / "profile_default"
+    profile_dir.mkdir()
+    hist_file = profile_dir / "history.sqlite"
+    _make_history_db(hist_file, 5)
+
+    env = os.environ.copy()
+    env["IPYTHONDIR"] = str(tmp_path)
+    proc = subprocess.run(
+        [sys.executable, "-m", "IPython", "history"] + subcommand,
+        capture_output=True,
+        text=True,
+        env=env,
+        check=False,
+    )
+    assert proc.returncode == 0, proc.stderr
+    assert list(profile_dir.glob("history.sqlite.new*")) == []
+    with closing(sqlite3.connect(hist_file)) as con:
+        rows = list(con.execute("SELECT source FROM history"))
+    assert len(rows) == kept

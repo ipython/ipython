@@ -6,6 +6,7 @@ To be invoked as the `ipython history` subcommand.
 """
 
 import sqlite3
+from contextlib import closing
 from pathlib import Path
 
 from traitlets.config.application import Application
@@ -50,8 +51,10 @@ class HistoryTrim(BaseIPythonApplication):
     def start(self):
         profile_dir = Path(self.profile_dir.location)
         hist_file = profile_dir / "history.sqlite"
-        with sqlite3.connect(hist_file) as con:
-
+        # Connections must be closed, not merely committed, before the file
+        # shuffling below: Windows refuses to unlink or rename a database
+        # that still has open handles.
+        with closing(sqlite3.connect(hist_file)) as con:
             # Grab the recent history from the current database.
             inputs = list(con.execute('SELECT session, line, source, source_raw FROM '
                                     'history ORDER BY session DESC, line DESC LIMIT ?', (self.keep+1,)))
@@ -78,7 +81,7 @@ class HistoryTrim(BaseIPythonApplication):
             # Make sure we don't interfere with an existing file.
             i += 1
             new_hist_file = profile_dir / ("history.sqlite.new" + str(i))
-        with sqlite3.connect(new_hist_file) as new_db:
+        with closing(sqlite3.connect(new_hist_file)) as new_db:
             new_db.execute("""CREATE TABLE IF NOT EXISTS sessions (session integer
                                 primary key autoincrement, start timestamp,
                                 end timestamp, num_cmds integer, remark text)""")
