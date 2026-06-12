@@ -935,6 +935,36 @@ class AutoreloadHookSuite(ShellFixture):
         mod = sys.modules[mod_name]
         assert mod.foo(0) == 5
 
+    def test_deduperreloader_pep263_encoding(self):
+        """Source with a non-utf-8 PEP 263 coding cookie can be read (gh-15193)."""
+        self.shell.magic_autoreload("2")
+        mod_name, mod_fn = self.get_module()
+        code_v1 = squish_text(
+            '''
+            # -*- coding: latin-1 -*-
+            CAFE = "café"
+            def foo(y):
+                return y + 3
+            '''
+        )
+        with open(mod_fn, "wb") as f:
+            f.write(code_v1.encode("latin-1"))
+        self.created_temp_modules.add(mod_name)
+        self.shell.run_code("import %s" % mod_name)
+        self.shell.run_code("pass")
+        # The latin-1 encoded source is not valid utf-8, but must still be
+        # readable for the deduper to consider the module patchable.
+        deduper = self.shell.auto_magics._reloader.deduper_reloader
+        assert deduper.source_by_modname[mod_name] != ""
+        if platform.system().lower() != "darwin":
+            time.sleep(1.05)
+        with open(mod_fn, "wb") as f:
+            f.write(code_v1.replace("y + 3", "y + 5").encode("latin-1"))
+        self.shell.run_code("pass")
+        mod = sys.modules[mod_name]
+        assert mod.foo(0) == 5
+        assert mod.CAFE == "café"
+
     def test_super(self):
         self.shell.magic_autoreload("2")
         mod_name, mod_fn = self.new_module(
