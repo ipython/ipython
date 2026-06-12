@@ -1000,8 +1000,29 @@ class IPythonDirective(Directive):
                                       store_history=False)
         self.shell.clear_cout()
 
+    def _is_inside_excluded_only(self):
+        """Return True if inside an ``only`` node whose condition is false."""
+        try:
+            env = self.state.document.settings.env
+            tags = env.app.tags
+        except AttributeError:
+            return False
+
+        node = self.state.parent
+        while node is not None:
+            if getattr(node, 'tagname', '') == 'only':
+                expr = node.get('expr', '')
+                if expr and not tags.eval_condition(expr):
+                    return True
+            node = getattr(node, 'parent', None)
+        return False
+
     def run(self):
         debug = False
+
+        # gh-9339: skip execution when inside an excluded only block.
+        if self._is_inside_excluded_only():
+            return []
 
         #TODO, any reason block_parser can't be a method of embeddable shell
         # then we wouldn't have to carry these around
