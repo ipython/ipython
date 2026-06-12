@@ -263,6 +263,18 @@ bar_syntax_error_test_2()
             with tt.AssertPrints("QWERTY"):
                 ip.showsyntaxerror()
 
+    def test_syntaxerror_subclass_without_text(self):
+        # SyntaxError subclasses may leave .text set to None, e.g.
+        # xml.etree.ElementTree.ParseError; rendering them must not
+        # raise (gh-15024).
+        from xml.etree import ElementTree
+
+        try:
+            ElementTree.fromstring("hello")
+        except ElementTree.ParseError:
+            with tt.AssertPrints("ParseError"):
+                ip.showsyntaxerror()
+
 
 import sys
 
