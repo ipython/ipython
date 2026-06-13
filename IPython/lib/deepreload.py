@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Provides a reload() function that acts recursively.
 

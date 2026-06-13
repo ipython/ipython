@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Usage information for the main IPython applications.
 """
 #-----------------------------------------------------------------------------

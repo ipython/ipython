@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 A simple utility to import something by its string name.
 """

@@ -1,4 +1,3 @@
-# encoding: utf-8
 """Miscellaneous context managers."""
 
 from __future__ import annotations

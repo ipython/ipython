@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 An application for managing IPython profiles.
 

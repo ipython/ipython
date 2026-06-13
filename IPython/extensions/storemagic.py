@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 %store magic for lightweight persistence.
 

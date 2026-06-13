@@ -257,7 +257,7 @@ def indent(instr: str, nspaces: int = 4, ntabs: int = 0, flatten: bool = False) 
 
     Parameters
     ----------
-    instr : basestring
+    instr : str
         The string to be indented.
     nspaces : int (default: 4)
         The number of spaces to be indented.

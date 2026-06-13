@@ -1,4 +1,3 @@
-# coding: utf-8
 """Compatibility tricks for Python 3. Mainly to do with unicode.
 
 This file is deprecated and will be removed in a future version.

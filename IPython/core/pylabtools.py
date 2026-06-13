@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Pylab (matplotlib) support utilities."""
 
 # Copyright (c) IPython Development Team.

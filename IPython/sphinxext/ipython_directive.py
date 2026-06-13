@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Sphinx directive to support embedded IPython code.
 
