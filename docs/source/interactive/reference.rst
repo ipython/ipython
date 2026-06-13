@@ -707,7 +707,7 @@ You can also embed an IPython *kernel*, for use with qtconsole, etc. via::
     embed_kernel()
 
 This should work the same way, but you can connect an external frontend
-(``ipython qtconsole`` or ``ipython console``),
+(``jupyter qtconsole`` or ``jupyter console``),
 rather than interacting with it in the terminal.
 
 You can run embedded instances even in code which is itself being run at
@@ -722,7 +722,7 @@ them separately, for example with different options for data
 presentation. If you close and open the same instance multiple times,
 its prompt counters simply continue from each execution to the next.
 
-Please look at the docstrings in the :mod:`~IPython.frontend.terminal.embed`
+Please look at the docstrings in the :mod:`~IPython.terminal.embed`
 module for more details on the use of this system.
 
 The following sample file illustrating how to use the embedding
@@ -898,14 +898,13 @@ command, or you can start IPython with the ``--pdb`` option.
 For a post-mortem debugger in your programs outside IPython,
 put the following lines toward the top of your 'main' routine::
 
-    # TODO: theme
     import sys
     from IPython.core import ultratb
     sys.excepthook = ultratb.FormattedTB(mode='Verbose',
-    color_scheme='Linux', call_pdb=1)
+    theme_name='linux', call_pdb=1)
 
 The mode keyword can be either 'Verbose' or 'Plain', giving either very
-detailed or normal tracebacks respectively. The color_scheme keyword can
+detailed or normal tracebacks respectively. The theme_name keyword can
 be one of 'nocolor', 'linux' (default) or 'lightbg'. These are the same
 options which can be set in IPython with ``--colors`` and ``--xmode``.
 
