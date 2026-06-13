@@ -46,9 +46,11 @@ IPython release process
 
 This document contains the process that is used to create an IPython release.
 
-Conveniently, the ``release`` script in the ``tools`` directory of the ``IPython``
-repository automates most of the release process. This document serves as a
-handy reminder and checklist for the release manager.
+Building and uploading the package to PyPI is automated: pushing a tag
+triggers the ``publish.yml`` GitHub Actions workflow, which builds the
+``sdist`` and ``wheel`` and publishes them to PyPI via trusted publishing.
+This document serves as a handy reminder and checklist for the release
+manager for the remaining steps.
 
 During the release process, you might need the extra following dependencies:
 
@@ -171,7 +173,7 @@ You will likely just have to modify/comment/uncomment one of the lines setting
 ---------------------------------------
 
 Running ``tools/build_release`` does all the file checking and building that
-the real release script will do. This makes test installations, checks that
+the automated release will do. This makes test installations, checks that
 the build procedure runs OK, and tests other steps in the release process.
 
 The ``build_release`` script will in particular verify that the version number
@@ -187,61 +189,26 @@ Commit the changes to release.py::
     git commit -am "release $VERSION" -S
     git push origin $BRANCH
 
-(omit the ``-S`` if you are no signing the package)
+(omit the ``-S`` if you are not signing the package)
 
 Create and push the tag::
 
     git tag -am "release $VERSION" "$VERSION" -s
     git push origin $VERSION
 
-(omit the ``-s`` if you are no signing the package)
+(omit the ``-s`` if you are not signing the package)
+
+Pushing the tag triggers the ``publish.yml`` GitHub Actions workflow, which
+builds the package and publishes it to PyPI.
 
 Update release.py back to ``x.y-dev`` or ``x.y-maint`` commit and push::
 
     git commit -am "back to development" -S
     git push origin $BRANCH
 
-(omit the ``-S`` if you are no signing the package)
+(omit the ``-S`` if you are not signing the package)
 
-Now checkout the tag we just made::
-
-    git checkout $VERSION
-
-7. Run the release script
--------------------------
-
-Run the ``release`` script, this step requires having a current wheel, Python
->=3.4 and Python 2.7.::
-
-    ./tools/release
-
-This makes the tarballs and wheels, and puts them under the ``dist/``
-folder. Be sure to test the ``wheels``  and the ``sdist`` locally before
-uploading them to PyPI. We do not use an universal wheel as each wheel
-installs an ``ipython2`` or ``ipython3`` script, depending on the version of
-Python it is built for. Using an universal wheel would prevent this.
-
-Check the shasum of files with::
-
-    shasum -a 256 dist/*
-
-and takes notes of them you might need them to update the conda-forge recipes.
-Rerun the command and check the hash have not changed::
-
-    ./tools/release
-    shasum -a 256 dist/*
-
-Use the following to actually upload the result of the build::
-
-    ./tools/release upload
-
-It should posts them to ``archive.ipython.org`` and to PyPI.
-
-PyPI/Warehouse will automatically hide previous releases. If you are uploading
-a non-stable version, make sure to log-in to PyPI and un-hide previous version.
-
-
-8. Draft a short release announcement
+7. Draft a short release announcement
 -------------------------------------
 
 The announcement should include:
@@ -250,14 +217,14 @@ The announcement should include:
 - a link to the html version of the *What's new* section of the documentation
 - a link to upgrade or installation tips (if necessary)
 
-Post the announcement to the mailing list and or blog, and link from Twitter.
+Post the announcement to the blog.
 
 .. note::
 
     If you are doing a RC or Beta, you can likely skip the next steps.
 
-9. Update milestones on GitHub
--------------------------------
+8. Update milestones on GitHub
+------------------------------
 
 These steps will bring milestones up to date:
 
@@ -265,27 +232,18 @@ These steps will bring milestones up to date:
 - open a new milestone for the next release (x, y+1), if the milestone doesn't
   exist already
 
-10. Update the IPython website
-------------------------------
-
-The IPython website should document the new release:
-
-- add release announcement (news, announcements)
-- update current version and download links
-- update links on the documentation page (especially if a major release)
-
-11. Update readthedocs
-----------------------
+9. Update readthedocs
+---------------------
 
 Make sure to update readthedocs and set the latest tag as stable, as well as
 checking that previous release is still building under its own tag.
 
-12. Update the Conda-Forge feedstock
+10. Update the Conda-Forge feedstock
 ------------------------------------
 
 Follow the instructions on `the repository <https://github.com/conda-forge/ipython-feedstock>`_
 
-13. Celebrate!
+11. Celebrate!
 --------------
 
 Celebrate the release and please thank the contributors for their work. Great
