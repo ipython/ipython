@@ -43,16 +43,9 @@ from pathlib import Path
 
 import os, stat, time
 
-try:
-    import collections.abc as collections_abc
-except ImportError:
-    import collections as collections_abc
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import collections.abc as collections_abc
+import pickle
 import errno
-import sys
 
 
 def gethashfile(key):
