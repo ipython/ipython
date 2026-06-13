@@ -243,6 +243,8 @@ class Pdb(OldPdb):
         stdin=None,
         stdout=None,
         context: int | None | str = 5,
+        *,
+        mode: str | None = None,
         **kwargs,
     ):
         """Create a new IPython debugger.
@@ -258,6 +260,13 @@ class Pdb(OldPdb):
         context : int
             Number of lines of source code context to show when
             displaying stacktrace information.
+        mode : str, optional
+            How the debugger was invoked, one of ``'inline'`` (used by the
+            ``breakpoint()`` builtin), ``'cli'`` (used by the command line
+            invocation) or ``None`` (backwards compatible behaviour). This
+            argument was added to stdlib's ``pdb.Pdb`` in Python 3.14; it is
+            accepted on every supported Python version here but only forwarded
+            to the underlying ``pdb.Pdb`` when it is actually supported.
         **kwargs
             Passed to pdb.Pdb.
 
@@ -272,6 +281,15 @@ class Pdb(OldPdb):
         if isinstance(context, str):
             context = int(context)
         self.context = context
+
+        # The `mode` argument was added to `pdb.Pdb` in Python 3.14. We accept
+        # it on every supported Python version so that callers written against
+        # 3.14+ keep working, but only forward it to the underlying `pdb.Pdb`
+        # when it understands it.
+        if sys.version_info >= (3, 14):
+            kwargs["mode"] = mode
+        else:
+            self.mode = mode
 
         # `kwargs` ensures full compatibility with stdlib's `pdb.Pdb`.
         OldPdb.__init__(self, completekey, stdin, stdout, **kwargs)
@@ -351,11 +369,11 @@ class Pdb(OldPdb):
         self._theme_name = scheme.lower()
         self.parser.theme_name = scheme.lower()
 
-    def set_trace(self, frame=None):
+    def set_trace(self, frame=None, **kwargs):
         if frame is None:
             frame = sys._getframe().f_back
         self.initial_frame = frame
-        return super().set_trace(frame)
+        return super().set_trace(frame, **kwargs)
 
     def get_stack(self, *args, **kwargs):
         stack, pos = super().get_stack(*args, **kwargs)
@@ -476,6 +494,7 @@ class Pdb(OldPdb):
             chain. Exceptions will be numbered, with the current exception indicated
             with an arrow.
             If given an integer as argument, switch to the exception at that index.
+            ``exception`` can be used as an alias for this command.
             """
             if not self._chained_exceptions:
                 self.message(
@@ -520,6 +539,18 @@ class Pdb(OldPdb):
             Alias for the ``exceptions`` command.
             """
             return self.do_exceptions(arg)
+
+    def _cmdloop(self):
+        # Override to bypass Python 3.15's _maybe_use_pyrepl_as_stdin(), which
+        # sets use_rawinput=False and conflicts with IPython's own input handling.
+        while True:
+            try:
+                self.allow_kbdint = True
+                self.cmdloop()
+                self.allow_kbdint = False
+                break
+            except KeyboardInterrupt:
+                self.message("--KeyboardInterrupt--")
 
     def interaction(self, frame, tb_or_exc):
         try:
@@ -601,6 +632,19 @@ class Pdb(OldPdb):
         frame, lineno = frame_lineno
         filename = frame.f_code.co_filename
         self.shell.hooks.synchronize_with_editor(filename, lineno, 0)
+
+    def _pdbcmd_print_frame_status(self, arg):
+        """Use print_stack_entry to print frames in Python 3.14+."""
+        if sys.version_info[:2] >= (3, 14):
+            # This is the only line changed from the base class.
+            self.print_stack_entry(self.stack[self.curindex])
+
+            # Same as in 3.14
+            self._validate_file_mtime()
+            self._show_display()
+        else:
+            # 3.13 and 3.12 don't need any changes.
+            super()._pdbcmd_print_frame_status(arg) # type: ignore[misc]
 
     def _get_frame_locals(self, frame):
         """ "
