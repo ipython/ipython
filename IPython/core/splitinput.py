@@ -8,7 +8,6 @@ prefilter.
 # -----------------------------------------------------------------------------
 
 import re
-import sys
 import warnings
 
 from IPython.core.oinspect import OInfo

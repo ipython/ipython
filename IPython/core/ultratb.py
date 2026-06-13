@@ -66,7 +66,6 @@ Inheritance diagram:
 # the file COPYING, distributed as part of this software.
 # *****************************************************************************
 
-import functools
 import inspect
 import linecache
 import sys
@@ -76,7 +75,7 @@ import types
 import warnings
 from collections.abc import Sequence
 from types import TracebackType
-from typing import Any, List, Optional, Tuple
+from typing import Any, Optional
 from collections.abc import Callable
 
 import stack_data
@@ -84,9 +83,7 @@ from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.token import Token
 
 from IPython import get_ipython
-from IPython.utils import path as util_path
-from IPython.utils import py3compat
-from IPython.utils.PyColorize import Parser, Theme, TokenStream, theme_table
+from IPython.utils.PyColorize import Parser, TokenStream, theme_table
 from IPython.utils.terminal import get_terminal_size
 
 from .display_trap import DisplayTrap
@@ -101,7 +98,6 @@ from .tbtools import (
     eqrepr,
     get_line_number_of_frame,
     nullrepr,
-    text_repr,
 )
 
 # Globals

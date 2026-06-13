@@ -498,7 +498,6 @@ class IPDoctestTextfile(pytest.Module):
     obj = None
 
     def collect(self) -> Iterable[IPDoctestItem]:
-        import doctest
         from .ipdoctest import IPDocTestParser
 
         # Inspired by doctest.testfile; ideally we would use it directly,
@@ -598,7 +597,6 @@ def _patch_unwrap_mock_aware() -> Generator[None, None, None]:
 
 class IPDoctestModule(pytest.Module):
     def collect(self) -> Iterable[IPDoctestItem]:
-        import doctest
         from .ipdoctest import DocTestFinder, IPDocTestParser
 
         class MockAwareDocTestFinder(DocTestFinder):
@@ -724,7 +722,6 @@ def _setup_fixtures(doctest_item: IPDoctestItem) -> FixtureRequest:
 
 
 def _init_checker_class() -> Type["IPDoctestOutputChecker"]:
-    import doctest
     import re
     from .ipdoctest import IPDoctestOutputChecker
 

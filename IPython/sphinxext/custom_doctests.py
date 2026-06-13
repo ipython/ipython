@@ -69,7 +69,7 @@ def str_to_array(s):
 
     # Need to make sure eval() knows about inf and nan.
     # This also assumes default printoptions for NumPy.
-    from numpy import inf, nan
+    from numpy import inf, nan  # noqa: F401
 
     if s.startswith(u'array'):
         # Remove array( and )
