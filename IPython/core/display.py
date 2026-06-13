@@ -382,7 +382,6 @@ class DisplayObject:
                         encoding = sub.split('=')[-1].strip()
                         break
             if 'content-encoding' in response.headers:
-                # TODO: do deflate?
                 if 'gzip' in response.headers['content-encoding']:
                     import gzip
                     from io import BytesIO
