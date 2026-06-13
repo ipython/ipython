@@ -52,7 +52,6 @@ IPython object:
     # This code can be put in any Python module, it does not require IPython
     # itself to be running already.  It only creates the magics subclass but
     # doesn't instantiate it yet.
-    from __future__ import print_function
     from IPython.core.magic import (Magics, magics_class, line_magic,
                                     cell_magic, line_cell_magic)
 

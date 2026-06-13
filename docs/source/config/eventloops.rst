@@ -70,16 +70,16 @@ Integrating with a new event loop in the kernel
 
 The kernel runs its own event loop, so it's simpler to integrate with others.
 IPython allows the other event loop to take control, but it must call
-:meth:`IPython.kernel.zmq.kernelbase.Kernel.do_one_iteration` periodically.
+:meth:`ipykernel.kernelbase.Kernel.do_one_iteration` periodically.
 
 To integrate with this, write a function that takes a single argument,
 the IPython kernel instance, arranges for your event loop to call
 ``kernel.do_one_iteration()`` at least every ``kernel._poll_interval`` seconds,
 and starts the event loop.
 
-Decorate this function with :func:`IPython.kernel.zmq.eventloops.register_integration`,
+Decorate this function with :func:`ipykernel.eventloops.register_integration`,
 passing in the names you wish to register it for. Here is a slightly simplified
-version of the Tkinter integration already included in IPython::
+version of the Tkinter integration already included in ipykernel::
 
     @register_integration('tk')
     def loop_tk(kernel):
@@ -109,4 +109,4 @@ version of the Tkinter integration already included in IPython::
 Some event loops can go one better, and integrate checking for messages on the
 kernel's ZMQ sockets, making the kernel more responsive than plain polling. How
 to do this is outside the scope of this document; if you are interested, look at
-the integration with Qt in :mod:`IPython.kernel.zmq.eventloops`.
+the integration with Qt in :mod:`ipykernel.eventloops`.

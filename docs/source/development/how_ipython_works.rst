@@ -20,7 +20,7 @@ Read-Eval-Print-Loop.
 The IPython Kernel
 ------------------
 
-All the other interfaces—the Notebook, the Qt console, ``ipython console`` in
+All the other interfaces—the Notebook, the Qt console, ``jupyter console`` in
 the terminal, and third party interfaces—use the IPython Kernel. This is a
 separate process which is responsible for running user code, and things like
 computing possible completions. Frontends communicate with it using JSON

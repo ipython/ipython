@@ -54,7 +54,7 @@ Some guidelines on contributing to IPython:
 [GitHub Actions](https://github.com/ipython/ipython/actions/workflows/test.yml) does
 a pretty good job testing IPython and Pull Requests,
 but it may make sense to manually perform tests,
-particularly for PRs that affect `IPython.parallel` or Windows.
+particularly for PRs that affect Windows.
 
 For more detailed information, see our [GitHub Workflow](https://github.com/ipython/ipython/wiki/Dev:-GitHub-workflow).
 
