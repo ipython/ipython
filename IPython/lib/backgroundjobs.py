@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Manage background (threaded) jobs conveniently from an interactive shell.
 
 This module provides a BackgroundJobManager class.  This is the main class

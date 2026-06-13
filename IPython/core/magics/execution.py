@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Implementation of execution-related magic functions."""
 
 # Copyright (c) IPython Development Team.

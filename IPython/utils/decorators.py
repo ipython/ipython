@@ -1,4 +1,3 @@
-# encoding: utf-8
 """Decorators that don't go anywhere else.
 
 This module contains misc. decorators that don't really go with another module

@@ -1,4 +1,3 @@
-# encoding: utf-8
 """A class for managing IPython extensions."""
 
 # Copyright (c) IPython Development Team.

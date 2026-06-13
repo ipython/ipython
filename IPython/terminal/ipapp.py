@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 The :class:`~traitlets.config.application.Application` object for the command
 line :command:`ipython` program.

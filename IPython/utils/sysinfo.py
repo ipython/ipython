@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 Utilities for getting information about IPython and the system it's running in.
 """
