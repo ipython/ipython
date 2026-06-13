@@ -127,11 +127,6 @@ def system(cmd: str) -> Optional[int]:
     -------
     int : child process' exit code.
     """
-    # The controller provides interactivity with both
-    # stdin and stdout
-    # import _process_win32_controller
-    # _process_win32_controller.system(cmd)
-
     with AvoidUNCPath() as path:
         if path is not None:
             cmd = '"pushd %s &&"%s' % (path, cmd)
