@@ -2961,7 +2961,7 @@ class InteractiveShell(SingletonConfigurable):
         try:
             with fname.open("rb"):
                 pass
-        except:
+        except OSError:
             warn('Could not open file <%s> for safe execution.' % fname)
             return
 
@@ -3019,7 +3019,7 @@ class InteractiveShell(SingletonConfigurable):
         try:
             with fname.open("rb"):
                 pass
-        except:
+        except OSError:
             warn('Could not open file <%s> for safe execution.' % fname)
             return
 
