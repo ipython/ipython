@@ -18,13 +18,11 @@ from pathlib import Path
 
 from typing import (
     List,
-    Dict,
     Tuple,
     Optional,
     cast,
     Any,
     Union,
-    TypeVar,
 )
 from collections.abc import Sequence, Mapping, Callable, Iterator
 
@@ -566,52 +564,6 @@ class DollarFormatter(FullEvalFormatter):
 
     def __repr__(self) -> str:
         return "<DollarFormatter>"
-
-#-----------------------------------------------------------------------------
-# Utils to columnize a list of string
-#-----------------------------------------------------------------------------
-
-
-def _col_chunks(
-    l: List[int], max_rows: int, row_first: bool = False
-) -> Iterator[List[int]]:
-    """Yield successive max_rows-sized column chunks from l."""
-    if row_first:
-        ncols = (len(l) // max_rows) + (len(l) % max_rows > 0)
-        for i in range(ncols):
-            yield [l[j] for j in range(i, len(l), ncols)]
-    else:
-        for i in range(0, len(l), max_rows):
-            yield l[i:(i + max_rows)]
-
-
-def _find_optimal(
-    rlist: List[int], row_first: bool, separator_size: int, displaywidth: int
-) -> Dict[str, Any]:
-    """Calculate optimal info to columnize a list of string"""
-    for max_rows in range(1, len(rlist) + 1):
-        col_widths = list(map(max, _col_chunks(rlist, max_rows, row_first)))
-        sumlength = sum(col_widths)
-        ncols = len(col_widths)
-        if sumlength + separator_size * (ncols - 1) <= displaywidth:
-            break
-    return {'num_columns': ncols,
-            'optimal_separator_width': (displaywidth - sumlength) // (ncols - 1) if (ncols - 1) else 0,
-            'max_rows': max_rows,
-            'column_widths': col_widths
-            }
-
-
-T = TypeVar("T")
-
-
-def _get_or_default(mylist: List[T], i: int, default: T) -> T:
-    """return list item number, or default if don't exist"""
-    if i >= len(mylist):
-        return default
-    else :
-        return mylist[i]
-
 
 def get_text_list(
     list_: List[str], last_sep: str = " and ", sep: str = ", ", wrap_item_with: str = ""

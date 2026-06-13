@@ -107,15 +107,6 @@ class EmbeddedMagics(Magics):
         self.shell.ask_exit()
 
 
-class _Sentinel:
-    def __init__(self, repr):
-        assert isinstance(repr, str)
-        self.repr = repr
-
-    def __repr__(self):
-        return repr
-
-
 class InteractiveShellEmbed(TerminalInteractiveShell):
 
     dummy_mode = Bool(False)

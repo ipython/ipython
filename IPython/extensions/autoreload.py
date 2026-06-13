@@ -453,14 +453,6 @@ def update_generic(a, b):
     return False
 
 
-class StrongRef:
-    def __init__(self, obj):
-        self.obj = obj
-
-    def __call__(self):
-        return self.obj
-
-
 mod_attrs = [
     "__name__",
     "__doc__",
