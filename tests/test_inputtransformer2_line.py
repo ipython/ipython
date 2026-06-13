@@ -97,17 +97,69 @@ CLASSIC_PROMPT_STANDALONE_CONTINUATION = (
 )
 
 
-@pytest.mark.parametrize("sample,expected", [
-    CLASSIC_PROMPT,
-    CLASSIC_PROMPT_L2,
-    CLASSIC_PROMPT_L3,
-    CLASSIC_PROMPT_DEDENT_SINGLE_LINE,
-    CLASSIC_PROMPT_DEDENT_LEADING_WS,
-    CLASSIC_PROMPT_MULTILINE_DOCTEST,
-    CLASSIC_PROMPT_STANDALONE_CONTINUATION,
-])
+CLASSIC_PROMPT_DOCTEST_MULTILINE_STRING_ARG = (
+    ">>> source = (\n"
+    "...     r'''\n"
+    "...     hello\n"
+    "...\n"
+    "...     world\n"
+    "...     ''')\n",
+    "source = (\n"
+    "    r'''\n"
+    "    hello\n"
+    "\n"
+    "    world\n"
+    "    ''')\n",
+)
+
+CLASSIC_PROMPT_XDOCTEST_MULTILINE_STRING_ARG = (
+    ">>> source = (\n"
+    ">>>     r'''\n"
+    ">>>     hello\n"
+    ">>>\n"
+    ">>>     world\n"
+    ">>>     ''')\n",
+    "source = (\n"
+    "    r'''\n"
+    "    hello\n"
+    "\n"
+    "    world\n"
+    "    ''')\n",
+)
+
+CLASSIC_PROMPT_INDENTED_LITERAL_MULTILINE_STRING = (
+    "def example():\n"
+    "    '''\n"
+    ">>> literal_doctest_prompt()\n"
+    "... literal_continuation_prompt()\n"
+    "    '''\n",
+    "def example():\n"
+    "    '''\n"
+    ">>> literal_doctest_prompt()\n"
+    "... literal_continuation_prompt()\n"
+    "    '''\n",
+)
+
+
+@pytest.mark.parametrize(
+    "sample,expected",
+    [
+        CLASSIC_PROMPT,
+        CLASSIC_PROMPT_L2,
+        CLASSIC_PROMPT_L3,
+        CLASSIC_PROMPT_DEDENT_SINGLE_LINE,
+        CLASSIC_PROMPT_DEDENT_LEADING_WS,
+        CLASSIC_PROMPT_MULTILINE_DOCTEST,
+        CLASSIC_PROMPT_STANDALONE_CONTINUATION,
+        CLASSIC_PROMPT_DOCTEST_MULTILINE_STRING_ARG,
+        CLASSIC_PROMPT_XDOCTEST_MULTILINE_STRING_ARG,
+        CLASSIC_PROMPT_INDENTED_LITERAL_MULTILINE_STRING,
+    ],
+)
 def test_classic_prompt(sample, expected):
-    assert ipt2.classic_prompt(sample.splitlines(keepends=True)) == expected.splitlines(keepends=True)
+    assert ipt2.classic_prompt(sample.splitlines(keepends=True)) == expected.splitlines(
+        keepends=True
+    )
 
 
 IPYTHON_PROMPT = (
