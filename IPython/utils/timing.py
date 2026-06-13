@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 Utilities for timing code execution.
 """

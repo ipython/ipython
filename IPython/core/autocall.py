@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 Autocall capabilities for IPython.core.
 

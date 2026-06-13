@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Display formatters.
 
 This module defines the base instances in order to implement custom

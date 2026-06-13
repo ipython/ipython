@@ -1,4 +1,3 @@
-# encoding: utf-8
 """A fancy version of Python's builtin :func:`dir` function."""
 
 # Copyright (c) IPython Development Team.

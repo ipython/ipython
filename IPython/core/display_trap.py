@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 A context manager for handling sys.displayhook.
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Support for wildcard pattern matching in object inspection.
 
 Authors

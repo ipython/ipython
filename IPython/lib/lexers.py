@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 The IPython lexers are now a separate package, ipython-pygments-lexers.
 

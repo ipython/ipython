@@ -1,4 +1,3 @@
-# encoding: utf-8
 """An object for managing IPython profile directories."""
 
 # Copyright (c) IPython Development Team.

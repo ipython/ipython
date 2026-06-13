@@ -1,4 +1,3 @@
-# encoding: utf-8
 """A dict subclass that supports attribute style access.
 
 Authors:
