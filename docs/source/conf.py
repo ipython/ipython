@@ -9,7 +9,7 @@ from pathlib import Path
 
 import tomllib
 
-from sphinxf_toml import load_into_locals
+from sphinx_toml import load_into_locals
 from intersphinx_registry import get_intersphinx_mapping
 import sphinx_rtd_theme
 import sphinx.util
