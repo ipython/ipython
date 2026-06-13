@@ -4,7 +4,6 @@ import sys
 from types import TracebackType
 from typing import Literal, Self
 
-import warnings
 
 
 class prepended_to_syspath:

@@ -8,14 +8,10 @@ IO related utilities.
 
 
 
-import atexit
-import os
 import sys
 import tempfile
 from pathlib import Path
-from warnings import warn
 
-from IPython.utils.decorators import undoc
 from .capture import CapturedIO, capture_output
 from io import StringIO
 from typing import Union

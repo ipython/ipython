@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import warnings
 from types import TracebackType
 from typing import Any
 

@@ -10,9 +10,7 @@ Inheritance diagram:
 import os
 import re
 import string
-import sys
 import textwrap
-import warnings
 from string import Formatter
 from pathlib import Path
 
@@ -20,7 +18,6 @@ from typing import (
     List,
     Tuple,
     Optional,
-    cast,
     Any,
     Union,
 )

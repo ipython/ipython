@@ -17,7 +17,6 @@ from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.lexers import Lexer
 from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.patch_stdout import patch_stdout
-from IPython.core.getipython import get_ipython
 
 
 import pygments.lexers as pygments_lexers

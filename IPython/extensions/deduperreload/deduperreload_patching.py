@@ -1,6 +1,5 @@
 from __future__ import annotations
 import ctypes
-import sys
 from typing import Any
 
 NOT_FOUND: object = object()
