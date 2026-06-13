@@ -210,7 +210,8 @@ from IPython.core.profiledir import ProfileDir
 
 use_matplotlib = False
 try:
-    import matplotlib
+    # The import itself is the probe: an ImportError means matplotlib is absent.
+    import matplotlib  # noqa: F401
     use_matplotlib = True
 except Exception:
     pass

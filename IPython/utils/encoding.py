@@ -18,7 +18,7 @@ from __future__ import annotations
 import sys
 import locale
 import warnings
-from typing import Any, Literal
+from typing import Any
 
 
 # to deal with the possibility of sys.std* not being a stream at all
