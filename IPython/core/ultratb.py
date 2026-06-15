@@ -210,7 +210,7 @@ class ListTB(TBTools):
             )
             out_list.extend(self._format_list(elist))
         # The exception info should be a single entry in the list.
-        lines = "".join(self._format_exception_only(etype, evalue))
+        lines = "".join(self._format_exception_only(etype, evalue, etb))
         out_list.append(lines)
 
         # Find chained exceptions if we have a traceback (not for exception-only mode)
@@ -288,7 +288,7 @@ class ListTB(TBTools):
         return output_list
 
     def _format_exception_only(
-        self, etype: type[BaseException], value: BaseException | None
+        self, etype: type[BaseException], value: BaseException | None, etb: TracebackType | None
     ) -> list[str]:
         """Format the exception part of a traceback.
 
@@ -372,7 +372,14 @@ class ListTB(TBTools):
                         )
                 s = value.msg
             else:
-                s = self._some_str(value)
+                if isinstance(etb, TracebackType):
+                    last_line = traceback.format_exception(etype, value, etb)[-1]
+                    if ": " in last_line:
+                        s = last_line.split(": ", 1)[1].rstrip()
+                    else:
+                        s = last_line.rstrip()
+                else:
+                    s = self._some_str(value)
             if s:
                 output_list.append(
                     theme_table[self._theme_name].format(
@@ -708,10 +715,22 @@ class VerboseTB(TBTools):
 
         return head
 
-    def format_exception(self, etype, evalue):
+    def format_exception(self, etype, evalue, etb=None):
         # Get (safely) a string form of the exception info
         try:
-            etype_str, evalue_str = map(str, (etype, evalue))
+            etype_str = str(etype)
+
+            if isinstance(etb, TracebackType):
+                last_line = traceback.format_exception(
+                    etype, evalue, etb
+                )[-1]
+
+                if ": " in last_line:
+                    evalue_str = last_line.split(": ", 1)[1].rstrip()
+                else:
+                    evalue_str = last_line.rstrip()
+            else:
+                evalue_str = str(evalue)
         except:
             # User exception is improperly defined.
             etype, evalue = str, sys.exc_info()[:2]
@@ -800,7 +819,7 @@ class VerboseTB(TBTools):
                 )
             )
 
-        formatted_exception = self.format_exception(etype, evalue)
+        formatted_exception = self.format_exception(etype, evalue, etb)
         if records:
             frame_info = records[-1]
             ipinst = get_ipython()
