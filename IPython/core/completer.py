@@ -263,6 +263,12 @@ try:
 except ImportError:
     JEDI_INSTALLED = False
 
+try:
+    import zubanls
+    ZUBANLS_INSTALLED = True
+except ImportError:
+    ZUBANLS_INSTALLED = False
+
 
 # -----------------------------------------------------------------------------
 # Globals
@@ -1002,6 +1008,17 @@ class Completer(Configurable):
     use_jedi = Bool(default_value=JEDI_INSTALLED,
                     help="Experimental: Use Jedi to generate autocompletions. "
                     "Default to True if jedi is installed.").tag(config=True)
+
+    use_zubanls = Bool(
+        default_value=False,
+        help=(
+            "Use zubanls as the completion backend instead of Jedi. "
+            "Requires the `zubanls` package to be installed. "
+            "When enabled, zubanls will be used for static type inference completions. "
+            "This setting has no effect if `use_jedi` is also True (Jedi takes precedence) "
+            "unless `use_jedi` is set to False."
+        ),
+    ).tag(config=True)
 
     jedi_compute_type_timeout = Int(default_value=400,
         help="""Experimental: restrict time (in milliseconds) during which Jedi can compute types.
@@ -2144,6 +2161,16 @@ class IPCompleter(Completer):
         if not self.merge_completions:
             self.suppress_competing_matchers = True
 
+        if self.use_zubanls and not ZUBANLS_INSTALLED:
+            import warnings
+            warnings.warn(
+                "use_zubanls is set to True, but the `zubanls` package is not installed. "
+                "Falling back to the default completion backend. "
+                "Install zubanls to use it as a completion backend.",
+                UserWarning,
+                stacklevel=2,
+            )
+
     @property
     def matchers(self) -> list[Matcher]:
         """All active matcher routines for completion"""
@@ -2158,6 +2185,17 @@ class IPCompleter(Completer):
                 self.custom_completer_matcher,
                 self.magic_matcher,
                 self._jedi_matcher,
+                self.dict_key_matcher,
+                self.file_matcher,
+            ]
+        elif self.use_zubanls and ZUBANLS_INSTALLED:
+            return [
+                *self.custom_matchers,
+                *self._backslash_combining_matchers,
+                *self.magic_arg_matchers,
+                self.custom_completer_matcher,
+                self.magic_matcher,
+                self._zubanls_matcher,
                 self.dict_key_matcher,
                 self.file_matcher,
             ]
@@ -2180,7 +2218,7 @@ class IPCompleter(Completer):
         """
         prefix = text.rpartition('.')[0]
         with provisionalcompleter():
-            return ['.'.join([prefix, c.text]) if prefix and self.use_jedi else c.text
+            return ['.'.join([prefix, c.text]) if prefix and (self.use_jedi or self.use_zubanls) else c.text
                     for c in self.completions(text, len(text))]
 
         return self.complete(text)[1]
@@ -2579,6 +2617,52 @@ class IPCompleter(Completer):
                 )
             else:
                 return iter([])
+
+    @context_matcher(identifier="IPCompleter.zubanls_matcher")
+    def _zubanls_matcher(self, context: CompletionContext) -> SimpleMatcherResult:
+        """Completion matcher using zubanls as the backend."""
+        if not self.use_zubanls or not ZUBANLS_INSTALLED:
+            return {"completions": [], "suppress": False}
+        matches = self._zubanls_matches(
+            cursor_column=context.cursor_position,
+            cursor_line=context.cursor_line,
+            text=context.full_text,
+        )
+        return {
+            "completions": matches,
+            # static analysis should not suppress other matchers
+            "suppress": False,
+        }
+
+    def _zubanls_matches(
+        self, cursor_column: int, cursor_line: int, text: str
+    ) -> Iterator[SimpleCompletion]:
+        """
+        Return a list of :class:`.SimpleCompletion` objects from a ``text`` and
+        cursor position, using the zubanls completion backend.
+
+        Parameters
+        ----------
+        cursor_column : int
+            column position of the cursor in ``text``, 0-indexed.
+        cursor_line : int
+            line position of the cursor in ``text``, 0-indexed
+        text : str
+            text to complete
+        """
+        offset = cursor_to_position(text, cursor_line, cursor_column)
+        try:
+            completions = zubanls.complete(source=text, position=offset)
+            return iter(
+                [
+                    SimpleCompletion(text=c.name, type=getattr(c, "type", None))
+                    for c in completions
+                ]
+            )
+        except Exception as e:
+            if self.debug:
+                print(f"Error in zubanls completion ({type(e).__name__}: {e})")
+            return iter([])
 
     class _CompletionContextType(enum.Enum):
         ATTRIBUTE = "attribute"  # For attribute completion
