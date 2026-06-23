@@ -220,7 +220,7 @@ class Pdb(OldPdb):
 
     """
 
-    shell: InteractiveShell | None
+    shell: InteractiveShell
     _theme_name: str
     _context: int
 
@@ -299,17 +299,18 @@ class Pdb(OldPdb):
             self.curframe = None
 
         # IPython changes...
-        self.shell = get_ipython()
+        shell = get_ipython()
 
-        if self.shell is None:
+        if shell is None:
             save_main = sys.modules["__main__"]
             # No IPython instance running, we must create one
             from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
-            self.shell = TerminalInteractiveShell.instance()
+            shell = TerminalInteractiveShell.instance()
             # needed by any code which calls __import__("__main__") after
             # the debugger was entered. See also #9941.
             sys.modules["__main__"] = save_main
+        self.shell = shell
 
         self.aliases = {}
 
