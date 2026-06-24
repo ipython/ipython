@@ -12,10 +12,22 @@ import functools
 import os
 import re
 import shlex
+import subprocess
 import sys
 from pathlib import Path
 
 from IPython.core.magic import Magics, magics_class, line_magic
+
+
+def _shell_join(args):
+    args = [str(arg) for arg in args]
+    if sys.platform == "win32":
+        return subprocess.list2cmdline(args)
+    return shlex.join(args)
+
+
+def _quote_arg(arg):
+    return _shell_join([arg])
 
 
 def is_conda_environment(func):
@@ -96,11 +108,7 @@ class PackagingMagics(Magics):
         Usage:
           %pip install [pkgs]
         """
-        python = sys.executable
-        if sys.platform == "win32":
-            python = '"' + python + '"'
-        else:
-            python = shlex.quote(python)
+        python = _quote_arg(sys.executable)
 
         self.shell.system(" ".join([python, "-m", "pip", line]))
 
@@ -108,8 +116,8 @@ class PackagingMagics(Magics):
 
     def _run_command(self, cmd, line):
         args = shlex.split(line)
-        command = args[0] if len(args) > 0 else ""
-        args = args[1:] if len(args) > 1 else [""]
+        command = args[0] if args else ""
+        args = args[1:]
 
         extra_args = []
 
@@ -127,7 +135,12 @@ class PackagingMagics(Magics):
         if needs_prefix and not has_prefix:
             extra_args.extend(["--prefix", sys.prefix])
 
-        self.shell.system(" ".join([cmd, command] + extra_args + args))
+        command_args = [cmd]
+        if command:
+            command_args.append(command)
+        command_args.extend(extra_args + args)
+
+        self.shell.system(_shell_join(command_args))
         print("\nNote: you may need to restart the kernel to use updated packages.")
 
     @line_magic
@@ -170,11 +183,7 @@ class PackagingMagics(Magics):
         Usage:
           %uv pip install [pkgs]
         """
-        python = sys.executable
-        if sys.platform == "win32":
-            python = '"' + python + '"'
-        else:
-            python = shlex.quote(python)
+        python = _quote_arg(sys.executable)
 
         self.shell.system(" ".join([python, "-m", "uv", line]))
 
