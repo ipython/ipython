@@ -113,15 +113,18 @@ def doctest_run_option_parser():
 def doctest_run_option_parser_for_posix():
     r"""Test option parser in %run (Linux/OSX specific).
 
-    You need double quote to escape glob in POSIX systems:
+    You can use a backslash to escape glob in POSIX systems:
 
     In [1]: %run print_argv.py print\\*.py
     ['print*.py']
 
-    You can't use quote to escape glob in POSIX systems:
+    You can also use single or double quotes to suppress glob expansion (#12726):
 
     In [2]: %run print_argv.py 'print*.py'
-    ['print_argv.py']
+    ['print*.py']
+
+    In [3]: %run print_argv.py "print*.py"
+    ['print*.py']
 
     """
 
@@ -549,6 +552,42 @@ class TestMagicRunWithPackage(unittest.TestCase):
         test_opts = "-x abc -m test"
         _ip.run_line_magic("run", "-m {0}.args -- {1}".format(self.package, test_opts))
         assert _ip.user_ns["a"] == test_opts
+
+
+def test_run_quoted_glob_arg_is_not_expanded():
+    """Quoted glob args to ``%run`` are passed through unexpanded (#12726)"""
+    with TemporaryDirectory() as td:
+        cwd = os.getcwd()
+        try:
+            os.chdir(td)
+            # Files that *would* match the glob if expansion happened.
+            for name in ("foo.txt", "bar.txt"):
+                with open(name, "w", encoding="utf-8") as f:
+                    f.write("")
+
+            script = pjoin(td, "show_argv.py")
+            with open(script, "w", encoding="utf-8") as f:
+                f.write("import sys\nargs = sys.argv[1:]\n")
+
+            # Sanity check: bare glob still expands as before.
+            _ip.user_ns.pop("args", None)
+            _ip.run_line_magic("run", '-i {} *.txt'.format(script))
+            assert sorted(_ip.user_ns["args"]) == ["bar.txt", "foo.txt"]
+
+            # Double-quoted glob should pass through literally on all platforms.
+            _ip.user_ns.pop("args", None)
+            _ip.run_line_magic("run", '-i {} "*.txt"'.format(script))
+            assert _ip.user_ns["args"] == ["*.txt"]
+
+            # Single-quoted glob — POSIX only. On windows single quotes aren't
+            # stripped by the splitter (see %run docstring), so skip.
+            if os.name == "posix":
+                _ip.user_ns.pop("args", None)
+                _ip.run_line_magic("run", "-i {} '*.txt'".format(script))
+                assert _ip.user_ns["args"] == ["*.txt"]
+        finally:
+            os.chdir(cwd)
+            _ip.run_line_magic("reset", "-f")
 
 
 def test_run__name__():
