@@ -170,8 +170,6 @@ read its docstring. To see all the available magic functions, call
     the magics works and how to define your own, and :doc:`magics` for a list of
     built-in magics.
 
-    `Cell magics`_ example notebook
-
 Running and Editing
 -------------------
 

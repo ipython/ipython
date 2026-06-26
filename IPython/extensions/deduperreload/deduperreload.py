@@ -9,6 +9,7 @@ import pickle
 import platform
 import sys
 import textwrap
+import tokenize
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, NamedTuple, cast
 from collections.abc import Generator, Iterable
@@ -215,7 +216,9 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
                 self.source_by_modname[new_modname] = ""
                 continue
             try:
-                with open(fname, "r", encoding="utf8") as f:
+                # tokenize.open honors PEP 263 coding cookies and defaults
+                # to utf-8, like the import system does.
+                with tokenize.open(fname) as f:
                     self.source_by_modname[new_modname] = f.read()
             except Exception as e:
                 logger = logging.getLogger("autoreload")
@@ -552,7 +555,7 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
         if (fname := get_module_file_name(module)) is None:
             return False
         try:
-            with open(fname, "r", encoding="utf8") as f:
+            with tokenize.open(fname) as f:
                 new_source_code = f.read()
         except Exception as e:
             logger = logging.getLogger("autoreload")

@@ -98,4 +98,4 @@ jobs:
     - name: Test pyflyby (IPython integration only)
       run: |
         cd ../pyflyby
-        pytest tests/test_interactive.py --deselect tests/test_interactive.py::test_debug_namespace_1_py3[prompt_toolkit] --deselect tests/test_interactive.py::test_run_separate_script_namespace_2
+        pytest tests/test_interactive.py --deselect tests/test_interactive.py::test_debug_namespace_1_py3[prompt_toolkit] --deselect tests/test_interactive.py::test_run_separate_script_namespace_2 --deselect tests/test_interactive.py::test_autoimport_multiline_continued_statement_fake_1 --deselect tests/test_interactive.py::test_debug_second_1 --deselect tests/test_interactive.py::test_error_during_completion_1

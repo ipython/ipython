@@ -30,7 +30,7 @@ dependencies = [
     "matplotlib-inline>=0.1.6",
     'pexpect>4.6; sys_platform != "win32" and sys_platform != "emscripten"',
     "prompt_toolkit>=3.0.41,<3.1.0",
-    'psutil>=7; sys_platform != "emscripten"',
+    'psutil>=7; sys_platform != "emscripten" and sys_platform != "cygwin"',
     "pygments>=2.14.0", # wheel
     "stack_data>=0.6.0",
     "traitlets>=5.13.0",
@@ -131,6 +131,13 @@ module = "sphinx.*"
 follow_imports = "skip"
 #warn_unreachable = true
 #strict = true
+
+[[tool.mypy.overrides]]
+# numpy's stubs use PEP 695 `type` statements (3.12+), which mypy rejects
+# when parsing under python_version = "3.11". Skip following its stubs.
+module = "numpy.*"
+follow_imports = "skip"
+follow_imports_for_stubs = true
 
 [[tool.mypy.overrides]]
 module = [

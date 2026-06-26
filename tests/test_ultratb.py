@@ -263,6 +263,18 @@ bar_syntax_error_test_2()
             with tt.AssertPrints("QWERTY"):
                 ip.showsyntaxerror()
 
+    def test_syntaxerror_subclass_without_text(self):
+        # SyntaxError subclasses may leave .text set to None, e.g.
+        # xml.etree.ElementTree.ParseError; rendering them must not
+        # raise (gh-15024).
+        from xml.etree import ElementTree
+
+        try:
+            ElementTree.fromstring("hello")
+        except ElementTree.ParseError:
+            with tt.AssertPrints("ParseError"):
+                ip.showsyntaxerror()
+
 
 import sys
 
@@ -504,3 +516,24 @@ def testSyntaxError():
     expected = "SyntaxError\n"
     with tt.AssertPrints(expected):
         ip.run_cell(cell)
+
+def test_xmode_doctest():
+    """Test that %xmode doctest produces doctest-friendly output."""
+    ip.run_cell("%xmode doctest")
+
+    # Basic exception
+    with tt.AssertPrints(["Traceback (most recent call last):", "    ...", "ZeroDivisionError: division by zero"]):
+        ip.run_cell("1/0")
+
+    # Chained exception
+    cell = "\n".join([
+        "try:",
+        "    1/0",
+        "except:",
+        "    raise ValueError('bad')",
+    ])
+    with tt.AssertPrints(["ZeroDivisionError: division by zero", "ValueError: bad"]):
+        ip.run_cell(cell)
+
+    # Restore default mode
+    ip.run_cell("%xmode context")

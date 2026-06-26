@@ -12,6 +12,7 @@ recurring bugs we seem to encounter with high-level interaction.
 import asyncio
 import ast
 import os
+import shlex
 import signal
 import shutil
 import sys
@@ -657,7 +658,7 @@ class ExitCodeChecks(tt.TempFileMixin):
             "signal.setitimer(signal.ITIMER_REAL, 0.1)\n"
             "time.sleep(1)\n"
         )
-        self.system("%s %s" % (sys.executable, self.fname))
+        self.system("%s %s" % (shlex.quote(sys.executable), shlex.quote(self.fname)))
         self.assertEqual(ip.user_ns["_exit_code"], -signal.SIGALRM)
 
     @onlyif_cmds_exist("csh")
@@ -1245,6 +1246,21 @@ class TestShowTracebackAttack(unittest.TestCase):
         assert result.result is None
         assert isinstance(result.error_in_exec, AssertionError)
         assert str(result.error_in_exec) == "This should not raise an exception"
+
+
+def test_enable_gui_tk_simple_prompt_message(capsys):
+    simple_prompt = ip.simple_prompt
+    ip.simple_prompt = True
+    try:
+        ip.enable_gui("tk")
+        output = capsys.readouterr().out
+    finally:
+        ip.simple_prompt = simple_prompt
+
+    assert output == (
+        "Tk is supported natively when running with `--simple-prompt`; "
+        "no event loop hook will be installed.\n"
+    )
 
 
 @skip_if_not_osx

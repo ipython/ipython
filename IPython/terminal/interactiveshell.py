@@ -1064,12 +1064,18 @@ class TerminalInteractiveShell(InteractiveShell):
             gui = _convert_gui_from_matplotlib(gui)
 
         if self.simple_prompt is True and gui is not None:
-            print(
-                f'Cannot install event loop hook for "{gui}" when running with `--simple-prompt`.'
-            )
-            print(
-                "NOTE: Tk is supported natively; use Tk apps and Tk backends with `--simple-prompt`."
-            )
+            if gui == "tk":
+                print(
+                    "Tk is supported natively when running with `--simple-prompt`; "
+                    "no event loop hook will be installed."
+                )
+            else:
+                print(
+                    f'Cannot install event loop hook for "{gui}" when running with `--simple-prompt`.'
+                )
+                print(
+                    "NOTE: Tk is supported natively; use Tk apps and Tk backends with `--simple-prompt`."
+                )
             return
 
         if self._inputhook is None and gui is None:

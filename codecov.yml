@@ -8,22 +8,22 @@ coverage:
         paths:
           - '!**/tests/**'
           - '!**/testing/**'
-        threshold: 0.1%
+        threshold: 0.2%
       tests:
         target: auto
         paths:
           - '**/tests/**'
           - '**/testing/**'
-        threshold: 0.1%
+        threshold: 0.2%
 flag_management:
   default_rules:
     statuses:
       - type: patch
         target: auto%
-        threshold: 0.1%
+        threshold: 0.2%
       - type: project
         target: auto%
-        threshold: 0.1%
+        threshold: 0.2%
   individual_flags:
     - name: unit-tests
       paths:

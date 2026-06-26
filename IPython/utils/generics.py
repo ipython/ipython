@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 from IPython.core.error import TryNext
@@ -10,9 +11,28 @@ from functools import singledispatch
 
 
 @singledispatch
-def inspect_object(obj: Any) -> None:
-    """Called when you do obj?"""
+def _inspect_object(obj: Any) -> None:
+    """Called when you do obj?
+
+    .. deprecated:: 9.15
+        `inspect_object` is deprecated and will be removed in a future
+        version. It is no longer used within IPython, so registering
+        handlers on it has no effect.
+    """
     raise TryNext
+
+
+def __getattr__(name: str) -> Any:
+    if name == "inspect_object":
+        warnings.warn(
+            "inspect_object is deprecated since IPython 9.15 and will be "
+            "removed in a future version. It is no longer used within "
+            "IPython, so registering handlers on it has no effect.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return _inspect_object
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 @singledispatch

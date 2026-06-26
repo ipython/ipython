@@ -69,10 +69,6 @@ There are some specific backends that are used in the Jupyter ecosystem:
   installed using ``pip`` or ``conda`` in the usual manner. Plots are
   interactive so they can be zoomed and panned.
 
-.. seealso::
-
-    `Plotting with Matplotlib`_  example notebook
-
 See the matplotlib_ documentation for more information, in particular the
 section on backends.
 
