@@ -2,6 +2,152 @@
  9.x Series
 ============
 
+.. _version 9.15:
+
+IPython 9.15
+------------
+
+Summary
+~~~~~~~
+
+This release adds a new ``%xmode Doctest`` traceback mode and a number of
+robustness fixes around startup, history storage, the debugger, and the Sphinx
+directive. It also contains one backwards-incompatible change to ``%run`` glob
+expansion and one deprecation.
+
+- :ghpull:`15220` Fix ``%debug`` and ipdb with Python 3.15
+- :ghpull:`15219` Add ``exception`` as an alias for the ``exceptions`` pdb command
+- :ghpull:`15236` Hide ``execfile`` internals in debugger backtraces
+- :ghpull:`15242` Use ``print_stack_entry`` to print frames on Python 3.14
+- :ghpull:`15247` Avoid ``psutil`` requirement on Cygwin
+- :ghpull:`15249` Skip ipython directive execution inside excluded ``only`` blocks
+- :ghpull:`15252` Narrow bare ``except:`` clauses in oinspect and interactiveshell
+- :ghpull:`15253` Remove Python 2 references and fix links in the documentation
+- :ghpull:`15254` Remove stale TODO comment in ``DisplayObject.reload``
+- :ghissue:`15068` Deprecate ``IPython.utils.generics.inspect_object``
+- :ghissue:`15072` Fix oinspect ``TypeError`` with objects using a generic ``__getattr__``
+- :ghissue:`15100` Fix test failures when the IPython source path contains spaces
+- :ghissue:`15193` Honor PEP 263 coding cookies when reading sources in autoreload
+- :ghissue:`15241` Close SQLite connections before replacing the history database
+- :ghissue:`12726` Quoted arguments to ``%run`` no longer undergo glob expansion
+- :ghissue:`11424` Strip ANSI escape sequences from Sphinx directive output
+- :ghissue:`14538` Hide ``execfile`` frames in debugger backtraces
+
+
+Doctest Traceback Mode
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+A new ``%xmode Doctest`` mode formats tracebacks for easy copy-paste into
+Python doctests. The output shows only the traceback header, a literal
+ellipsis, and the exception line::
+
+    Traceback (most recent call last):
+        ...
+    ZeroDivisionError: division by zero
+
+
+Robust Startup and Terminal Detection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Kitty graphics protocol detection walks the process tree with ``psutil``
+at import time. On shared multi-user systems where ``/proc`` is mounted with
+``hidepid`` (common on HPC clusters), reaching an ancestor process owned by
+another user raised ``psutil.AccessDenied``, which was unhandled and aborted
+the entire ``import IPython``. Such errors are now caught and treated as
+"graphics unsupported"; detection capability for the user's own terminals is
+unchanged.
+
+``psutil`` is also no longer required on Cygwin, where it is not available
+(:ghpull:`15247`).
+
+
+History Storage Robustness
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``sqlite3.Connection`` used as a context manager only commits or rolls back;
+it does not close the connection. ``ipython history trim`` and
+``ipython history clear`` therefore still held open handles on
+``history.sqlite`` when unlinking and renaming it, which failed with
+``PermissionError`` on Windows and left ``history.sqlite.new*`` files behind.
+The connections are now closed before any file shuffling (:ghissue:`15241`).
+
+
+Debugger Fixes
+~~~~~~~~~~~~~~
+
+- ``%debug`` and ipdb work again under Python 3.15, and frames are printed with
+  ``print_stack_entry`` on Python 3.14 (:ghpull:`15220`, :ghpull:`15242`).
+- ``execfile`` internals are now marked as the ``__ipython_bottom__`` traceback
+  boundary, so the file runner and the frames above it are hidden as IPython
+  internals while user script frames stay visible (:ghpull:`15236`,
+  :ghissue:`14538`).
+- ``exception`` is now accepted as an alias for the ``exceptions`` pdb command
+  (:ghpull:`15219`).
+
+
+Inspection (``?``) Fix
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Objects whose ``__getattr__`` returns something other than a ``dict`` for
+``__custom_documentations__`` (e.g. a polars ``Expr``, which returns a new
+``Expr`` for any attribute name) no longer raise a ``TypeError`` when inspected
+with ``?`` or :func:`%pinfo`. The lookup is now guarded with ``isinstance(...,
+dict)`` (:ghissue:`15072`).
+
+
+Autoreload Encoding Fix
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The autoreload diffing logic now reads module sources with ``tokenize.open``,
+honoring PEP 263 coding cookies the way the import system does, instead of
+assuming UTF-8. Sources declaring another encoding were previously read as
+empty, silently disabling hot-patching for those modules (:ghissue:`15193`).
+
+
+Sphinx Directive Fixes
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The IPython Sphinx directive now strips ANSI escape sequences from executed
+code-block output, so tracebacks and other colored output no longer appear as
+garbled text in rendered HTML/PDF documentation (:ghissue:`11424`). Execution
+is also now skipped inside excluded ``only`` blocks (:ghpull:`15249`).
+
+
+Backwards incompatible changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Wrapping a ``%run`` argument in single or double quotes now suppresses glob
+expansion of that argument, matching real shells. Previously quoting was
+documented as *not* suppressing expansion, which was surprising. For example
+with ``foo.txt`` and ``bar.txt`` in the working directory::
+
+    %run script.py "*.txt"    # before: ['foo.txt', 'bar.txt']
+                              # after:  ['*.txt']
+
+The unquoted form (``%run script.py *.txt``) and the backslash-escape form
+(``%run script.py \*.txt``) are unchanged. Pass ``-G`` to disable expansion
+entirely (:ghissue:`12726`).
+
+
+Deprecations
+~~~~~~~~~~~~
+
+``IPython.utils.generics.inspect_object`` is deprecated since IPython 9.15 and
+will be removed in a future version. It is no longer used within IPython, so
+registering handlers on it has no effect. ``complete_object`` is unaffected
+(:ghissue:`15068`).
+
+
+Thanks
+~~~~~~
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
+work on IPython.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.15
+<https://github.com/ipython/ipython/milestone/165?closed=1>`__ milestone.
+
+
 .. _version 9.14:
 
 IPython 9.14
