@@ -518,3 +518,113 @@ def test_setting_shortcuts_before_pt_app_init():
     ]
     ipython.shortcuts = shortcuts
     assert ipython.shortcuts == shortcuts
+
+
+def test_navigable_provider_disconnect_removes_cursor_handler():
+    provider = NavigableAutoSuggestFromHistory()
+    session = create_session_mock()
+    provider.connect(session)
+
+    # Check that handlers are connected
+    assert len(session.default_buffer.on_text_insert._handlers) > 0
+    assert len(session.default_buffer.on_cursor_position_changed._handlers) > 0
+
+    provider.disconnect()
+
+    # Check that handlers are disconnected
+    assert len(session.default_buffer.on_text_insert._handlers) == 0
+    assert len(session.default_buffer.on_cursor_position_changed._handlers) == 0
+
+
+@pytest.mark.asyncio
+async def test_llm_autosuggestion_cancellation_and_error_handling():
+    import sys
+    import asyncio
+    from unittest.mock import MagicMock, AsyncMock
+
+    # Stub classes to mimic jupyter_ai.completions.models
+    class MockInlineCompletionRequest:
+        def __init__(self, **kwargs):
+            for k, v in kwargs.items():
+                setattr(self, k, v)
+
+    class MockInlineCompletionReply:
+        def __init__(self, **kwargs):
+            for k, v in kwargs.items():
+                setattr(self, k, v)
+
+    class MockInlineCompletionStreamChunk:
+        def __init__(self, **kwargs):
+            for k, v in kwargs.items():
+                setattr(self, k, v)
+
+    mock_jai_models = MagicMock()
+    mock_jai_models.InlineCompletionRequest = MockInlineCompletionRequest
+    mock_jai_models.InlineCompletionReply = MockInlineCompletionReply
+    mock_jai_models.InlineCompletionStreamChunk = MockInlineCompletionStreamChunk
+
+    mock_jai = MagicMock()
+    mock_completions = MagicMock()
+    mock_jai.completions = mock_completions
+    mock_completions.models = mock_jai_models
+
+    mock_magics = MagicMock()
+
+    modules_to_patch = {
+        "jupyter_ai": mock_jai,
+        "jupyter_ai.completions": mock_completions,
+        "jupyter_ai.completions.models": mock_jai_models,
+        "jupyter_ai_magics": mock_magics,
+    }
+
+    # Use patch.dict to mock the modules during this test
+    with patch.dict(sys.modules, modules_to_patch):
+        provider = NavigableAutoSuggestFromHistory()
+        
+        # Test default prefixer is empty string
+        assert provider._llm_prefixer(None) == ""
+
+        # Setup mock provider instance
+        mock_provider = MagicMock()
+        provider._llm_provider_instance = mock_provider
+
+        # Setup buffer and history
+        ip = get_ipython()
+        buffer = Buffer(history=PtkHistoryAdapter(ip))
+        buffer.text = "test text"
+
+        # 1. Test normal execution
+        async def mock_stream_normal(request):
+            yield MockInlineCompletionReply(
+                list=MagicMock(items=[MagicMock(insertText="suggestion")]),
+                reply_to=request.number
+            )
+
+        mock_provider.stream_inline_completions = mock_stream_normal
+        await provider._trigger_llm(buffer)
+        assert buffer.suggestion.text == "suggestion"
+
+        # 2. Test cancellation
+        async def mock_stream_sleep(request):
+            await asyncio.sleep(5)
+            yield MockInlineCompletionReply(
+                list=MagicMock(items=[MagicMock(insertText="slow")]),
+                reply_to=request.number
+            )
+
+        mock_provider.stream_inline_completions = mock_stream_sleep
+        task = asyncio.create_task(provider._trigger_llm(buffer))
+        await asyncio.sleep(0.01)
+        # Cancel the task using disconnect which calls _cancel_running_llm_task
+        provider.disconnect()
+        # Verify it completes without raising CancelledError
+        await task
+
+        # 3. Test exception handling
+        async def mock_stream_error(request):
+            raise ValueError("API error")
+            yield  # make it a generator
+
+        mock_provider.stream_inline_completions = mock_stream_error
+        # Verify it completes without raising the exception
+        await provider._trigger_llm(buffer)
