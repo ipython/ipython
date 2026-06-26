@@ -116,7 +116,7 @@ class CachingCompiler(codeop.Compile):
         """
         return code_name(transformed_code, number)
 
-    def format_code_name(self, name) -> str:
+    def format_code_name(self, name) -> tuple[str, str] | None:
         """Return a user-friendly label and name for a code block.
 
         Parameters
