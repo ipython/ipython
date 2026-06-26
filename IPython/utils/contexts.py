@@ -1,9 +1,7 @@
-# encoding: utf-8
 """Miscellaneous context managers."""
 
 from __future__ import annotations
 
-import warnings
 from types import TracebackType
 from typing import Any
 

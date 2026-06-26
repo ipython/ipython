@@ -830,26 +830,6 @@ def _gifxy(data):
     return struct.unpack('<HH', data[6:10])
 
 
-def _webpxy(data):
-    """read the (width, height) from a WEBP header"""
-    if data[12:16] == b"VP8 ":
-        width, height = struct.unpack("<HH", data[24:30])
-        width = width & 0x3FFF
-        height = height & 0x3FFF
-        return (width, height)
-    elif data[12:16] == b"VP8L":
-        size_info = struct.unpack("<I", data[21:25])[0]
-        width = 1 + ((size_info & 0x3F) << 8) | (size_info >> 24)
-        height = 1 + (
-            (((size_info >> 8) & 0xF) << 10)
-            | (((size_info >> 14) & 0x3FC) << 2)
-            | ((size_info >> 22) & 0x3)
-        )
-        return (width, height)
-    else:
-        raise ValueError("Not a valid WEBP header")
-
-
 class Image(DisplayObject):
 
     _read_flags = "rb"

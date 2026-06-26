@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Payload system for IPython.
 
 Authors:

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Displayhook for IPython.
 
 This defines a callable class that IPython uses for `sys.displayhook`.

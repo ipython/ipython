@@ -25,7 +25,7 @@ def install_editor(template, wait=False):
 
     Parameters
     ----------
-    template : basestring
+    template : str
         run_template acts as a template for how your editor is invoked by
         the shell. It should contain '{filename}', which will be replaced on
         invocation with the file name, and '{line}', $line by line number

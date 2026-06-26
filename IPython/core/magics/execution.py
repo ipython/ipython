@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Implementation of execution-related magic functions."""
 
 # Copyright (c) IPython Development Team.
@@ -8,7 +7,6 @@
 import ast
 import bdb
 import builtins as builtin_mod
-import copy
 import cProfile as profile
 import gc
 import itertools
@@ -20,28 +18,18 @@ import shlex
 import sys
 import time
 import timeit
-import signal
 from typing import Dict, Any
 from ast import (
-    Assign,
-    Call,
-    Expr,
-    Load,
     Module,
-    Name,
-    NodeTransformer,
-    Store,
-    parse,
-    unparse,
 )
 from io import StringIO
 from logging import error
 from pathlib import Path
 from pdb import Restart
-from textwrap import dedent, indent
+from textwrap import indent
 from warnings import warn
 
-from IPython.core import magic_arguments, oinspect, page
+from IPython.core import magic_arguments, page
 from IPython.core.displayhook import DisplayHook
 from IPython.core.error import UsageError
 from IPython.core.macro import Macro

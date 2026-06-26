@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tools for handling LaTeX."""
 
 # Copyright (c) IPython Development Team.

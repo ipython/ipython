@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 An embedded IPython shell.
 """
@@ -105,15 +104,6 @@ class EmbeddedMagics(Magics):
 
         self.shell.should_raise = True
         self.shell.ask_exit()
-
-
-class _Sentinel:
-    def __init__(self, repr):
-        assert isinstance(repr, str)
-        self.repr = repr
-
-    def __repr__(self):
-        return repr
 
 
 class InteractiveShellEmbed(TerminalInteractiveShell):

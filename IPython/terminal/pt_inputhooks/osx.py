@@ -7,7 +7,6 @@ Calls NSApp / CoreFoundation APIs via ctypes.
 
 import ctypes
 import ctypes.util
-from threading import Event
 
 objc = ctypes.cdll.LoadLibrary(ctypes.util.find_library("objc"))  # type: ignore
 

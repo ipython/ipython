@@ -10,7 +10,6 @@ This file is only meant to be imported by process.py, not by end-users.
 # Stdlib
 import errno
 import os
-import subprocess as sp
 import sys
 
 # Our own

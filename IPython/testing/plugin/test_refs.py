@@ -2,7 +2,6 @@
 """
 # Module imports
 # Std lib
-import inspect
 
 # Our own
 

@@ -7,7 +7,6 @@
 from binascii import b2a_hex
 import os
 import sys
-import warnings
 
 __all__ = ['display', 'clear_output', 'publish_display_data', 'update_display', 'DisplayHandle']
 

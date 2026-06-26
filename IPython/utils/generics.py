@@ -1,4 +1,3 @@
-# encoding: utf-8
 """Generic functions for extending IPython."""
 
 from __future__ import annotations
