@@ -133,6 +133,13 @@ follow_imports = "skip"
 #strict = true
 
 [[tool.mypy.overrides]]
+# numpy's stubs use PEP 695 `type` statements (3.12+), which mypy rejects
+# when parsing under python_version = "3.11". Skip following its stubs.
+module = "numpy.*"
+follow_imports = "skip"
+follow_imports_for_stubs = true
+
+[[tool.mypy.overrides]]
 module = [
     "IPython.core.events",
     "IPython.core.magic",
