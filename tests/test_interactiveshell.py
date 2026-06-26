@@ -1248,6 +1248,21 @@ class TestShowTracebackAttack(unittest.TestCase):
         assert str(result.error_in_exec) == "This should not raise an exception"
 
 
+def test_enable_gui_tk_simple_prompt_message(capsys):
+    simple_prompt = ip.simple_prompt
+    ip.simple_prompt = True
+    try:
+        ip.enable_gui("tk")
+        output = capsys.readouterr().out
+    finally:
+        ip.simple_prompt = simple_prompt
+
+    assert output == (
+        "Tk is supported natively when running with `--simple-prompt`; "
+        "no event loop hook will be installed.\n"
+    )
+
+
 @skip_if_not_osx
 def test_enable_gui_osx():
     simple_prompt = ip.simple_prompt

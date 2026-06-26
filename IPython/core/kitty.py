@@ -27,10 +27,18 @@ def _supports_kitty_graphics() -> bool:
     }
     import psutil
 
-    process = psutil.Process()
-    while process := process.parent():
-        if process.name() in supported_terminals:
-            return True
+    try:
+        process = psutil.Process()
+        while process := process.parent():
+            if process.name() in supported_terminals:
+                return True
+    except (psutil.Error, OSError):
+        # Walking the process tree can fail when /proc is mounted with
+        # ``hidepid`` on shared multi-user systems (common on HPC clusters):
+        # ancestor processes owned by other users are inaccessible and psutil
+        # raises AccessDenied. Treat as "unsupported" rather than letting it
+        # abort the import of IPython.
+        return False
     return False
 
 
