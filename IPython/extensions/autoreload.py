@@ -353,6 +353,9 @@ func_attrs = [
     "__closure__",
     "__globals__",
     "__dict__",
+    "__kwdefaults__",
+    "__annotations__",
+    "__type_params__",  # PEP 695, Python 3.12+
 ]
 
 
