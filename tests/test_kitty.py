@@ -15,6 +15,11 @@ class StdoutWithNonCallableIsatty(DummyStdout):
     isatty = False
 
 
+class StdoutTTY(DummyStdout):
+    def isatty(self):
+        return True
+
+
 def test_supports_kitty_graphics_handles_stdout_without_callable_isatty(monkeypatch):
     import platform
 
@@ -48,3 +53,32 @@ import IPython
         text=True,
     )
     assert result.returncode == 0, result.stderr
+
+
+def test_supports_kitty_graphics_handles_psutil_access_denied(monkeypatch):
+    """Detection must not crash when the process tree is inaccessible.
+
+    On shared multi-user systems /proc is often mounted with ``hidepid``
+    (common on HPC clusters), so walking up to an ancestor process owned by
+    another user makes psutil raise AccessDenied. This must be treated as
+    "unsupported" rather than aborting the import of IPython.
+    """
+    import platform
+
+    import psutil
+
+    from IPython.core import kitty
+
+    monkeypatch.setattr(platform, "system", lambda: "Linux")
+    monkeypatch.setattr(sys, "stdout", StdoutTTY())
+
+    class DeniedProcess:
+        def parent(self):
+            raise psutil.AccessDenied(pid=1)
+
+        def name(self):
+            raise psutil.AccessDenied(pid=1)
+
+    monkeypatch.setattr(psutil, "Process", lambda *args, **kwargs: DeniedProcess())
+
+    assert kitty._supports_kitty_graphics() is False

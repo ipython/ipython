@@ -579,7 +579,7 @@ class InteractiveShell(SingletonConfigurable):
     separate_out2 = SeparateUnicode('').tag(config=True)
     wildcards_case_sensitive = Bool(True).tag(config=True)
     xmode = CaselessStrEnum(
-        ("Context", "Plain", "Verbose", "Minimal", "Docs"),
+        ("Context", "Plain", "Verbose", "Minimal", "Docs", "Doctest"),
         default_value="Context",
         help="Switch modes for the IPython exception handlers.",
     ).tag(config=True)

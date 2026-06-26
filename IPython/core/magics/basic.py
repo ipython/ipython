@@ -344,7 +344,7 @@ Currently the magic system has the following functions:""",
     def xmode(self, parameter_s=''):
         """Switch modes for the exception handlers.
 
-        Valid modes: Plain, Context, Verbose, Minimal, and Docs.
+        Valid modes: Plain, Context, Verbose, Minimal, Docs, and Doctest.
 
         - ``Plain``: similar to Python's default traceback.
         - ``Context``: shows several lines of surrounding context for each
@@ -355,6 +355,8 @@ Currently the magic system has the following functions:""",
           a traceback.
         - ``Docs``: a stripped-down version of Verbose, designed for use
           when running doctests.
+        - ``Doctest``: shows only the traceback header, an ellipsis, and the
+          exception line, for easy copy-paste into Python doctests.
 
         If called without arguments, cycles through the available modes.
 

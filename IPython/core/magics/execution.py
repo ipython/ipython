@@ -61,6 +61,7 @@ from IPython.utils.contexts import preserve_keys
 from IPython.utils.ipstruct import Struct
 from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, shellglob
+from IPython.utils.process import arg_split_with_quotes
 from IPython.utils.timing import clock, clock2
 from IPython.core.magics.ast_mod import ReplaceCodeTransformer
 
@@ -579,11 +580,12 @@ class ExecutionMagics(Magics):
         interactive work, while giving each program a 'clean sheet' to run in.
 
         Arguments are expanded using shell-like glob match.  Patterns
-        '*', '?', '[seq]' and '[!seq]' can be used.  Additionally,
-        tilde '~' will be expanded into user's home directory.  Unlike
-        real shells, quotation does not suppress expansions.  Use
-        *two* back slashes (e.g. ``\\\\*``) to suppress expansions.
-        To completely disable these expansions, you can use -G flag.
+        '*', '?', '[seq]' and '[!seq]' can be used, and tilde '~' is
+        expanded to the user's home directory.  As in real shells,
+        wrapping an argument in single or double quotes suppresses glob
+        expansion for that argument (see #12726).  You can also use
+        *two* back slashes (e.g. ``\\\\*``) outside of quotes, or pass
+        the ``-G`` flag to disable expansion entirely.
 
         On Windows systems, the use of single quotes `'` when specifying
         a file is not supported. Use double quotes `"`.
@@ -760,8 +762,21 @@ class ExecutionMagics(Magics):
         if 'G' in opts:
             args = arg_lst[1:]
         else:
-            # tilde and glob expansion
-            args = shellglob(map(os.path.expanduser,  arg_lst[1:]))
+            # tilde and glob expansion. Tokens that were quoted in
+            # parameter_s skip globbing so quotes suppress expansion the
+            # way they do in real shells (#12726).
+            quoted_remaining = {}
+            for tok, was_quoted in arg_split_with_quotes(parameter_s, strict=False):
+                if was_quoted:
+                    quoted_remaining[tok] = quoted_remaining.get(tok, 0) + 1
+            args = []
+            for a in arg_lst[1:]:
+                a_expanded = os.path.expanduser(a)
+                if quoted_remaining.get(a, 0) > 0:
+                    quoted_remaining[a] -= 1
+                    args.append(a_expanded)
+                else:
+                    args.extend(shellglob([a_expanded]))
 
         sys.argv = [filename] + args  # put in the proper filename
 
