@@ -177,7 +177,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
     _init_llm_provider: Callable | None
 
     _llm_provider_instance: Any | None
-    _llm_prefixer: Callable = lambda self, x: "wrong"
+    _llm_prefixer: Callable = lambda self, x: ""
 
     def __init__(self):
         super().__init__()
@@ -193,8 +193,9 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
     def disconnect(self) -> None:
         self._cancel_running_llm_task()
         for pt_app in self._connected_apps:
-            text_insert_event = pt_app.default_buffer.on_text_insert
-            text_insert_event.remove_handler(self.reset_history_position)
+            pt_app.default_buffer.on_text_insert.remove_handler(self.reset_history_position)
+            pt_app.default_buffer.on_cursor_position_changed.remove_handler(self._dismiss)
+        self._connected_apps = []
 
     def connect(self, pt_app: PromptSession) -> None:
         self._connected_apps.append(pt_app)
@@ -363,7 +364,10 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
 
         # here we need a cancellable task so we can't just await the error caught
         self._llm_task = asyncio.create_task(error_catcher(buffer))
-        await self._llm_task
+        try:
+            await self._llm_task
+        except (asyncio.CancelledError, Exception):
+            pass
 
     async def _trigger_llm_core(self, buffer: Buffer):
         """
