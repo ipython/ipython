@@ -10,7 +10,7 @@ IPython 9.15
 Summary
 ~~~~~~~
 
-This release adds a new ``%xmode Doctest`` traceback mode and a number of
+This release adds a new ``%xmode Doctest`` (:ghpull:`15185`) traceback mode and a number of
 robustness fixes around startup, history storage, the debugger, and the Sphinx
 directive. It also contains one backwards-incompatible change to ``%run`` glob
 expansion and one deprecation.
@@ -18,17 +18,19 @@ expansion and one deprecation.
 - :ghpull:`15220` Fix ``%debug`` and ipdb with Python 3.15
 - :ghpull:`15219` Add ``exception`` as an alias for the ``exceptions`` pdb command
 - :ghpull:`15236` Hide ``execfile`` internals in debugger backtraces
+- :ghissue:`15072`/:ghpull:`15246` Fix oinspect ``TypeError`` with objects using a generic ``__getattr__``
+- :ghpull:`15249` Skip ipython directive execution inside excluded ``only`` blocks
+- :ghissue:`15241`/:ghpull:`15255` Close SQLite connections before replacing the history database
+- :ghissue:`15068`/:ghpull:`15255` Deprecate ``IPython.utils.generics.inspect_object``
+
+
 - :ghpull:`15242` Use ``print_stack_entry`` to print frames on Python 3.14
 - :ghpull:`15247` Avoid ``psutil`` requirement on Cygwin
-- :ghpull:`15249` Skip ipython directive execution inside excluded ``only`` blocks
 - :ghpull:`15252` Narrow bare ``except:`` clauses in oinspect and interactiveshell
 - :ghpull:`15253` Remove Python 2 references and fix links in the documentation
 - :ghpull:`15254` Remove stale TODO comment in ``DisplayObject.reload``
-- :ghissue:`15068` Deprecate ``IPython.utils.generics.inspect_object``
-- :ghissue:`15072` Fix oinspect ``TypeError`` with objects using a generic ``__getattr__``
 - :ghissue:`15100` Fix test failures when the IPython source path contains spaces
 - :ghissue:`15193` Honor PEP 263 coding cookies when reading sources in autoreload
-- :ghissue:`15241` Close SQLite connections before replacing the history database
 - :ghissue:`12726` Quoted arguments to ``%run`` no longer undergo glob expansion
 - :ghissue:`11424` Strip ANSI escape sequences from Sphinx directive output
 - :ghissue:`14538` Hide ``execfile`` frames in debugger backtraces
