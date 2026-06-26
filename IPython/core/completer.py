@@ -1404,7 +1404,7 @@ class Completer(Configurable):
         return self._auto_import_func
 
 
-def get__all__entries(obj):
+def get__all__entries(obj) -> list:
     """returns the strings in the __all__ attribute"""
     try:
         words = getattr(obj, '__all__')
@@ -1523,7 +1523,7 @@ def match_dict_keys(
     )
     text_serializable_types = (str, bytes, int, float, slice)
 
-    def filter_prefix_tuple(key):
+    def filter_prefix_tuple(key) -> bool:
         # Reject too short keys
         if len(key) <= prefix_tuple_size:
             return False
@@ -2387,7 +2387,7 @@ class IPCompleter(Completer):
         bare_text = text.lstrip(pre)
         global_matches = self.global_matches(bare_text)
         if not explicit_magic:
-            def matches(magic):
+            def matches(magic) -> tuple:
                 """
                 Filter magics, in particular remove magics that match
                 a name present in global namespace.
@@ -2904,7 +2904,7 @@ class IPCompleter(Completer):
         matches = self.python_func_kw_matches(context.token)
         return _convert_matcher_v1_result_to_v2_no_no(matches, type="param")
 
-    def python_func_kw_matches(self, text):
+    def python_func_kw_matches(self, text) -> list:
         """Match named parameters (kwargs) of the last open function.
 
         .. deprecated:: 8.6
@@ -3217,7 +3217,7 @@ class IPCompleter(Completer):
         result["do_not_suppress"] = {_get_matcher_id(self._jedi_matcher)}
         return result
 
-    def dispatch_custom_completer(self, text):
+    def dispatch_custom_completer(self, text) -> list:
         """
         .. deprecated:: 8.6
             You can use :meth:`custom_completer_matcher` instead.
