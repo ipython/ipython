@@ -275,21 +275,48 @@ def _safe_repr(obj):
 class FormatterWarning(UserWarning):
     """Warning class for errors in formatters"""
 
+
+def _traceback_depth(tb):
+    depth = 0
+    while tb is not None:
+        depth += 1
+        tb = tb.tb_next
+    return depth
+
+
+def _show_formatter_traceback(exc_info):
+    ip = get_ipython()
+    if ip is not None:
+        ip.showtraceback(exc_info)
+    else:
+        traceback.print_exception(*exc_info)
+
+
+def _should_suppress_notimplemented(formatter, exc_info):
+    if not getattr(formatter, "show_nested_notimplemented", False):
+        return True
+
+    _, _, tb = exc_info
+    # A deliberate formatter opt-out only passes through the decorator frame,
+    # the formatter __call__, and the repr method itself.
+    return _traceback_depth(tb) <= 3
+
+
 @decorator
 def catch_format_error(method, self, *args, **kwargs):
     """show traceback on failed format call"""
     try:
         r = method(self, *args, **kwargs)
     except NotImplementedError:
-        # don't warn on NotImplementedErrors
+        exc_info = sys.exc_info()
+        if _should_suppress_notimplemented(self, exc_info):
+            # allow direct repr-method opt-outs to fall back silently
+            return self._check_return(None, args[0])
+        _show_formatter_traceback(exc_info)
         return self._check_return(None, args[0])
     except Exception:
         exc_info = sys.exc_info()
-        ip = get_ipython()
-        if ip is not None:
-            ip.showtraceback(exc_info)
-        else:
-            traceback.print_exception(*exc_info)
+        _show_formatter_traceback(exc_info)
         return self._check_return(None, args[0])
     return self._check_return(r, args[0])
 
@@ -1002,6 +1029,7 @@ class MimeBundleFormatter(BaseFormatter):
     """
     print_method = ObjectName('_repr_mimebundle_')
     _return_type = dict
+    show_nested_notimplemented = True
 
     def _check_return(self, r, obj):
         r = super(MimeBundleFormatter, self)._check_return(r, obj)
