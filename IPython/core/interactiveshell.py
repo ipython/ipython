@@ -4103,8 +4103,12 @@ class InteractiveShell(SingletonConfigurable):
             # history db
             if self.history_manager is not None:
                 self.history_manager.end_session()
-                self.history_manager = None
 
+                if self.history_manager.save_thread is not None:
+                    self.history_manager.save_thread.stop()
+
+                self.history_manager.db.close()
+                self.history_manager = None
     #-------------------------------------------------------------------------
     # Things related to IPython exiting
     #-------------------------------------------------------------------------
