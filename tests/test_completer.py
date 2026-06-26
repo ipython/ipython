@@ -2579,6 +2579,22 @@ def test_undefined_variables(use_jedi, evaluation, code, insert_text):
             assert len(match) == 1, message_on_fail
 
 
+def test_attribute_completion_uses_current_buffer_redefinition():
+    code = "\n".join(["a = []", "a."])
+    ip = get_ipython()
+    ip.user_ns["a"] = 1
+
+    try:
+        with provisionalcompleter(), jedi_status(False), evaluation_policy("limited"):
+            completions = list(ip.Completer.completions(text=code, offset=len(code)))
+    finally:
+        del ip.user_ns["a"]
+
+    completion_texts = {completion.text.lstrip(".") for completion in completions}
+    assert "append" in completion_texts
+    assert "as_integer_ratio" not in completion_texts
+
+
 @pytest.mark.parametrize(
     "code,insert_text",
     [
