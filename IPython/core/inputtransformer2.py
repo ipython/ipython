@@ -77,8 +77,8 @@ class PromptStripper:
             # block contains at least one ">>>" line, to avoid ambiguity with the
             # Python Ellipsis literal.
             self._doctest_initial_re = re.compile(r'^\s*>>>')
-            self._doctest_ps1_re = re.compile(r'^\s*>>>\s?')
-            self._doctest_ps2_re = re.compile(r'^\s*\.\.\.\s?')
+            self._doctest_ps1_re = re.compile(r'^\s*>>>[ \t]?')
+            self._doctest_ps2_re = re.compile(r'^\s*\.\.\.[ \t]?')
 
             # Very small state machine to detect triple-quoted strings in the
             # *same* input block (e.g. user typed """ then pasted doctest).
@@ -95,17 +95,31 @@ class PromptStripper:
         """
         mask: List[bool] = []
         in_triple: str | None = None  # either ''' or """
+        preserve_prompt = False
+        seen_prompt = False
+        string_prefix_re = re.compile(r"(?i)^[rubf]*$")
+
         for line in lines:
-            mask.append(in_triple is not None)
+            mask.append(in_triple is not None and preserve_prompt)
             # Toggle state for each occurrence of """ or ''' in the line.
             for m in self._triple_quote_re.finditer(line):
                 q = m.group(1)
                 if in_triple is None:
                     in_triple = q
-                    mask[-1] = True  # current line is inside triple quotes
+                    before_quote = line[:m.start()]
+                    stripped = self._doctest_ps1_re.sub('', before_quote, count=1)
+                    stripped = self._doctest_ps2_re.sub('', stripped, count=1)
+                    had_prompt = stripped != before_quote
+                    prompted_code = had_prompt and seen_prompt
+                    preserve_prompt = bool(
+                        not prompted_code and string_prefix_re.match(stripped.strip())
+                    )
+                    mask[-1] = preserve_prompt
                 elif in_triple == q:
                     in_triple = None
+                    preserve_prompt = False
                 # else: ignore mismatched triple quote while inside
+            seen_prompt = seen_prompt or bool(self._doctest_initial_re.match(line))
         return mask
 
 
