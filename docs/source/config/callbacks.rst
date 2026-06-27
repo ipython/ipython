@@ -27,6 +27,7 @@ For example::
             print('info.silent =', info.silent)
             print('info.shell_futures =', info.shell_futures)
             print('info.cell_id =', info.cell_id)
+            print('info.cell_meta =', info.cell_meta)
             print(dir(info))
 
         def post_execute(self):
