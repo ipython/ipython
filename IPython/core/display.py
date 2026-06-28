@@ -1047,8 +1047,9 @@ class Image(DisplayObject):
             w, h = _jpegxy(self.data)
         elif self.format == self._FMT_GIF:
             w, h = _gifxy(self.data)
+        elif self.format == self._FMT_WEBP:
+            w, h = _webpxy(self.data)
         else:
-            # retina only supports png
             return
         self.width = w // 2
         self.height = h // 2
