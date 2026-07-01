@@ -17,12 +17,12 @@ jobs:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
 
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.14"
 
@@ -65,7 +65,7 @@ jobs:
 
       - name: Send Zulip notification
         if: startsWith(github.ref, 'refs/tags/')
-        uses: zulip/github-actions-zulip/send-message@e4c8f27c732ba9bd98ac6be0583096dea82feea5 # v1
+        uses: zulip/github-actions-zulip/send-message@f675f2b4eb2a95fae974215476dcb7ad8dfeff6b # v2.0.2
         with:
           api-key: ${{ secrets.ZULIP_API_KEY }}
           email: ${{ secrets.ZULIP_EMAIL }}
