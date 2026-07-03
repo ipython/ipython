@@ -43,8 +43,8 @@ Some guidelines on contributing to IPython:
     - bugfixes should include regression tests.
     - new behavior should at least get minimal exercise.
 * New features and backwards-incompatible changes should be documented by adding
-  a new file to the [pr](docs/source/whatsnew/pr) directory, see [the README.md
-  there](docs/source/whatsnew/pr/README.md) for details.
+  a new file to the [pr](https://github.com/ipython/ipython/tree/main/docs/source/whatsnew/pr) directory, see [the README.md
+  there](https://github.com/ipython/ipython/blob/main/docs/source/whatsnew/pr/README.md) for details.
 * Don't make 'cleanup' pull requests just to change code style.
   We don't follow any style guide strictly, and we consider formatting changes
   unnecessary noise.
