@@ -465,6 +465,25 @@ class ExceptionMessagePreferenceTest(unittest.TestCase):
             ip.run_cell(cell)
         ip.run_cell("%xmode context")
 
+class NameErrorSuggestionTest(unittest.TestCase):
+    def test_verbose_nameerror_suggestion(self):
+        ip.run_cell("%xmode Verbose")
+        with tt.AssertPrints(
+            ["NameError", "Did you mean", "print"],
+            suppress=False,
+        ):
+            ip.run_cell("printn('hello')")
+
+    def test_plain_nameerror_suggestion(self):
+        ip.run_cell("%xmode Plain")
+        try:
+            with tt.AssertPrints(
+                ["NameError", "Did you mean", "print"],
+                suppress=False,
+            ):
+                ip.run_cell("printn('hello')")
+        finally:
+            ip.run_cell("%xmode Verbose")
 
 # ----------------------------------------------------------------------------
 
