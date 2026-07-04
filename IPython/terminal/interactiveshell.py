@@ -302,6 +302,47 @@ class TerminalInteractiveShell(InteractiveShell):
         """,
     ).tag(config=True)
 
+    postfix_completion = Bool(
+        False,
+        help="Enable postfix completion in the terminal prompt.",
+    ).tag(config=True)
+
+    postfix_completion_trigger = Unicode(
+        ".",
+        help="Character sequence used to trigger postfix completion templates.",
+    ).tag(config=True)
+
+    postfix_completion_templates = List(
+        Unicode(),
+        default_value=[
+            "not",
+            "par",
+            "return",
+            "if",
+            "while",
+            "print",
+            "len",
+            "raise",
+            "yield",
+            "str",
+            "list",
+            "set",
+            "dict",
+            "tuple",
+        ],
+        help="Postfix completion templates enabled in the terminal prompt.",
+    ).tag(config=True)
+
+    postfix_completion_style = Unicode(
+        "bg:#44475a #f8f8f2",
+        help="Style used for postfix completion menu entries.",
+    ).tag(config=True)
+
+    postfix_completion_selected_style = Unicode(
+        "bg:#6272a4 #ffffff",
+        help="Style used for the selected postfix completion menu entry.",
+    ).tag(config=True)
+
     mouse_support = Bool(False,
         help="Enable mouse support in the prompt\n(Note: prevents selecting text with the mouse)"
     ).tag(config=True)

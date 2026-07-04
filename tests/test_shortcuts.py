@@ -16,6 +16,11 @@ from IPython.terminal.shortcuts.auto_suggest import (
 )
 from IPython.terminal.shortcuts.auto_match import skip_over
 from IPython.terminal.shortcuts import create_ipython_shortcuts, reset_search_buffer
+from IPython.terminal.shortcuts.postfix import (
+    expand_postfix,
+    postfix_completion,
+    postfix_completions,
+)
 from IPython.testing import decorators as dec
 
 from prompt_toolkit.history import InMemoryHistory
@@ -518,3 +523,123 @@ def test_setting_shortcuts_before_pt_app_init():
     ]
     ipython.shortcuts = shortcuts
     assert ipython.shortcuts == shortcuts
+
+
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        ("x.not", "not x"),
+        ("x.par", "(x)"),
+        ("x.return", "return x"),
+        ("x.if", "if x:\n    "),
+        ("x.while", "while x:\n    "),
+        ("x.print", "print(x)"),
+        ("items.len", "len(items)"),
+        ("err.raise", "raise err"),
+        ("x.yield", "yield x"),
+        ("x.str", "str(x)"),
+        ("x.list", "list(x)"),
+        ("x.set", "set(x)"),
+        ("x.dict", "dict(x)"),
+        ("x.tuple", "tuple(x)"),
+        ("    value.if", "    if value:\n        "),
+        ("foo(a + b).print", "print(foo(a + b))"),
+    ],
+)
+def test_postfix_expansion(text, expected):
+    expansion = expand_postfix(
+        text,
+        ".",
+        [
+            "not",
+            "par",
+            "return",
+            "if",
+            "while",
+            "print",
+            "len",
+            "raise",
+            "yield",
+            "str",
+            "list",
+            "set",
+            "dict",
+            "tuple",
+        ],
+    )
+    assert expansion is not None
+    assert expansion.text == expected
+    assert expansion.start_position == -len(text)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "obj.items",
+        "x = 1.print",
+        "x # comment.print",
+        "'x.print",
+        "# x.print",
+        "x.print",
+        "x.not",
+    ],
+)
+def test_postfix_expansion_rejects_non_matches(text):
+    expansion = expand_postfix(text, ".", ["print"])
+    if text == "x.print":
+        assert expansion is not None
+    else:
+        assert expansion is None
+
+
+def test_postfix_expansion_custom_trigger():
+    expansion = expand_postfix("x!not", "!", ["not"])
+    assert expansion is not None
+    assert expansion.text == "not x"
+    assert expand_postfix("x.not", "!", ["not"]) is None
+
+
+def test_postfix_completions_filter_by_prefix():
+    completions = postfix_completions("x.pri", ".", ["print", "par", "return"])
+    assert [completion.key for completion in completions] == ["print"]
+    assert completions[0].prefix == "pri"
+    assert completions[0].expansion.text == "print(x)"
+    assert completions[0].start_position == -len("x.pri")
+
+
+def test_postfix_completions_empty_prefix():
+    completions = postfix_completions("x.", ".", ["print", "par"])
+    assert [completion.key for completion in completions] == ["print", "par"]
+    assert completions[0].expansion.text == "print(x)"
+    assert completions[0].start_position == -len("x.")
+
+
+def test_postfix_completions_reject_invalid_expression():
+    assert postfix_completions("x = 1.pri", ".", ["print"]) == []
+    assert postfix_completions("x # comment.pri", ".", ["print"]) == []
+
+
+def test_postfix_completion_shortcut_defaults_off(ipython_with_prompt):
+    matched = find_bindings_by_command(postfix_completion)
+    assert len(matched) == 1
+    assert not ipython_with_prompt.postfix_completion
+
+
+def test_postfix_completion_handler_expands(ipython_with_prompt):
+    ipython_with_prompt.postfix_completion = True
+    event = make_event("x.print", len("x.print"), "")
+    event.current_buffer.delete_before_cursor = Mock()
+    event.current_buffer.insert_text = Mock()
+
+    postfix_completion(event)
+
+    event.current_buffer.delete_before_cursor.assert_called_once_with(len("x.print"))
+    event.current_buffer.insert_text.assert_called_once_with("print(x)")
+    ipython_with_prompt.postfix_completion = False
+
+
+def test_postfix_completion_handler_passes_through(ipython_with_prompt):
+    event = make_event("x.unknown", len("x.unknown"), "")
+    with patch("IPython.terminal.shortcuts.postfix.pass_through.reply") as reply:
+        postfix_completion(event)
+    reply.assert_called_once_with(event)

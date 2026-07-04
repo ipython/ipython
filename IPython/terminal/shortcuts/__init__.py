@@ -27,6 +27,7 @@ from prompt_toolkit.filters import Condition
 from IPython.core.getipython import get_ipython
 from . import auto_match as match
 from . import auto_suggest
+from . import postfix
 from .filters import filter_from_string
 from IPython.utils.decorators import undoc
 
@@ -608,6 +609,16 @@ KEY_BINDINGS = [
         indent_buffer,
         ["tab"],  # Ctrl+I == Tab
         "default_buffer_focused & ~has_selection & insert_mode & cursor_in_leading_ws",
+    ),
+    Binding(
+        postfix.postfix_completion,
+        ["tab"],  # Ctrl+I == Tab
+        "default_buffer_focused"
+        " & ~has_selection"
+        " & insert_mode"
+        " & ~cursor_in_leading_ws"
+        " & postfix_completion_enabled"
+        " & pass_through",
     ),
     Binding(newline_autoindent, ["c-o"], "default_buffer_focused & emacs_insert_mode"),
     Binding(open_input_in_editor, ["f2"], "default_buffer_focused"),

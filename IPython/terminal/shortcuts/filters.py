@@ -85,6 +85,12 @@ def auto_match():
     return shell.auto_match
 
 
+@Condition
+def postfix_completion_enabled():
+    shell = get_ipython()
+    return shell.postfix_completion
+
+
 def all_quotes_paired(quote, buf):
     paired = True
     i = 0
@@ -255,6 +261,7 @@ KEYBINDING_FILTERS = {
     "supports_suspend": supports_suspend,
     "is_windows_os": is_windows_os,
     "auto_match": auto_match,
+    "postfix_completion_enabled": postfix_completion_enabled,
     "focused_insert": (vi_insert_mode | emacs_insert_mode) & default_buffer_focused,
     "not_inside_unclosed_string": not_inside_unclosed_string,
     "readline_like_completions": readline_like_completions,

@@ -137,8 +137,10 @@ class IPythonPTCompleter(Completer):
         Private equivalent of get_completions() use only for unit_testing.
         """
         debug = getattr(ipyc, 'debug', False)
-        completions = _deduplicate_completions(
-            body, ipyc.completions(body, offset))
+        completions = list(
+            _deduplicate_completions(body, ipyc.completions(body, offset))
+        )
+        min_elide = 30 if self.shell is None else self.shell.min_elide
         for c in completions:
             if not c.text:
                 # Guard against completion machinery giving us an empty string.
@@ -169,7 +171,6 @@ class IPythonPTCompleter(Completer):
             adjusted_text = _adjust_completion_text_based_on_context(
                 c.text, body, offset
             )
-            min_elide = 30 if self.shell is None else self.shell.min_elide
             if c.type == "function":
                 yield Completion(
                     adjusted_text,
@@ -192,6 +193,31 @@ class IPythonPTCompleter(Completer):
                     ),
                     display_meta=c.type,
                 )
+
+        shell = self.shell if self.shell is not None else get_ipython()
+        if not getattr(shell, "postfix_completion", False):
+            return
+
+        from IPython.terminal.shortcuts.postfix import postfix_completions
+
+        line_before_cursor = body[:offset].split("\n")[-1]
+        for completion in postfix_completions(
+            line_before_cursor,
+            shell.postfix_completion_trigger,
+            shell.postfix_completion_templates,
+        ):
+            yield Completion(
+                completion.expansion.text,
+                start_position=completion.start_position,
+                display=_elide(
+                    completion.key,
+                    completion.prefix,
+                    min_elide=min_elide,
+                ),
+                display_meta="postfix",
+                style=shell.postfix_completion_style,
+                selected_style=shell.postfix_completion_selected_style,
+            )
 
 
 class IPythonPTLexer(Lexer):

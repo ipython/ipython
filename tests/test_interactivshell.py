@@ -6,13 +6,18 @@
 import sys
 import unittest
 import os
+from types import SimpleNamespace
 
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 
 
 from IPython.testing import tools as tt
 
-from IPython.terminal.ptutils import _elide, _adjust_completion_text_based_on_context
+from IPython.terminal.ptutils import (
+    IPythonPTCompleter,
+    _adjust_completion_text_based_on_context,
+    _elide,
+)
 from IPython.terminal.shortcuts.auto_suggest import NavigableAutoSuggestFromHistory
 
 
@@ -98,6 +103,92 @@ class TestContextAwareCompletion(unittest.TestCase):
         self.assertEqual(
             _adjust_completion_text_based_on_context("func2", "func1(a=)", 7), "func2"
         )
+
+
+class DummyCompleter:
+    debug = False
+
+    def __init__(self, completions=()):
+        self._completions = completions
+
+    def completions(self, body, offset):
+        return self._completions
+
+
+def test_postfix_prompt_toolkit_completions():
+    ip = get_ipython()
+    old_enabled = ip.postfix_completion
+    old_style = ip.postfix_completion_style
+    old_selected_style = ip.postfix_completion_selected_style
+    try:
+        ip.postfix_completion = True
+        ip.postfix_completion_style = "bg:#111111 #eeeeee"
+        ip.postfix_completion_selected_style = "bg:#222222 #ffffff"
+        completer = IPythonPTCompleter(shell=ip)
+
+        completions = list(
+            completer._get_completions(
+                "x.pri", len("x.pri"), len("x.pri"), DummyCompleter()
+            )
+        )
+
+        assert len(completions) == 1
+        assert completions[0].text == "print(x)"
+        assert completions[0].start_position == -len("x.pri")
+        assert completions[0].display_text == "print"
+        assert completions[0].display_meta_text == "postfix"
+        assert completions[0].style == "bg:#111111 #eeeeee"
+        assert completions[0].selected_style == "bg:#222222 #ffffff"
+    finally:
+        ip.postfix_completion = old_enabled
+        ip.postfix_completion_style = old_style
+        ip.postfix_completion_selected_style = old_selected_style
+
+
+def test_postfix_prompt_toolkit_completions_follow_normal_completions():
+    ip = get_ipython()
+    old_enabled = ip.postfix_completion
+    try:
+        ip.postfix_completion = True
+        completer = IPythonPTCompleter(shell=ip)
+        normal = SimpleNamespace(
+            start=2,
+            end=5,
+            text="private",
+            type="instance",
+            signature="",
+        )
+
+        completions = list(
+            completer._get_completions(
+                "x.pri", len("x.pri"), len("x.pri"), DummyCompleter([normal])
+            )
+        )
+
+        assert [completion.text for completion in completions] == [
+            "private",
+            "print(x)",
+        ]
+    finally:
+        ip.postfix_completion = old_enabled
+
+
+def test_postfix_prompt_toolkit_completions_disabled():
+    ip = get_ipython()
+    old_enabled = ip.postfix_completion
+    try:
+        ip.postfix_completion = False
+        completer = IPythonPTCompleter(shell=ip)
+
+        completions = list(
+            completer._get_completions(
+                "x.pri", len("x.pri"), len("x.pri"), DummyCompleter()
+            )
+        )
+
+        assert completions == []
+    finally:
+        ip.postfix_completion = old_enabled
 
 
 # Decorator for interaction loop tests -----------------------------------------
