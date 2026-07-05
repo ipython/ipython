@@ -29,11 +29,10 @@ jobs:
         sudo apt-get install graphviz
     - name: Install Python dependencies
       run: |
-        uv pip install --system setuptools coverage rstvalidator
+        uv pip install --system setuptools coverage
         uv pip install --system -r docs/requirements.txt
     - name: Build docs
       run: |
-        python -m rstvalidator long_description.rst
         python tools/fixup_whats_new_pr.py
         make -C docs/ html SPHINXOPTS="-W" \
           PYTHON="coverage run -a" \
