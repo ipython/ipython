@@ -17,12 +17,12 @@ multiple configuration options to be set to properly work:
 
  - Set a keybinding to trigger LLM suggestions. Due to terminal limitations
    across platforms and emulators, it is difficult to provide a default
-   keybinding. Note that not all keybindings are availables, in particular all
+   keybinding. Note that not all keybindings are available, in particular all
    the `Ctrl-Enter`, `Alt-backslash` and `Ctrl-Shift-Enter` are not available
    without integration with your terminal emulator.
 
- - Chose a LLM `provider`, usually from Jupyter-AI. This will be the interface
-   between IPython itself, and the LLM – that may be local or in on a server.
+ - Choose an LLM `provider`, usually from Jupyter-AI. This will be the interface
+   between IPython itself, and the LLM – that may be local or on a server.
 
  - Configure said provider with models, API keys, etc – this will depend on the
    provider, and you will have to refer to Jupyter-AI documentation, and/or your
@@ -40,12 +40,12 @@ Setup a keybinding
 
 You may want to refer on how to setup a keybinding in IPython, but in short you
 want to bind the ``IPython:auto_suggest.llm_autosuggestion`` command to a
-keybinding, and have it active only when the default buffer isi focused, and
-when using the NavigableSuggestions suggestter (this is the default suggestter,
-the one that is history and LLM aware). Thus the ``navigable_suggestions &
-default_buffer_focused`` filter should be used.
+keybinding, and have it active only when the default buffer is focused, and
+when using the ``NavigableAutoSuggestFromHistory`` suggester (this is the
+default suggester, the one that is history and LLM aware). Thus the
+``navigable_suggestions & default_buffer_focused`` filter should be used.
 
-Usually ``Ctrl-Q`` on macos is an available shortcut, note that is does use
+Usually ``Ctrl-Q`` on macOS is an available shortcut, note that it does use
 ``Ctrl``, and not ``Command``.
 
 The following example will bind ``Ctrl-Q`` to the ``llm_autosuggestion``
@@ -81,8 +81,8 @@ In your configuration file adapt the following line to your needs:
 Configure the provider
 ----------------------
 
-It the provider needs to be passed parameters at initialization, you can do so
-by setting the ``llm_construction_kwargs`` traitlet.
+If the provider needs to be passed parameters at initialization, you can do so
+by setting the ``llm_constructor_kwargs`` traitlet.
 
 .. code-block:: python
 
@@ -442,7 +442,7 @@ IPython configuration::
 
             if text.startswith('!') or text.startswith('%'): # execute the input...
 
-                buffer.accept_action.validate_and_handle(event.cli, buffer)
+                buffer.validate_and_handle()
 
             else: # insert a newline with auto-indentation...
 
