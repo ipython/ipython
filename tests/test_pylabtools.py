@@ -19,7 +19,7 @@ import numpy as np
 
 from IPython.core.getipython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
-from IPython.core.display import _PNG, _JPEG
+from IPython.core.display import ImageFormat
 from IPython.core import pylabtools as pt
 
 from IPython.testing import decorators as dec
@@ -66,7 +66,7 @@ def test_figure_to_jpeg():
     ax.plot([1, 2, 3])
     plt.draw()
     jpeg = pt.print_figure(fig, "jpeg", pil_kwargs={"optimize": 50})[:100].lower()
-    assert jpeg.startswith(_JPEG)
+    assert ImageFormat.from_data(jpeg) is ImageFormat.jpeg
 
 
 def test_retina_figure():
@@ -80,7 +80,7 @@ def test_retina_figure():
     ax.plot([1, 2, 3])
     plt.draw()
     png, md = pt.retina_figure(fig)
-    assert png.startswith(_PNG)
+    assert ImageFormat.from_data(png) is ImageFormat.png
     assert "width" in md
     assert "height" in md
 
@@ -126,7 +126,7 @@ def test_select_figure_formats_kwargs():
     png = formatter(fig)
     assert isinstance(png, str)
     png_bytes = a2b_base64(png)
-    assert png_bytes.startswith(_PNG)
+    assert ImageFormat.from_data(png_bytes) is ImageFormat.png
 
 
 def test_select_figure_formats_set():

@@ -10,6 +10,7 @@ from unittest import mock
 import pytest
 
 from IPython import display
+from IPython.core.display import ImageFormat
 from IPython.core.getipython import get_ipython
 from IPython.utils.io import capture_output
 from IPython.utils.tempdir import NamedFileInTemporaryDirectory
@@ -36,11 +37,10 @@ def test_image_size():
 
 def test_image_mimes():
     fmt = get_ipython().display_formatter.format
-    for format in display.Image._ACCEPTABLE_EMBEDDINGS:
-        mime = display.Image._MIMETYPES[format]
-        img = display.Image(b"garbage", format=format)
+    for name, format in ImageFormat.__members__.items():
+        img = display.Image(b"garbage", format=name)
         data, metadata = fmt(img)
-        assert sorted(data) == sorted([mime, "text/plain"])
+        assert sorted(data) == sorted([format.mime_type, "text/plain"])
 
 
 def test_geojson():

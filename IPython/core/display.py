@@ -3,7 +3,10 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from __future__ import annotations
 
+from enum import Enum
+from dataclasses import dataclass, KW_ONLY
 from binascii import b2a_base64, hexlify
 import html
 import json
@@ -15,10 +18,13 @@ from copy import deepcopy
 from os.path import splitext
 from pathlib import Path, PurePath
 
-from typing import Optional
+from typing import Optional, TYPE_CHECKING, Self
 
 from IPython.testing.skipdoctest import skip_doctest
 from . import display_functions
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 __all__ = [
@@ -790,14 +796,6 @@ class Javascript(TextDisplayObject):
         return r
 
 
-# constants for identifying png/jpeg/gif/webp data
-_PNG = b"\x89PNG\r\n\x1a\n"
-_JPEG = b"\xff\xd8"
-_GIF1 = b"GIF87a"
-_GIF2 = b"GIF89a"
-_WEBP = b"WEBP"
-
-
 def _pngxy(data):
     """read the (width, height) from a PNG header"""
     ihdr = data.index(b'IHDR')
@@ -850,20 +848,38 @@ def _webpxy(data):
         raise ValueError("Not a valid WEBP header")
 
 
+@dataclass
+class _ImageFormat:
+    magics: tuple[bytes, ...]
+    """Constants for identifying image data."""
+
+    shape: Callable[[bytes], tuple[int, int]]
+    """Reads (width, height) from image data."""
+
+
+class ImageFormat(_ImageFormat, Enum):
+    png = (b"\x89PNG\r\n\x1a\n",), _pngxy
+    jpeg = (b"\xff\xd8",), _jpegxy
+    jpg = jpeg  # alias, has `.name == "jpeg"`
+    gif = (b"GIF87a", b"GIF89a"), _gifxy
+    webp = (b"WEBP",), _webpxy
+
+    @property
+    def mime_type(self):
+        return f"image/{self.name}"
+
+    @classmethod
+    def from_data(cls, data: bytes) -> Self | None:
+        for fmt in cls:
+            for magic in fmt.magics:
+                if data.startswith(magic):
+                    return fmt
+        return None
+
+
 class Image(DisplayObject):
 
     _read_flags = "rb"
-    _FMT_JPEG = "jpeg"
-    _FMT_PNG = "png"
-    _FMT_GIF = "gif"
-    _FMT_WEBP = "webp"
-    _ACCEPTABLE_EMBEDDINGS = [_FMT_JPEG, _FMT_PNG, _FMT_GIF, _FMT_WEBP]
-    _MIMETYPES = {
-        _FMT_PNG: "image/png",
-        _FMT_JPEG: "image/jpeg",
-        _FMT_GIF: "image/gif",
-        _FMT_WEBP: "image/webp",
-    }
 
     def __init__(
         self,
@@ -978,43 +994,25 @@ class Image(DisplayObject):
 
         if format is None:
             if ext is not None:
-                if ext == u'jpg' or ext == u'jpeg':
-                    format = self._FMT_JPEG
-                elif ext == u'png':
-                    format = self._FMT_PNG
-                elif ext == u'gif':
-                    format = self._FMT_GIF
-                elif ext == "webp":
-                    format = self._FMT_WEBP
-                else:
-                    format = ext.lower()
-            elif isinstance(data, bytes):
-                # infer image type from image data header,
-                # only if format has not been specified.
-                if data[:2] == _JPEG:
-                    format = self._FMT_JPEG
-                elif data[:8] == _PNG:
-                    format = self._FMT_PNG
-                elif data[8:12] == _WEBP:
-                    format = self._FMT_WEBP
-                elif data[:6] == _GIF1 or data[:6] == _GIF2:
-                    format = self._FMT_GIF
+                format = ext.lower()
+            elif isinstance(data, bytes) and (
+                image_format := ImageFormat.from_data(data)
+            ):
+                format = image_format.name
+            else:  # failed to detect format, default png
+                format = ImageFormat.png.name
+        else:
+            format = format.lower()
+        # normalize e.g. `jpg` -> `jpeg`, `UNKNOWN` → `unknown`
+        self.format = (
+            ImageFormat[format].name if format in ImageFormat.__members__ else format
+        )
 
-        # failed to detect format, default png
-        if format is None:
-            format = self._FMT_PNG
-
-        if format.lower() == 'jpg':
-            # jpg->jpeg
-            format = self._FMT_JPEG
-
-        self.format = format.lower()
         self.embed = embed if embed is not None else (url is None)
-
-        if self.embed and self.format not in self._ACCEPTABLE_EMBEDDINGS:
-            raise ValueError("Cannot embed the '%s' image format" % (self.format))
         if self.embed:
-            self._mimetype = self._MIMETYPES.get(self.format)
+            if self.format not in ImageFormat.__members__:
+                raise ValueError("Cannot embed the '%s' image format" % (self.format))
+            self._mimetype = ImageFormat[self.format].mime_type
 
         self.width = width
         self.height = height
@@ -1041,14 +1039,8 @@ class Image(DisplayObject):
         """load pixel-doubled width and height from image data"""
         if not self.embed:
             return
-        if self.format == self._FMT_PNG:
-            w, h = _pngxy(self.data)
-        elif self.format == self._FMT_JPEG:
-            w, h = _jpegxy(self.data)
-        elif self.format == self._FMT_GIF:
-            w, h = _gifxy(self.data)
-        elif self.format == self._FMT_WEBP:
-            w, h = _webpxy(self.data)
+        if self.format in ImageFormat.__members__:
+            w, h = ImageFormat[self.format].shape(self.data)
         else:
             return
         self.width = w // 2
@@ -1118,14 +1110,14 @@ class Image(DisplayObject):
             return b64_data
 
     def _repr_png_(self):
-        if self.embed and self.format == self._FMT_PNG:
+        if self.embed and self.format == ImageFormat.png.name:
             return self._data_and_metadata()
 
     def _repr_jpeg_(self):
-        if self.embed and self.format == self._FMT_JPEG:
+        if self.embed and self.format == ImageFormat.jpeg.name:
             return self._data_and_metadata()
 
-    def _find_ext(self, s):
+    def _find_ext(self, s: str) -> str:
         base, ext = splitext(s)
 
         if not ext:
