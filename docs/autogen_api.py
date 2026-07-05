@@ -26,15 +26,13 @@ if __name__ == '__main__':
                                         r'\.extensions',
                                         # This isn't API
                                         r'\.sphinxext',
-                                        # Shims
-                                        r'\.kernel',
+                                        # The pt_inputhooks modules often cause
+                                        # problems on import, such as trying to
+                                        # load incompatible Qt bindings.
                                         r'\.terminal\.pt_inputhooks',
                                         ]
 
-    # The inputhook* modules often cause problems on import, such as trying to
-    # load incompatible Qt bindings. It's easiest to leave them all out. The
     docwriter.module_skip_patterns += [
-        r"\.lib\.inputhook.+",
         r"\.ipdoctest",
         r"\.testing\.plugin",
         # We document this manually.
@@ -42,11 +40,9 @@ if __name__ == '__main__':
         # These are exposed in display
         r"\.core\.display",
         r"\.lib\.display",
-        r"\.utils\.version",
         # Private APIs (there should be a lot more here)
         r"\.terminal\.ptutils",
     ]
-    # main API is in the inputhook module, which is documented.
 
     # These modules import functions and classes from other places to expose
     # them as part of the public API. They must have __all__ defined. The

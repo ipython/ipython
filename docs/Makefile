@@ -35,7 +35,7 @@ clean_api:
 clean: clean_api
 	-rm -rf build/* dist/*
 	-rm -f $(SRCDIR)/config/options/config-generated.txt
-	-rm -f $(SRCDIR)/config/shortcuts/*.csv
+	-rm -f $(SRCDIR)/config/shortcuts/table.tsv
 	-rm -f $(SRCDIR)/interactive/magics-generated.txt
 
 # For final distribution, only build HTML.  We leave it hardlinked at the

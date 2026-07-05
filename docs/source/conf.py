@@ -7,8 +7,6 @@
 import sys, os
 from pathlib import Path
 
-import tomllib
-
 from sphinx_toml import load_into_locals
 from intersphinx_registry import get_intersphinx_mapping
 import sphinx_rtd_theme
@@ -139,8 +137,8 @@ texinfo_documents = [
 #
 # The full version, including alpha/beta/rc tags.
 release = "%s" % iprelease["version"]
-# Just the X.Y.Z part, no '-dev'
-version = iprelease["version"].split("-", 1)[0]
+# Just the X.Y.Z part, no '.dev'
+version = ".".join(map(str, iprelease["version_info"][:3]))
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
