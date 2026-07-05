@@ -34,7 +34,7 @@ class LSString(str):
         .l (or .list) : value as list (split on newlines).
         .n (or .nlstr): original value (the string itself).
         .s (or .spstr): value as whitespace-separated string.
-        .p (or .paths): list of path objects (requires path.py package)
+        .p (or .paths): list of pathlib.Path objects (existing files only)
 
     Any values which require transformations are computed only once and
     cached.
@@ -99,7 +99,7 @@ class SList(list[Any]):
     * .l (or .list) : value as list (the list itself).
     * .n (or .nlstr): value as a string, joined on newlines.
     * .s (or .spstr): value as a string, joined on spaces.
-    * .p (or .paths): list of path objects (requires path.py package)
+    * .p (or .paths): list of pathlib.Path objects (existing files only)
 
     Any values which require transformations are computed only once and
     cached."""
