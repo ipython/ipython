@@ -50,23 +50,15 @@ of three ways of compiling code:
   implicitly called.
 
 
-The ``code`` field is split into individual blocks each of which is valid for
-execution in 'single' mode, and then:
-
-- If there is only a single block: it is executed in 'single' mode.
-
-- If there is more than one block:
-
-  * if the last block is a single line long, run all but the last in 'exec' mode
-    and the very last one in 'single' mode.  This makes it easy to type simple
-    expressions at the end to see computed values.
-
-  * if the last block is no more than two lines long, run all but the last in
-    'exec' mode and the very last one in 'single' mode.  This makes it easy to
-    type simple expressions at the end to see computed values.  - otherwise
-    (last one is also multiline), run all in 'exec' mode
-
-  * otherwise (last block is also multiline), run all in 'exec' mode as a single
-    unit.
+The transformed ``code`` is parsed into a single abstract syntax tree, and its
+top-level nodes are executed one after the other.  Which nodes get to display
+their value is controlled by the ``InteractiveShell.ast_node_interactivity``
+option (default: ``last_expr``): nodes selected for display (by default, the
+last node, if it is an expression) are compiled in 'single' mode so that
+:func:`sys.displayhook` is triggered, while all other nodes are compiled in
+'exec' mode.  This makes it easy to type simple expressions at the end of a
+cell to see computed values.  Other accepted values for
+``ast_node_interactivity`` are ``all``, ``last``, ``none`` and
+``last_expr_or_assign``.
 
 
