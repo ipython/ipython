@@ -4,17 +4,14 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-PAPER         =
 SRCDIR        = source
 BUILDDIR      = build
 PYTHON        = python3
 
 # Internal variables.
-PAPEROPT_a4     = -D latex_paper_size=a4
-PAPEROPT_letter = -D latex_paper_size=letter
-ALLSPHINXOPTS   = -d build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) $(SRCDIR)
+ALLSPHINXOPTS   = -d build/doctrees $(SPHINXOPTS) $(SRCDIR)
 
-.PHONY: help clean html web pickle htmlhelp latex changes linkcheck api
+.PHONY: help clean html web pickle htmlhelp changes linkcheck api
 
 default: html
 
@@ -24,16 +21,13 @@ help:
 	@echo "  html_noapi  same as above, without the time consuming API docs"
 	@echo "  pickle      pickle files (usable by e.g. sphinx-web)"
 	@echo "  htmlhelp    HTML files and a HTML help project"
-	@echo "  latex       LaTeX files, you can set PAPER=a4 or PAPER=letter"
 	@echo "  texinfo     Texinfo files"
 	@echo "  info        Texinfo files and run them through makeinfo"
 	@echo "  changes     an overview over all changed/added/deprecated items"
 	@echo "  linkcheck   check all external links for integrity (takes a long time)"
 	@echo
 	@echo "Compound utility targets:"
-	@echo "pdf          latex and then runs the PDF generation"
-	@echo "all          html and pdf"
-	@echo "dist         all, and then puts the results in dist/"
+	@echo "dist         html, and then hardlinks the results into html/"
 
 clean_api:
 	-rm -rf $(SRCDIR)/api/generated
@@ -44,16 +38,9 @@ clean: clean_api
 	-rm -f $(SRCDIR)/config/shortcuts/*.csv
 	-rm -f $(SRCDIR)/interactive/magics-generated.txt
 
-pdf: latex
-	cd build/latex && make all-pdf
-
-all: html pdf
-
-# For final distribution, only build HTML (our pdf is now so large as to be
-# unusable, takes forever to build and just bloats the downloads).  We leave
-# them hardlinked at the top-level so users find them easily, though the
-# original build/html dir is left in-place (useful to reload builds while
-# testing).
+# For final distribution, only build HTML.  We leave it hardlinked at the
+# top-level so users find it easily, though the original build/html dir is
+# left in-place (useful to reload builds while testing).
 dist: html
 	rm -rf html
 	cp -al build/html .
@@ -106,14 +93,6 @@ htmlhelp:
 	@echo
 	@echo "Build finished; now you can run HTML Help Workshop with the" \
 	      ".hhp project file in build/htmlhelp."
-
-latex: api autoconfig
-	mkdir -p build/latex build/doctrees
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) build/latex
-	@echo
-	@echo "Build finished; the LaTeX files are in build/latex."
-	@echo "Run \`make all-pdf' or \`make all-ps' in that directory to" \
-	      "run these through (pdf)latex."
 
 changes:
 	mkdir -p build/changes build/doctrees

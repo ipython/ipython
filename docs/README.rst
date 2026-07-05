@@ -44,8 +44,6 @@ docs. When you are working on the narrative documentation, the most time
 consuming portion  of the build process is the processing and rendering of the
 API documentation. This build target skips that.
 
-``make pdf`` will compile a pdf from the documentation.
-
 You can run ``make help`` to see information on all possible make targets.
 
 To save time,
@@ -54,7 +52,7 @@ previous docs build.
 To remove the previous docs build you can use ``make clean``.
 You can also combine ``clean`` with other `make` commands;
 for example,
-``make clean html`` will do a complete rebuild of the docs or ``make clean pdf`` will do a complete build of the pdf.
+``make clean html`` will do a complete rebuild of the docs.
 
 
 Continuous Integration

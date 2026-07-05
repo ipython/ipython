@@ -57,11 +57,3 @@ html_additional_pages = [
 numpydoc_show_class_members = "False"
 numpydoc_class_members_toctree = "False"
 warning_is_error = "True"
-
-[latex]
-latex_documents = [
-    ['index', 'ipython.tex', 'IPython Documentation', 'The IPython Development Team', 'manual', 'True'],
-    ['parallel/winhpc_index', 'winhpc_whitepaper.tex', 'Using IPython on Windows HPC Server 2008', "Brian E. Granger", 'manual', 'True']
-]
-latex_use_modindex = "True"
-latex_font_size = "11pt"
