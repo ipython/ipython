@@ -27,19 +27,6 @@ modindex_common_prefix = ["IPython."]
 [sphinx.source_suffix]
 ".rst" = "restructuredtext"
 
-[intersphinx_mapping]
-python = { url = 'https://docs.python.org/3', fallback = '' }
-rpy2 = { url = 'https://rpy2.github.io/doc/latest/html', fallback = '' }
-jupyterclient = { url = 'https://jupyter-client.readthedocs.io/en/latest', fallback = '' }
-jupyter = { url = 'https://jupyter.readthedocs.io/en/latest', fallback = '' }
-jedi = { url = 'https://jedi.readthedocs.io/en/latest', fallback = '' }
-traitlets = { url = 'https://traitlets.readthedocs.io/en/latest', fallback = '' }
-ipykernel = { url = 'https://ipykernel.readthedocs.io/en/latest', fallback = '' }
-prompt_toolkit = { url = 'https://python-prompt-toolkit.readthedocs.io/en/stable', fallback = '' }
-ipywidgets = { url = 'https://ipywidgets.readthedocs.io/en/stable', fallback = '' }
-ipyparallel = { url = 'https://ipyparallel.readthedocs.io/en/stable', fallback = '' }
-pip = { url = 'https://pip.pypa.io/en/stable', fallback = '' }
-
 [html]
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
@@ -52,8 +39,3 @@ html_additional_pages = [
     ["interactive/nbconvert", "notebook_redirect.html"],
     ["interactive/public_server", "notebook_redirect.html"]
 ]
-
-[numpydoc]
-numpydoc_show_class_members = "False"
-numpydoc_class_members_toctree = "False"
-warning_is_error = "True"
