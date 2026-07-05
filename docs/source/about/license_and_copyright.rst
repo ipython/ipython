@@ -10,7 +10,10 @@ Licenses
 IPython source code and examples are licensed under the terms of the
 new or revised BSD license, as follows::
 
-    Copyright (c) 2011, IPython Development Team
+    Copyright (c) 2008-Present, IPython Development Team
+    Copyright (c) 2001-2007, Fernando Perez <fernando.perez@colorado.edu>
+    Copyright (c) 2001, Janko Hauser <jhauser@zscout.de>
+    Copyright (c) 2001, Nathaniel Gray <n8gray@caltech.edu>
 
     All rights reserved.
 
@@ -394,9 +397,9 @@ a similar (MIT) open source license.
 Miscellaneous
 =============
 
-Some files (DPyGetOpt.py, for example) may be licensed under different
-conditions. Ultimately each file indicates clearly the conditions under which
-its author/authors have decided to publish the code.
+Some files may be licensed under different conditions. Ultimately each file
+indicates clearly the conditions under which its author/authors have decided
+to publish the code.
 
 Versions of IPython up to and including 0.6.3 were released under the GNU
 Lesser General Public License (LGPL), available at

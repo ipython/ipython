@@ -111,5 +111,5 @@ To use this feature you must:
 
 - Install git >= 2.23
 - Configure your local git repo by running:
-   - POSIX: ``tools\configure-git-blame-ignore-revs.sh``
+   - POSIX: ``tools/configure-git-blame-ignore-revs.sh``
    - Windows:  ``tools\configure-git-blame-ignore-revs.bat``

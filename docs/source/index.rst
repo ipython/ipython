@@ -18,7 +18,7 @@ interactively.  Its main components are:
 
 
     .. image:: ./_images/ipython-6-screenshot.png
-        :alt: Screenshot of IPython 6.0
+        :alt: Screenshot of IPython running in a terminal
         :align: center
 
 
@@ -66,8 +66,8 @@ The Command line interface inherits the above functionality and adds
 The kernel also has its share of features. When used with a compatible frontend,
 it allows:
 
-* the object to create a rich display of Html, Images, Latex, Sound and
-  Video.
+* objects to create rich displays of HTML, images, LaTeX, sound and
+  video.
 
 * interactive widgets with the use of the `ipywidgets <https://ipywidgets.readthedocs.io/en/stable/>`_ package.
 

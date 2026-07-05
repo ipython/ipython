@@ -16,7 +16,8 @@ Requirements
 
 The documentation must be built using Python 3.
 
-In addition to :ref:`devinstall`,
+In addition to `installing the development version
+<https://ipython.readthedocs.io/en/latest/install/install.html#installing-the-development-version>`__,
 the following tools are needed to build the documentation:
 
  - sphinx
@@ -59,6 +60,7 @@ for example,
 Continuous Integration
 ----------------------
 
-Documentation builds are included in the Travis-CI continuous integration process,
-so you can see the results of the docs build for any pull request at
-https://travis-ci.org/ipython/ipython/pull_requests.
+Documentation builds are included in the GitHub Actions continuous integration
+process (see ``.github/workflows/docs.yml``), and the documentation is built
+on ReadTheDocs for every pull request, so you can preview the rendered result
+from the pull request's checks.
