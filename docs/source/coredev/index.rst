@@ -56,7 +56,6 @@ During the release process, you might need the extra following dependencies:
 
  - ``keyring`` to access your GitHub authentication tokens
  - ``graphviz`` to generate some graphs in the documentation
- - ``ghpro`` to generate the stats
 
 Make sure you have all the required dependencies to run the tests as well.
 
@@ -90,8 +89,8 @@ should be able to use ``date +%s`` to get a formatted timestamp::
     SOURCE_DATE_EPOCH=$(date +%s)
 
 
-2. Create GitHub stats and finish release note
-----------------------------------------------
+2. Finish release note
+----------------------
 
 .. note::
 
@@ -99,12 +98,12 @@ should be able to use ``date +%s`` to get a formatted timestamp::
 
 .. note::
 
-    Before generating the GitHub stats, verify that all closed issues and pull
-    requests have `appropriate milestones
+    Verify that all closed issues and pull requests have `appropriate
+    milestones
     <https://github.com/ipython/ipython/wiki/Dev:-GitHub-workflow#milestones>`_.
     `This search
     <https://github.com/ipython/ipython/issues?q=is%3Aclosed+no%3Amilestone+is%3Aissue>`_
-    should return no results before creating the GitHub stats.
+    should return no results.
 
 If a major release:
 
@@ -121,10 +120,7 @@ If a major release:
     - You do not need to temporarily remove the first entry called
       ``development``, nor re-add it after the release, it will automatically be
       hidden when releasing a stable version of IPython (if ``_version_extra``
-      in ``release.py`` is an empty string.
-
-      Make sure that the stats file has a header or it won't be rendered in
-      the final documentation.
+      in ``release.py`` is an empty string).
 
 To find duplicates and update `.mailmap`, use::
 
