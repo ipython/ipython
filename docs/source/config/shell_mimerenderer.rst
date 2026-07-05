@@ -5,7 +5,7 @@
 Mime Renderer Extensions
 ========================
 
-Like it's cousins, Jupyter Notebooks and JupyterLab, Terminal IPython can be
+Like its cousins, Jupyter Notebooks and JupyterLab, Terminal IPython can be
 thought to render a number of mimetypes in the shell. This can be used to either
 display inline images if your terminal emulator supports it; or open some
 display results with external file viewers.
@@ -16,7 +16,7 @@ requires 4 steps:
    - Define a callable that takes 2 parameters:``data`` and ``metadata``; return
      value of the callable is so far ignored. This callable is responsible for
      "displaying" the given mimetype. Which can be sending the right escape
-     sequences and bytes to the current terminal; or open an external program. -
+     sequences and bytes to the current terminal; or open an external program.
    - Appending the right mimetype to ``ipython.display_formatter.active_types``
      for IPython to know it should not ignore those mimetypes.
    - Enabling the given mimetype: ``ipython.display_formatter.formatters[mime].enabled = True``

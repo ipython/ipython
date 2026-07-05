@@ -131,7 +131,7 @@ More powerful methods
    .. method:: _repr_mimebundle_(include=None, exclude=None)
 
      Should return a dictionary of multiple formats, keyed by mimetype, or a tuple
-     of two dictionaries: *data, metadata* (see :ref:`Metadata`).
+     of two dictionaries: *data, metadata* (see :ref:`integrating_metadata`).
      If this returns something, other ``_repr_*_`` methods are ignored.
      The method should take keyword arguments ``include`` and ``exclude``, though
      it is not required to respect them.
@@ -142,11 +142,13 @@ More powerful methods
       is defined, all other display methods are ignored.
 
 
+.. _integrating_metadata:
+
 Metadata
 ^^^^^^^^
 
 We often want to provide frontends with guidance on how to display the data. To
-support this, ``_repr_*_()`` methods (except ``_repr_pretty_``?) can also return a ``(data, metadata)``
+support this, ``_repr_*_()`` methods (except ``_repr_pretty_``) can also return a ``(data, metadata)``
 tuple where ``metadata`` is a dictionary containing arbitrary key-value pairs for
 the frontend to interpret. An example use case is ``_repr_jpeg_()``, which can
 be set to return a jpeg image and a ``{'height': 400, 'width': 600}`` dictionary
