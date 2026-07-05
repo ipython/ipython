@@ -30,6 +30,8 @@ import warnings
 if sys.version_info < (3, 11):
     raise ImportError(
         """
+IPython requires Python 3.11 or newer.
+
 IPython 9.x supports Python 3.11 and above, following SPEC0
 IPython 8.19+ supports Python 3.10 and above, following SPEC0.
 IPython 8.13+ supports Python 3.9 and above, following NEP 29.
