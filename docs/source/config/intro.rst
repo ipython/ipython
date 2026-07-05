@@ -56,7 +56,7 @@ Example configuration file
     # sample ipython_config.py
 
     c.TerminalIPythonApp.display_banner = True
-    c.InteractiveShellApp.log_level = 20
+    c.Application.log_level = 20
     c.InteractiveShellApp.extensions = [
         'myextension'
     ]
@@ -92,7 +92,7 @@ hierarchy represents the value you would normally set on the ``c`` object of
 
     {
         "InteractiveShell": {
-            "colors": "lightbg",
+            "colors": "lightbg"
         },
         "InteractiveShellApp": {
             "extensions": [
@@ -139,7 +139,7 @@ The config magic
 
 You can also modify config from inside IPython, using a magic command::
 
-    %config IPCompleter.greedy = True
+    %config IPCompleter.use_jedi = False
 
 At present, this only affects the current session - changes you make to
 config are not saved anywhere. Also, some options are only read when
@@ -217,7 +217,7 @@ search in distribution specific location, for example:
 
 In those locations, Terminal IPython will look for a file called
 ``ipython_config.py`` and ``ipython_config.json``, ipykernel will look for
-``ipython_kernel_config.py`` and ``ipython_kernel.json``.
+``ipython_kernel_config.py`` and ``ipython_kernel_config.json``.
 
 Configuration files are loaded in order and merged with configuration on
 later location taking precedence on earlier locations (that is to say a user
