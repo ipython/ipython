@@ -68,45 +68,24 @@ Once you have defined this function, register it with IPython:
 Integrating with a new event loop in the kernel
 -----------------------------------------------
 
-The kernel runs its own event loop, so it's simpler to integrate with others.
-IPython allows the other event loop to take control, but it must call
-:meth:`ipykernel.kernelbase.Kernel.do_one_iteration` periodically.
+The kernel runs its own event loop, so event loop integration is handled by
+`ipykernel <https://ipykernel.readthedocs.io/>`__ rather than by IPython
+itself.
 
-To integrate with this, write a function that takes a single argument,
-the IPython kernel instance, arranges for your event loop to call
-``kernel.do_one_iteration()`` at least every ``kernel._poll_interval`` seconds,
-and starts the event loop.
+To integrate a new toolkit, write a function that takes a single argument,
+the IPython kernel instance, and starts the GUI event loop. The function is
+responsible for arranging to give control back to the kernel when there is
+work for it to do — for example by watching the file descriptor of the
+kernel's shell socket from the GUI event loop, or by yielding back to the
+kernel at least every ``kernel._poll_interval`` seconds.
 
 Decorate this function with :func:`ipykernel.eventloops.register_integration`,
-passing in the names you wish to register it for. Here is a slightly simplified
-version of the Tkinter integration already included in ipykernel::
+passing in the names you wish to register it for; if you register it as
+``'foo'``, users can enable the integration by running ``%gui foo``. A
+matching exit function, which stops the GUI event loop so that the kernel can
+switch to another one, can be registered with the ``@loop_foo.exit``
+decorator.
 
-    @register_integration('tk')
-    def loop_tk(kernel):
-        """Start a kernel with the Tk event loop."""
-        from tkinter import Tk
-
-        # Tk uses milliseconds
-        poll_interval = int(1000*kernel._poll_interval)
-        # For Tkinter, we create a Tk object and call its withdraw method.
-        class Timer(object):
-            def __init__(self, func):
-                self.app = Tk()
-                self.app.withdraw()
-                self.func = func
-
-            def on_timer(self):
-                self.func()
-                self.app.after(poll_interval, self.on_timer)
-
-            def start(self):
-                self.on_timer()  # Call it once to get things going.
-                self.app.mainloop()
-
-        kernel.timer = Timer(kernel.do_one_iteration)
-        kernel.timer.start()
-
-Some event loops can go one better, and integrate checking for messages on the
-kernel's ZMQ sockets, making the kernel more responsive than plain polling. How
-to do this is outside the scope of this document; if you are interested, look at
-the integration with Qt in :mod:`ipykernel.eventloops`.
+Writing such an integration robustly is beyond the scope of this document;
+the existing integrations in :mod:`ipykernel.eventloops` (Qt, Tk, GTK, wx,
+Cocoa, asyncio) are the best reference.
