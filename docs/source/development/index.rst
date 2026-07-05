@@ -17,4 +17,3 @@ Developer's guide for third party tools and libraries
    wrapperkernels
    execution
    config
-   inputhook_app
