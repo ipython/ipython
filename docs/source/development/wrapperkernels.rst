@@ -5,8 +5,8 @@ Making simple Python wrapper kernels
 
 You can now re-use the kernel machinery in IPython to easily make new kernels.
 This is useful for languages that have Python bindings, such as `Octave
-<http://www.gnu.org/software/octave/>`_ (via
-`Oct2Py <http://blink1073.github.io/oct2py/>`_), or languages
+<https://www.gnu.org/software/octave/>`_ (via
+`Oct2Py <https://oct2py.readthedocs.io/>`_), or languages
 where the REPL can be controlled in a tty using `pexpect <https://pexpect.readthedocs.io/en/latest/>`_,
 such as bash.
 
@@ -57,12 +57,13 @@ following methods and attributes:
      :param dict user_expressions: Mapping of names to expressions to evaluate
          after the code has run. You can ignore this if you need to.
      :param bool allow_stdin: Whether the frontend can provide input on request
-         (e.g. for Python's :func:`raw_input`).
+         (e.g. for Python's :func:`input`).
      
      Your method should return a dict containing the fields described in
      :ref:`execution_results`. To display output, it can send messages
      using :meth:`~ipykernel.kernelbase.Kernel.send_response`.
-     See :doc:`messaging` for details of the different message types.
+     See :ref:`jupyterclient:messaging` for details of the different message
+     types.
 
 To launch your kernel, add this at the end of your module::
 
@@ -114,11 +115,11 @@ Optional steps
 
 You can override a number of other methods to improve the functionality of your
 kernel. All of these methods should return a dictionary as described in the
-relevant section of the :doc:`messaging spec <messaging>`.
+relevant section of the :ref:`messaging spec <jupyterclient:messaging>`.
 
 .. class:: MyBetterKernel
 
-   .. method:: do_complete(code, cusor_pos)
+   .. method:: do_complete(code, cursor_pos)
 
      Code completion
      
@@ -129,7 +130,7 @@ relevant section of the :doc:`messaging spec <messaging>`.
      
         :ref:`msging_completion` messages
 
-   .. method:: do_inspect(code, cusor_pos, detail_level=0)
+   .. method:: do_inspect(code, cursor_pos, detail_level=0)
 
      Object introspection
      

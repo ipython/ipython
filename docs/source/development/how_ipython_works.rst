@@ -12,7 +12,8 @@ the terminal. It does something like this::
         exec(code)
 
 Of course, it's much more complex, because it has to deal with multi-line
-code, tab completion using :mod:`readline`, magic commands, and so on. But the
+code, tab completion using `prompt_toolkit
+<https://python-prompt-toolkit.readthedocs.io/>`__, magic commands, and so on. But the
 model is like that: prompt the user for some code, and when they've entered it,
 exec it in the same process. This model is often called a REPL, or
 Read-Eval-Print-Loop.
@@ -24,7 +25,7 @@ All the other interfaces—the Notebook, the Qt console, ``jupyter console`` in
 the terminal, and third party interfaces—use the IPython Kernel. This is a
 separate process which is responsible for running user code, and things like
 computing possible completions. Frontends communicate with it using JSON
-messages sent over `ZeroMQ <http://zeromq.org/>`_ sockets; the protocol they use is described in
+messages sent over `ZeroMQ <https://zeromq.org/>`_ sockets; the protocol they use is described in
 :ref:`jupyterclient:messaging`.
 
 The core execution machinery for the kernel is shared with terminal IPython:
@@ -49,9 +50,9 @@ the target language:
 .. image:: figs/other_kernels.png
 
 Wrapper kernels are easier to write quickly for languages that have good Python
-wrappers, like `octave_kernel <https://pypi.python.org/pypi/octave_kernel>`_, or
+wrappers, like `octave_kernel <https://pypi.org/project/octave_kernel/>`_, or
 languages where it's impractical to implement the communications machinery, like
-`bash_kernel <https://pypi.python.org/pypi/bash_kernel>`_. Native kernels are
+`bash_kernel <https://pypi.org/project/bash_kernel/>`_. Native kernels are
 likely to be better maintained by the community using them, like
 `IJulia <https://github.com/JuliaLang/IJulia.jl>`_ or `IHaskell <https://github.com/gibiansky/IHaskell>`_.
 
