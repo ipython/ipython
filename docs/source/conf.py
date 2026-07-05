@@ -117,14 +117,6 @@ extlinks = {
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
 
-# Options for LaTeX output
-# ------------------------
-
-# Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title, author, document class [howto/manual]).
-latex_documents = []
-
-
 # Options for texinfo output
 # --------------------------
 texinfo_documents = [
