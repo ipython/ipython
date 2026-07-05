@@ -78,7 +78,7 @@ The configurable options that can be placed in conf.py are:
 
 ipython_savefig_dir:
     The directory in which to save the figures. This is relative to the
-    Sphinx source directory. The default is `html_static_path`.
+    Sphinx source directory. The default is ``savefig``.
 ipython_rgxin:
     The compiled regular expression to denote the start of IPython input
     lines. The default is ``re.compile('In \\[(\\d+)\\]:\\s?(.*)\\s*')``. You
@@ -97,7 +97,7 @@ ipython_promptin:
     in the prompt.
 ipython_promptout:
     The string to represent the IPython prompt in the generated ReST. The
-    default is ``'Out [%d]:'``. This expects that the line numbers are used
+    default is ``'Out[%d]:'``. This expects that the line numbers are used
     in the prompt.
 ipython_mplbackend:
     The string which specifies if the embedded Sphinx shell should import

@@ -487,7 +487,7 @@ Configuration Options
 ipython_savefig_dir
 
     The directory in which to save the figures. This is relative to the
-    Sphinx source directory. The default is `html_static_path`.
+    Sphinx source directory. The default is ``savefig``.
 
 ipython_rgxin
 
@@ -511,7 +511,7 @@ ipython_promptin
 ipython_promptout
 
     The string to represent the IPython prompt in the generated ReST. The
-    default is `'Out [%d]:'`. This expects that the line numbers are used
+    default is `'Out[%d]:'`. This expects that the line numbers are used
     in the prompt.
 
 
