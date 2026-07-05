@@ -14,7 +14,7 @@ Getting extensions
 A few important extensions are :ref:`bundled with IPython <bundled_extensions>`.
 Others can be found on the `extensions index
 <https://github.com/ipython/ipython/wiki/Extensions-Index>`_ on the wiki, and
-the `Framework :: IPython tag <https://pypi.python.org/pypi?:action=browse&c=586>`_
+the `Framework :: IPython classifier <https://pypi.org/search/?c=Framework+%3A%3A+IPython>`_
 on PyPI.
 
 Extensions on PyPI can be installed using ``pip``, like any other Python package.
@@ -46,9 +46,11 @@ functions to load and unload it. Here is a template::
         # The `ipython` argument is the currently active `InteractiveShell`
         # instance, which can be used in any way. This allows you to register
         # new magics or aliases, for example.
+        pass
 
     def unload_ipython_extension(ipython):
         # If you want your extension to be unloadable, put that logic here.
+        pass
 
 This :func:`load_ipython_extension` function is called after your extension is
 imported, and the currently active :class:`~IPython.core.interactiveshell.InteractiveShell`
@@ -56,10 +58,10 @@ instance is passed as the only argument. You can do anything you want with
 IPython at that point.
 
 :func:`load_ipython_extension` will not be called again if the users use
-`%load_extension`.  The user has to explicitly ask the extension to be
-reloaded (with `%reload_extension`). In cases where the user asks the extension to
+`%load_ext`.  The user has to explicitly ask the extension to be
+reloaded (with `%reload_ext`). In cases where the user asks the extension to
 be reloaded, the extension will be unloaded (with
-`unload_ipython_extension`), and loaded again. 
+`unload_ipython_extension`), and loaded again.
 
 Useful :class:`InteractiveShell` methods include :meth:`~IPython.core.interactiveshell.InteractiveShell.register_magic_function`, 
 :meth:`~IPython.core.interactiveshell.InteractiveShell.push` (to add variables to the user namespace) and 
