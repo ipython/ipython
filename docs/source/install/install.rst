@@ -83,7 +83,7 @@ Optional: Command-line completion
 
 IPython supports command-line completion via the ``argcomplete`` package.
 To enable tab completion for IPython and other Python programs that support
-argcomplete, install IPython with the ``terminal`` extra:
+argcomplete, install IPython with the ``all`` extra:
 
 .. code-block:: bash
 
