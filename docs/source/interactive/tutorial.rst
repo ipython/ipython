@@ -66,8 +66,8 @@ the position of the cursor by using :kbd:`Ctrl-o`.
 The four most helpful commands
 ==============================
 
-The four most helpful commands, as well as their brief description, is shown
-to you in a banner, every time you start IPython:
+Four commands are especially helpful; the banner shown every time you start
+IPython points you to the first one (``?``):
 
 ==========    =========================================================
 command       description
@@ -86,8 +86,8 @@ structure of any object you're dealing with. Simply type ``object_name.<TAB>``
 to view the object's attributes. Besides Python objects and keywords, tab
 completion also works on file and directory names.
 
-If ``jedi`` is installed, IPython will try to pull completions from Jedi as
-well. This allows to not only inspect currently existing objects, but also to
+IPython also pulls completions from ``jedi`` (installed as one of its
+dependencies). This allows to not only inspect currently existing objects, but also to
 infer completion statically without executing code. There is nothing particular
 needed to get this to work, simply use tab completion on more complex
 expressions like the following::
