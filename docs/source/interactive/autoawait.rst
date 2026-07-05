@@ -90,7 +90,7 @@ For example::
     In [4]: print('parent start')
        ...: async with trio.open_nursery() as n:
        ...:     for i in range(5):
-       ...:         n.spawn(child, i)
+       ...:         n.start_soon(child, i)
        ...: print('parent end')
     parent start
        child 2 goes to sleep
@@ -145,10 +145,11 @@ Python for top-level Async code.
 Internals
 ---------
 
-As running asynchronous code is not supported in interactive REPL (as of Python
-3.7) we have to rely to a number of complex workarounds and heuristics to allow
-this to happen. It is interesting to understand how this works in order to
-comprehend potential bugs, or provide a custom runner.
+As running asynchronous code is not supported in the default Python REPL
+(``python -m asyncio`` supports it, but only for asyncio) we have to rely on a
+number of complex workarounds and heuristics to allow this to happen. It is
+interesting to understand how this works in order to comprehend potential
+bugs, or provide a custom runner.
 
 Among the many approaches that are at our disposition, we find only one that
 suited out need. Under the hood we use the code object from a async-def function
@@ -175,9 +176,9 @@ On top of the above there are significant modification to the AST of
 ``function``, and ``loop_runner`` can be arbitrary complex. So there is a
 significant overhead to this kind of code.
 
-By default the generated coroutine function will be consumed by Asyncio's
-``loop_runner = asyncio.get_event_loop().run_until_complete()`` method if
-``async`` mode is deemed necessary, otherwise the coroutine will just be
+By default, if ``async`` mode is deemed necessary, the generated coroutine
+will be run to completion on IPython's dedicated asyncio event loop (see
+:mod:`IPython.core.async_helpers`), otherwise the coroutine will just be
 exhausted in a simple runner. It is possible, though, to change the default
 runner.
 
@@ -258,17 +259,18 @@ level async code::
 
    $ ipython
    In [1]: import asyncio
-      ...: asyncio.get_event_loop()
-   Out[1]: <_UnixSelectorEventLoop running=False closed=False debug=False>
-
-   In [2]:
+      ...: asyncio.get_running_loop()
+   ---------------------------------------------------------------------------
+   RuntimeError                              Traceback (most recent call last)
+   ...
+   RuntimeError: no running event loop
 
    In [2]: import asyncio
       ...: await asyncio.sleep(0)
-      ...: asyncio.get_event_loop()
+      ...: asyncio.get_running_loop()
    Out[2]: <_UnixSelectorEventLoop running=True closed=False debug=False>
 
-See that ``running`` is ``True`` only in the case were we ``await sleep()``
+See that a loop is running only in the case where we ``await sleep()``
 
 In a Notebook, with ipykernel the asyncio eventloop is always running::
 
