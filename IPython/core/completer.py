@@ -216,7 +216,11 @@ from IPython.core.guarded_eval import (
     _validate_policy_overrides,
 )
 from IPython.core.error import TryNext, UsageError
-from IPython.core.inputtransformer2 import ESC_MAGIC
+from IPython.core.inputtransformer2 import (
+    ESC_MAGIC,
+    SystemAssign,
+    make_tokens_by_line,
+)
 from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import generics
@@ -2199,9 +2203,22 @@ class IPCompleter(Completer):
         #  starts with `/home/`, `C:\`, etc)
 
         text = context.token
-        code_until_cursor = self._extract_code(context.text_until_cursor)
+        raw_text_until_cursor = context.text_until_cursor
+        code_until_cursor = self._extract_code(raw_text_until_cursor)
+        in_cli_context = self._is_completing_in_cli_context(
+            raw_text_until_cursor
+        ) or self._is_completing_in_cli_context(code_until_cursor)
+        if (
+            not in_cli_context
+            and not self._is_completing_in_string(code_until_cursor)
+            and not self._looks_like_path(text)
+        ):
+            return {
+                "completions": [],
+                "suppress": False,
+            }
+
         completion_type = self._determine_completion_context(code_until_cursor)
-        in_cli_context = self._is_completing_in_cli_context(code_until_cursor)
         if (
             completion_type == self._CompletionContextType.ATTRIBUTE
             and not in_cli_context
@@ -2610,6 +2627,8 @@ class IPCompleter(Completer):
         stripped = text.lstrip()
         if stripped.startswith("!") or stripped.startswith("%"):
             return True
+        if self._is_completing_in_system_assignment(text):
+            return True
         # Check for CLI aliases
         try:
             tokens = stripped.split(None, 1)
@@ -2637,6 +2656,26 @@ class IPCompleter(Completer):
             return True
         except Exception:
             return False
+
+    def _is_completing_in_system_assignment(self, text: str) -> bool:
+        """Return True for IPython ``name = !command`` syntax."""
+        try:
+            transform = SystemAssign.find(make_tokens_by_line([text + "\n"]))
+        except Exception:
+            return False
+        return transform is not None and transform.start_col < len(text)
+
+    def _is_completing_in_string(self, text: str) -> bool:
+        """Return True if the cursor is in a string literal, not a comment."""
+        is_string, is_in_expression = self._is_in_string_or_comment(text)
+        if not is_string or is_in_expression:
+            return False
+        return not any(token.type == tokenize.COMMENT for token in _parse_tokens(text))
+
+    def _looks_like_path(self, text: str) -> bool:
+        if text.startswith(("~", "/", "./", "../", ".\\", "..\\")):
+            return True
+        return bool(sys.platform == "win32" and re.match(r"^[a-zA-Z]:[\\/]", text))
 
     def _is_in_string_or_comment(self, text):
         """
