@@ -246,7 +246,8 @@ class InteractiveShellApp(Configurable):
     def init_path(self):
         """Add current working directory, '', to sys.path
 
-        Unless disabled by ignore_cwd config or sys.flags.safe_path.
+        Unless disabled by ignore_cwd config, or sys.flags.safe_path is set
+        and IPython was not invoked as a plain script.
 
         Unlike Python's default, we insert before the first `site-packages`
         or `dist-packages` directory,
@@ -258,8 +259,22 @@ class InteractiveShellApp(Configurable):
             Allow optionally not including the current directory in sys.path
         .. versionchanged:: 9.7
             Respect sys.flags.safe_path (PYTHONSAFEPATH and -P flag)
+        .. versionchanged:: 9.9
+            Only honor safe_path for -m/-c invocations, not plain scripts.
+            When Python is run as a script (e.g. via a shebang with -P), -P
+            only excludes the script's directory from sys.path, not CWD.
         """
-        if "" in sys.path or self.ignore_cwd or sys.flags.safe_path:
+        # sys.flags.safe_path is set by -P or PYTHONSAFEPATH. Its meaning
+        # depends on how Python was invoked:
+        #   python -m ipython: -P excludes CWD → honor safe_path
+        #   python -c "...":   -P excludes CWD → honor safe_path
+        #   python /path/to/ipython (script/shebang): -P only excludes the
+        #     script's directory, NOT CWD → ignore safe_path
+        # Detect script invocation: __main__.__spec__ is None for scripts.
+        _main_spec = getattr(sys.modules.get('__main__'), '__spec__', None)
+        _argv0 = sys.argv[0] if sys.argv else ''
+        _is_script_invocation = _main_spec is None and _argv0 not in ('-c', '-')
+        if "" in sys.path or self.ignore_cwd or (sys.flags.safe_path and not _is_script_invocation):
             return
         for idx, path in enumerate(sys.path):
             parent, last_part = os.path.split(path)
