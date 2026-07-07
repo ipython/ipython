@@ -166,7 +166,12 @@ def print_figure(fig, fmt="png", bbox_inches="tight", base64=False, **kwargs):
         from matplotlib.backend_bases import FigureCanvasBase
         FigureCanvasBase(fig)
 
-    fig.canvas.print_figure(bytes_io, **kw)
+    import matplotlib
+    with matplotlib.rc_context():
+        marker = matplotlib.rcParams.get("lines.marker")
+        if isinstance(marker, str) and marker.lower() == "none":
+            matplotlib.rcParams["lines.marker"] = "none"
+        fig.canvas.print_figure(bytes_io, **kw)
     data = bytes_io.getvalue()
     if fmt == 'svg':
         data = data.decode('utf-8')
