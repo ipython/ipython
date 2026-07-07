@@ -35,7 +35,7 @@ from logging import error
 from pathlib import Path
 from collections.abc import Callable
 from typing import List as ListType, Any as AnyType
-from typing import Literal, Optional, Tuple
+from typing import Literal
 from collections.abc import Sequence
 from warnings import warn
 import textwrap
@@ -3194,7 +3194,7 @@ class InteractiveShell(SingletonConfigurable):
         silent: bool,
         shell_futures: bool,
         cell_id: str,
-        cell_meta: Optional[dict],
+        cell_meta: dict | None,
     ) -> ExecutionResult:
         """Internal method to run a complete IPython cell."""
 

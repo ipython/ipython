@@ -37,7 +37,7 @@ from traitlets.config.configurable import LoggingConfigurable
 
 from IPython.paths import locate_profile
 from IPython.utils.decorators import undoc
-from typing import Tuple, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from collections.abc import Iterable
 import typing
 import typing as t
@@ -68,7 +68,7 @@ except ModuleNotFoundError:
         pass
 
 
-InOrInOut = typing.Union[str, tuple[str, Optional[str]]]
+InOrInOut = str | tuple[str, str | None]
 
 # -----------------------------------------------------------------------------
 # Classes and functions
