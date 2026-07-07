@@ -12,7 +12,6 @@ import sys
 
 from IPython import get_ipython
 from IPython.core.error import TryNext
-from IPython.utils import py3compat
 
 
 def install_editor(template, wait=False):
@@ -55,7 +54,7 @@ def install_editor(template, wait=False):
         if proc.wait() != 0:
             raise TryNext()
         if wait:
-            py3compat.input("Press Enter when done editing:")
+            input("Press Enter when done editing:")
 
     get_ipython().set_hook('editor', call_editor)
     get_ipython().editor = template

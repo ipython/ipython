@@ -14,7 +14,6 @@ from pygments.token import Token
 from IPython import get_ipython
 from IPython.core import debugger
 from IPython.utils import path as util_path
-from IPython.utils import py3compat
 from IPython.utils.PyColorize import Theme, TokenStream, theme_table
 
 _sentinel = object()
@@ -202,9 +201,10 @@ def _tokens_filename(
                 (Filename, f", line {lineno}"),
             ]
     else:
-        name = util_path.compress_user(
-            py3compat.cast_unicode(file or "", util_path.fs_encoding)
-        )
+        file_str = file or ""
+        if isinstance(file_str, bytes):
+            file_str = file_str.decode(util_path.fs_encoding, "replace")
+        name = util_path.compress_user(file_str)
         if lineno is None:
             return [
                 (Normal, "File "),

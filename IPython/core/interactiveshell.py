@@ -87,7 +87,7 @@ from IPython.core.usage import default_banner
 from IPython.display import display
 from IPython.paths import get_ipython_dir
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils import PyColorize, io, openpy, py3compat
+from IPython.utils import PyColorize, io, openpy
 from IPython.utils.decorators import undoc
 from IPython.utils.io import ask_yes_no
 from IPython.utils.ipstruct import Struct
@@ -2866,11 +2866,19 @@ class InteractiveShell(SingletonConfigurable):
         etype, evalue, tb = self._get_exc_info()
         stb = self.InteractiveTB.get_exception_only(etype, evalue)
 
+        try:
+            evalue_str = str(evalue)
+        except UnicodeError:
+            try:
+                evalue_str = repr(evalue)
+            except UnicodeError:
+                evalue_str = "Unrecoverably corrupt evalue"
+
         exc_info = {
             "status": "error",
             "traceback": stb,
             "ename": etype.__name__,
-            "evalue": py3compat.safe_unicode(evalue),
+            "evalue": evalue_str,
         }
 
         return exc_info
@@ -2977,9 +2985,10 @@ class InteractiveShell(SingletonConfigurable):
         with prepended_to_syspath(dname), self.builtin_trap:
             try:
                 glob, loc = (where + (None, ))[:2]
-                py3compat.execfile(
-                    fname, glob, loc,
-                    self.compile if shell_futures else None)
+                loc = loc if (loc is not None) else glob
+                with open(fname, "rb") as f:
+                    compiler_fn = self.compile if shell_futures else compile
+                    exec(compiler_fn(f.read(), fname, "exec"), glob, loc)
             except SystemExit as status:
                 # If the call was made with 0 or None exit status (sys.exit(0)
                 # or sys.exit() ), don't bother showing a traceback, as both of

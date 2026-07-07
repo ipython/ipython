@@ -188,7 +188,6 @@ from pathlib import Path
 
 from IPython.utils.text import marquee
 from IPython.utils import openpy
-from IPython.utils import py3compat
 __all__ = ['Demo','IPythonDemo','LineDemo','IPythonLineDemo','DemoError']
 
 class DemoError(Exception): pass
@@ -475,7 +474,7 @@ class Demo:
                     print(marquee('output:'))
                 else:
                     print(marquee('Press <q> to quit, <Enter> to execute...'), end=' ')
-                    ans = py3compat.input().strip()
+                    ans = input().strip()
                     if ans:
                         print(marquee('Block NOT executed'))
                         return
@@ -643,7 +642,7 @@ def slide(file_path, noclear=False, format_rst=True, formatter="terminal",
     while not demo.finished:
         demo()
         try:
-            py3compat.input('\n' + delimiter)
+            input('\n' + delimiter)
         except KeyboardInterrupt:
             exit(1)
 
