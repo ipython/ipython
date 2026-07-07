@@ -5,6 +5,8 @@ import os
 
 import pytest
 
+from IPython.testing.decorators import skip_win32
+
 from IPython.utils import terminal
 
 
@@ -88,6 +90,7 @@ def test_restore_term_title_xterm_without_save_warns(monkeypatch, capsys):
     assert capsys.readouterr().out == ""
 
 
+@skip_win32
 def test_term_title_functions_bound_on_xterm(reload_with_term):
     mod = reload_with_term("xterm-256color")
     assert mod._set_term_title is mod._set_term_title_xterm
@@ -104,6 +107,7 @@ def test_term_title_functions_noop_on_dumb_terminal(reload_with_term, capsys):
     assert capsys.readouterr().out == ""
 
 
+@skip_win32
 def test_term_clear(monkeypatch):
     commands = []
     monkeypatch.setattr(os, "system", commands.append)

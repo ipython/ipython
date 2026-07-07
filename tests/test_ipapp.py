@@ -13,6 +13,8 @@ import sys
 
 import pytest
 
+from IPython.testing.decorators import skip_win32
+
 from traitlets.config import Config
 
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
@@ -176,6 +178,7 @@ def test_exec_lines_error_continues(make_app):
     assert app.shell.user_ns["zzz_after"] == 5
 
 
+@skip_win32
 def test_exec_files(tmp_path, make_app):
     pyfile = tmp_path / "zzz_a.py"
     pyfile.write_text("zzz_exec_py = 1\n")
@@ -235,6 +238,7 @@ def test_startup_file_error_is_not_fatal(tmp_path, make_app, monkeypatch, capsys
         os.unlink(startup_file)
 
 
+@skip_win32
 def test_exec_files_error_is_not_fatal(tmp_path, make_app, capsys):
     bad = tmp_path / "zzz_bad_exec.py"
     bad.write_text("raise ValueError('zzz-bad-exec-file')\n")

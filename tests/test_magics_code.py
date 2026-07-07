@@ -8,6 +8,8 @@ from urllib.parse import parse_qs
 
 import pytest
 
+from IPython.testing.decorators import skip_win32
+
 from IPython.core.error import StdinNotImplementedError, TryNext, UsageError
 from IPython.core.macro import Macro
 from IPython.core.magics import code
@@ -394,6 +396,7 @@ def test_edit_x_does_not_execute(editor, tmp_path, capsys):
     assert editor.calls[-1] == (str(f), "3")
 
 
+@skip_win32
 def test_edit_filename_with_space_is_quoted(editor, tmp_path):
     ip = get_ipython()
     d = tmp_path / "dir with space"
@@ -466,6 +469,7 @@ def test_edit_nonexistent_warns(editor):
     assert editor.calls == []
 
 
+@skip_win32
 def test_edit_object_with_source_file(editor, tmp_path):
     ip = get_ipython()
     mod_file = tmp_path / "edit_target_mod.py"

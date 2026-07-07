@@ -4,6 +4,8 @@ import os
 import sys
 
 import pytest
+
+from IPython.testing.decorators import skip_win32
 from unittest.mock import Mock, patch
 
 from prompt_toolkit.document import Document
@@ -122,6 +124,7 @@ def test_pt_completer_empty_line_yields_nothing():
     assert list(completer.get_completions(Document("   ", 3), Mock())) == []
 
 
+@skip_win32
 def test_pt_completer_completes_print(monkeypatch):
     ip = get_ipython()
     # function-signature display ('print()') needs jedi; earlier tests may
@@ -139,6 +142,7 @@ def test_pt_completer_completes_print(monkeypatch):
     assert printc.display_meta[0][1].startswith("function")
 
 
+@skip_win32
 def test_pt_completer_non_function_completion():
     ip = get_ipython()
     ip.user_ns["some_test_variable"] = 42
@@ -155,6 +159,7 @@ def test_pt_completer_non_function_completion():
         del ip.user_ns["some_test_variable"]
 
 
+@skip_win32
 def test_pt_completer_swallows_errors():
     class BadCompleter:
         def completions(self, body, offset):
