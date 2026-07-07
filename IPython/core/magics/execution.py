@@ -180,10 +180,10 @@ class Timer(timeit.Timer):
 class ExecutionMagics(Magics):
     """Magics related to code execution, debugging, profiling, etc."""
 
-    _transformers: Dict[str, Any] = {}
+    _transformers: dict[str, Any] = {}
 
     def __init__(self, shell):
-        super(ExecutionMagics, self).__init__(shell)
+        super().__init__(shell)
         # Default execution function used to actually run user code.
         self.default_runner = None
 
@@ -700,7 +700,7 @@ class ExecutionMagics(Magics):
                 else:
                     # Positional arg, break
                     break
-            parameter_s = ' '.join(shlex.quote(arg) for arg in argv)
+            parameter_s = shlex.join(argv)
 
         # get arguments and set sys.argv for program to be run.
         opts, arg_lst = self.parse_options(parameter_s,
@@ -720,7 +720,7 @@ class ExecutionMagics(Magics):
         except IndexError as e:
             msg = 'you must provide at least a filename.'
             raise Exception(msg) from e
-        except IOError as e:
+        except OSError as e:
             try:
                 msg = str(e)
             except UnicodeError:
@@ -957,7 +957,7 @@ class ExecutionMagics(Magics):
                            "with the -b option." % bp)
                     raise UsageError(msg)
             # if we find a good linenumber, set the breakpoint
-            deb.do_break('%s:%s' % (bp_file, bp_line))
+            deb.do_break('{}:{}'.format(bp_file, bp_line))
 
         if filename:
             # Mimic Pdb._runscript(...)
@@ -1041,8 +1041,8 @@ class ExecutionMagics(Magics):
             print("\nIPython CPU timings (estimated):")
             print("Total runs performed:", nruns)
             print("  Times  : %10s   %10s" % ('Total', 'Per run'))
-            print("  User   : %10.2f s, %10.2f s." % (t_usr, t_usr / nruns))
-            print("  System : %10.2f s, %10.2f s." % (t_sys, t_sys / nruns))
+            print("  User   : {:10.2f} s, {:10.2f} s.".format(t_usr, t_usr / nruns))
+            print("  System : {:10.2f} s, {:10.2f} s.".format(t_sys, t_sys / nruns))
         twall1 = time.perf_counter()
         print("Wall time: %10.2f s." % (twall1 - twall0))
 
@@ -1685,7 +1685,7 @@ def _format_time(timespan, precision=3):
             value = int(leftover / length)
             if value > 0:
                 leftover = leftover % length
-                time.append("%s%s" % (str(value), suffix))
+                time.append("{}{}".format(str(value), suffix))
             if leftover < 1:
                 break
         return " ".join(time)

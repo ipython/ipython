@@ -121,7 +121,7 @@ class LoggingMagics(Magics):
             logfname = os.path.expanduser(logfname)
         self.shell.logfile = logfname
 
-        loghead = u'# IPython log file\n\n'
+        loghead = '# IPython log file\n\n'
         try:
             logger.logstart(logfname, loghead, logmode, log_output, timestamp,
                             log_raw_input)
@@ -146,12 +146,12 @@ class LoggingMagics(Magics):
                 log_write = logger.log_write
                 output_hist = self.shell.history_manager.output_hist
                 for n in range(1,len(input_hist)-1):
-                    log_write(input_hist[n].rstrip() + u'\n')
+                    log_write(input_hist[n].rstrip() + '\n')
                     if n in output_hist:
                         log_write(repr(output_hist[n]),'output')
             else:
-                logger.log_write(u'\n'.join(input_hist[1:]))
-                logger.log_write(u'\n')
+                logger.log_write('\n'.join(input_hist[1:]))
+                logger.log_write('\n')
             if timestamp:
                 # re-enable timestamping
                 logger.timestamp = True

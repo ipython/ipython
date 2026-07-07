@@ -27,29 +27,6 @@ import warnings
 #-----------------------------------------------------------------------------
 
 # Don't forget to also update setup.py when this changes!
-if sys.version_info < (3, 11):
-    raise ImportError(
-        """
-IPython 9.x supports Python 3.11 and above, following SPEC0
-IPython 8.19+ supports Python 3.10 and above, following SPEC0.
-IPython 8.13+ supports Python 3.9 and above, following NEP 29.
-When using Python 2.7, please install IPython 5.x LTS Long Term Support version.
-Python 3.3 and 3.4 were supported up to IPython 6.x.
-Python 3.5 was supported with IPython 7.0 to 7.9.
-Python 3.6 was supported with IPython up to 7.16.
-Python 3.7 was still supported with the 7.x branch.
-
-See IPython `README.rst` file for more information:
-
-    https://github.com/ipython/ipython/blob/main/README.rst
-
-"""
-    )
-
-#-----------------------------------------------------------------------------
-# Setup the top level names
-#-----------------------------------------------------------------------------
-
 from .core.getipython import get_ipython
 from .core import release
 from .core.application import Application
@@ -62,7 +39,7 @@ from .utils.frame import extract_module_locals
 __all__ = ["start_ipython", "embed", "embed_kernel"]
 
 # Release data
-__author__ = '%s <%s>' % (release.author, release.author_email)
+__author__ = '{} <{}>'.format(release.author, release.author_email)
 __license__  = release.license
 __version__  = release.version
 version_info = release.version_info

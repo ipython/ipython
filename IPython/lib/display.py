@@ -123,7 +123,7 @@ class Audio(DisplayObject):
             self.embed = True
         self.autoplay = autoplay
         self.element_id = element_id
-        super(Audio, self).__init__(data=data, url=url, filename=filename)
+        super().__init__(data=data, url=url, filename=filename)
 
         if self.data is not None and not isinstance(self.data, bytes):
             if rate is None:
@@ -134,7 +134,7 @@ class Audio(DisplayObject):
         """Reload the raw data from file or URL."""
         import mimetypes
         if self.embed:
-            super(Audio, self).reload()
+            super().reload()
 
         if self.filename is not None:
             self.mimetype = mimetypes.guess_type(self.filename)[0]
@@ -167,7 +167,7 @@ class Audio(DisplayObject):
         return val
 
     @staticmethod
-    def _validate_and_normalize_with_numpy(data, normalize) -> Tuple[bytes, int]:
+    def _validate_and_normalize_with_numpy(data, normalize) -> tuple[bytes, int]:
         import numpy as np
 
         data = np.array(data, dtype=float)
@@ -253,7 +253,7 @@ class Audio(DisplayObject):
     
     def element_id_attr(self):
         if (self.element_id):
-            return 'id="{element_id}"'.format(element_id=self.element_id)
+            return f'id="{self.element_id}"'
         else:
             return ''
 
@@ -274,7 +274,7 @@ class IFrame:
         """
 
     def __init__(
-        self, src, width, height, extras: Optional[Iterable[str]] = None, **kwargs
+        self, src, width, height, extras: Iterable[str] | None = None, **kwargs
     ):
         if extras is None:
             extras = []
@@ -329,19 +329,19 @@ class YouTubeVideo(IFrame):
 
     def __init__(self, id, width=400, height=300, allow_autoplay=False, **kwargs):
         self.id=id
-        src = "https://www.youtube.com/embed/{0}".format(id)
+        src = f"https://www.youtube.com/embed/{id}"
         if allow_autoplay:
             extras = list(kwargs.get("extras", [])) + ['allow="autoplay"']
             kwargs.update(autoplay=1, extras=extras)
-        super(YouTubeVideo, self).__init__(src, width, height, **kwargs)
+        super().__init__(src, width, height, **kwargs)
 
     def _repr_jpeg_(self):
         # Deferred import
         from urllib.request import urlopen
 
         try:
-            return urlopen("https://img.youtube.com/vi/{id}/hqdefault.jpg".format(id=self.id)).read()
-        except IOError:
+            return urlopen(f"https://img.youtube.com/vi/{self.id}/hqdefault.jpg").read()
+        except OSError:
             return None
 
 class VimeoVideo(IFrame):
@@ -350,8 +350,8 @@ class VimeoVideo(IFrame):
     """
 
     def __init__(self, id, width=400, height=300, **kwargs):
-        src="https://player.vimeo.com/video/{0}".format(id)
-        super(VimeoVideo, self).__init__(src, width, height, **kwargs)
+        src=f"https://player.vimeo.com/video/{id}"
+        super().__init__(src, width, height, **kwargs)
 
 class ScribdDocument(IFrame):
     """
@@ -366,8 +366,8 @@ class ScribdDocument(IFrame):
     """
 
     def __init__(self, id, width=400, height=300, **kwargs):
-        src="https://www.scribd.com/embeds/{0}/content".format(id)
-        super(ScribdDocument, self).__init__(src, width, height, **kwargs)
+        src=f"https://www.scribd.com/embeds/{id}/content"
+        super().__init__(src, width, height, **kwargs)
 
 class FileLink:
     """Class for embedding a local file link in an IPython session, based on path

@@ -199,7 +199,7 @@ class CapturingDisplayPublisher(DisplayPublisher):
         )
 
     def clear_output(self, wait=False):
-        super(CapturingDisplayPublisher, self).clear_output(wait)
+        super().clear_output(wait)
 
         # empty the list, *do not* reassign a new list
         self.outputs.clear()

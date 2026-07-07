@@ -15,12 +15,12 @@ def decode(s: bytes, encoding: str | None = None) -> str:
     return s.decode(encoding, "replace")
 
 
-def encode(u: str, encoding: Optional[str]=None) -> bytes:
+def encode(u: str, encoding: str | None=None) -> bytes:
     encoding = encoding or DEFAULT_ENCODING
     return u.encode(encoding, "replace")
 
 
-def cast_unicode(s: str | bytes, encoding: Optional[str]=None) -> str:
+def cast_unicode(s: str | bytes, encoding: str | None=None) -> str:
     if isinstance(s, bytes):
         return decode(s, encoding)
     return s

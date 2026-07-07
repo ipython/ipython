@@ -38,7 +38,7 @@ def display_page(strng, start=0, screen_lines=25):
         data = strng
     else:
         if start:
-            strng = u'\n'.join(strng.splitlines()[start:])
+            strng = '\n'.join(strng.splitlines()[start:])
         data = { 'text/plain': strng }
     display(data, raw=True)
 
@@ -106,7 +106,7 @@ def _detect_screen_size(screen_lines_def):
         term_flags = termios.tcgetattr(sys.stdout)
     except termios.error as err:
         # can fail on Linux 2.6, pager_page will catch the TypeError
-        raise TypeError('termios error: {0}'.format(err)) from err
+        raise TypeError(f'termios error: {err}') from err
 
     try:
         scr = curses.initscr()
@@ -200,7 +200,7 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None) -> None:
                     os.close(fd)
                     with tmppath.open("wt", encoding="utf-8") as tmpfile:
                         tmpfile.write(strng)
-                        cmd = "%s < %s" % (pager_cmd, tmppath)
+                        cmd = "{} < {}".format(pager_cmd, tmppath)
                     # tmpfile needs to be closed for windows
                     if os.system(cmd):
                         retval = 1
@@ -226,7 +226,7 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None) -> None:
                     pager.write(strng)
                 finally:
                     retval = pager.close()
-            except IOError as msg:  # broken pipe when user quits
+            except OSError as msg:  # broken pipe when user quits
                 if msg.args == (32, 'Broken pipe'):
                     retval = None
                 else:
@@ -273,7 +273,7 @@ def page_file(fname, start=0, pager_cmd=None):
 
     try:
         if os.environ['TERM'] in ['emacs','dumb']:
-            raise EnvironmentError
+            raise OSError
         system(pager_cmd + ' ' + fname)
     except Exception:
         try:

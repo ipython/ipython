@@ -295,5 +295,5 @@ class IPDocTestRunner(doctest.DocTestRunner):
     def run(self, test, compileflags=None, out=None, clear_globs=True):
         # Override terminal size to standardise traceback format
         with modified_env({'COLUMNS': '80', 'LINES': '24'}):
-            return super(IPDocTestRunner,self).run(test,
+            return super().run(test,
                                                    compileflags,out,clear_globs)

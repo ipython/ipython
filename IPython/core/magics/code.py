@@ -180,7 +180,7 @@ class CodeMagics(Magics):
 
     def __init__(self, *args, **kwargs):
         self._knowntemps = set()
-        super(CodeMagics, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @line_magic
     def save(self, parameter_s=''):
@@ -230,7 +230,7 @@ class CodeMagics(Magics):
             try:
                 overwrite = self.shell.ask_yes_no('File `%s` exists. Overwrite (y/[N])? ' % fname, default='n')
             except StdinNotImplementedError:
-                print("File `%s` exists. Use `%%save -f %s` to force overwrite" % (fname, parameter_s))
+                print("File `{}` exists. Use `%save -f {}` to force overwrite".format(fname, parameter_s))
                 return
             if not overwrite :
                 print('Operation cancelled.')
@@ -240,7 +240,7 @@ class CodeMagics(Magics):
         except (TypeError, ValueError) as e:
             print(e.args[0])
             return
-        with io.open(fname, mode, encoding="utf-8") as f:
+        with open(fname, mode, encoding="utf-8") as f:
             if not file_exists or not append:
                 f.write("# coding: utf-8\n")
             f.write(cmds)
@@ -299,7 +299,7 @@ class CodeMagics(Magics):
 
         request = Request(
             "https://dpaste.com/api/v2/",
-            headers={"User-Agent": "IPython v{}".format(version)},
+            headers={"User-Agent": f"IPython v{version}"},
         )
         response = urlopen(request, post_data)
         return response.headers.get('Location')
@@ -400,7 +400,7 @@ class CodeMagics(Magics):
                 print('Operation cancelled.')
                 return
 
-        contents = "# %load {}\n".format(arg_s) + contents
+        contents = f"# %load {arg_s}\n" + contents
 
         self.shell.set_next_input(contents, replace=True)
 
@@ -412,7 +412,7 @@ class CodeMagics(Magics):
             "Make a filename from the given args"
             try:
                 filename = get_py_filename(arg)
-            except IOError:
+            except OSError:
                 # If it ends with .py but doesn't already exist, assume we want
                 # a new file.
                 if arg.endswith('.py'):
@@ -749,7 +749,7 @@ class CodeMagics(Magics):
         if is_temp:
             try:
                 return filepath.read_text(encoding="utf-8")
-            except IOError as msg:
+            except OSError as msg:
                 if Path(msg.filename) == filepath:
                     warn('File not found. Did you forget to save?')
                     return

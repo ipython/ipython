@@ -98,11 +98,11 @@ def all_quotes_paired(quote, buf):
     return paired
 
 
-_preceding_text_cache: Dict[Union[str, Callable], Condition] = {}
-_following_text_cache: Dict[Union[str, Callable], Condition] = {}
+_preceding_text_cache: dict[str | Callable, Condition] = {}
+_following_text_cache: dict[str | Callable, Condition] = {}
 
 
-def preceding_text(pattern: Union[str, Callable]) -> Condition:
+def preceding_text(pattern: str | Callable) -> Condition:
     if pattern in _preceding_text_cache:
         return _preceding_text_cache[pattern]
 
@@ -284,7 +284,7 @@ KEYBINDING_FILTERS = {
 }
 
 
-def eval_node(node: Union[ast.AST, None]) -> Optional[Filter]:
+def eval_node(node: ast.AST | None) -> Filter | None:
     if node is None:
         return None
     if isinstance(node, ast.Expression):
@@ -315,7 +315,7 @@ def eval_node(node: Union[ast.AST, None]) -> Optional[Filter]:
     raise ValueError("Unhandled node", ast.dump(node))
 
 
-def filter_from_string(code: str) -> Union[Condition, Filter]:
+def filter_from_string(code: str) -> Condition | Filter:
     expression = ast.parse(code, mode="eval")
     return eval_node(expression)
 

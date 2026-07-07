@@ -30,7 +30,7 @@ logging.getLogger("parso").setLevel(logging.WARNING)
 class Logger:
     """A Logfile class with different policies for file creation"""
 
-    def __init__(self, home_dir, logfname='Logger.log', loghead=u'',
+    def __init__(self, home_dir, logfname='Logger.log', loghead='',
                  logmode='over'):
 
         # this is the full ipython instance, we need some attributes from it
@@ -90,7 +90,7 @@ class Logger:
         logmode = self.logmode
 
         if logmode == 'append':
-            self.logfile = io.open(self.logfname, 'a', encoding='utf-8')
+            self.logfile = open(self.logfname, 'a', encoding='utf-8')
 
         elif logmode == 'backup':
             if isfile(self.logfname):
@@ -100,16 +100,16 @@ class Logger:
                 if isfile(backup_logname):
                     os.remove(backup_logname)
                 os.rename(self.logfname,backup_logname)
-            self.logfile = io.open(self.logfname, 'w', encoding='utf-8')
+            self.logfile = open(self.logfname, 'w', encoding='utf-8')
 
         elif logmode == 'global':
             self.logfname = os.path.join(self.home_dir,self.logfname)
-            self.logfile = io.open(self.logfname, 'a', encoding='utf-8')
+            self.logfile = open(self.logfname, 'a', encoding='utf-8')
 
         elif logmode == 'over':
             if isfile(self.logfname):
                 os.remove(self.logfname)
-            self.logfile = io.open(self.logfname,'w', encoding='utf-8')
+            self.logfile = open(self.logfname,'w', encoding='utf-8')
 
         elif logmode == 'rotate':
             if isfile(self.logfname):
@@ -122,7 +122,7 @@ class Logger:
                         num = int(ext[1:-1])+1
                         os.rename(f, root+'.'+repr(num).zfill(3)+'~')
                 os.rename(self.logfname, self.logfname+'.001~')
-            self.logfile = io.open(self.logfname, 'w', encoding='utf-8')
+            self.logfile = open(self.logfname, 'w', encoding='utf-8')
 
         if logmode != 'append':
             self.logfile.write(self.loghead)
@@ -199,9 +199,9 @@ which already exists. But you must first start the logging process with
                     write(time.strftime('# %a, %d %b %Y %H:%M:%S\n', time.localtime()))
                 write(data)
             elif kind=='output' and self.log_output:
-                odata = u'\n'.join([u'#[Out]# %s' % s
+                odata = '\n'.join(['#[Out]# %s' % s
                                    for s in data.splitlines()])
-                write(u'%s\n' % odata)
+                write('%s\n' % odata)
             try:
                 self.logfile.flush()
             except OSError:

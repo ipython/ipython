@@ -11,7 +11,7 @@ from .ipunittest import ipdoctest, ipdocstring
 from _pytest.mark.structures import MarkDecorator
 from typing import Optional
 
-def skipif(skip_condition: bool, msg: Optional[str]=None) -> MarkDecorator:
+def skipif(skip_condition: bool, msg: str | None=None) -> MarkDecorator:
     """Make function raise SkipTest exception if skip_condition is true
 
     Parameters
@@ -41,7 +41,7 @@ def skipif(skip_condition: bool, msg: Optional[str]=None) -> MarkDecorator:
 
 # A version with the condition set to true, common case just to attach a message
 # to a skip decorator
-def skip(msg: Optional[str]=None) -> MarkDecorator:
+def skip(msg: str | None=None) -> MarkDecorator:
     """Decorator factory - mark a test function for skipping from test suite.
 
     Parameters

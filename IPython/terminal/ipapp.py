@@ -66,7 +66,7 @@ class IPAppCrashHandler(CrashHandler):
         contact_name = release.author
         contact_email = release.author_email
         bug_tracker = 'https://github.com/ipython/ipython/issues'
-        super(IPAppCrashHandler,self).__init__(
+        super().__init__(
             app, contact_name, contact_email, bug_tracker
         )
 
@@ -75,7 +75,7 @@ class IPAppCrashHandler(CrashHandler):
 
         sec_sep = self.section_sep
         # Start with parent report
-        report = [super(IPAppCrashHandler, self).make_report(traceback)]
+        report = [super().make_report(traceback)]
         # Add interactive-specific info we may have
         rpt_add = report.append
         try:
@@ -273,7 +273,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     @catch_config_error
     def initialize(self, argv=None):
         """Do actions after construct, but before starting the app."""
-        super(TerminalIPythonApp, self).initialize(argv)
+        super().initialize(argv)
         if self.subapp is not None:
             # don't bother initializing further, starting subapp
             return

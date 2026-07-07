@@ -64,7 +64,7 @@ def png_to_kitty_ansi(png: bytes) -> str:
     return "".join(result)
 
 
-def kitty_png_render(png: Union[bytes, str], _md_dict: object) -> None:
+def kitty_png_render(png: bytes | str, _md_dict: object) -> None:
     if isinstance(png, str):
         png = png_to_kitty_ansi(b64decode(png))
     else:

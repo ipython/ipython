@@ -58,7 +58,7 @@ class Theme:
         self._formatter = Terminal256Formatter(style=self.as_pygments_style())
 
     @cache
-    def as_pygments_style(self) -> Type[Style]:
+    def as_pygments_style(self) -> type[Style]:
         if self.base is not None:
             base_styles = get_style_by_name(self.base).styles
         else:

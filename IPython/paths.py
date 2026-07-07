@@ -47,7 +47,7 @@ def get_ipython_dir() -> str:
                     warn(('Ignoring {0} in favour of {1}. Remove {0} to '
                         'get rid of this message').format(cu(xdg_ipdir), cu(ipdir)))
                 elif os.path.islink(xdg_ipdir):
-                    warn(('{0} is deprecated. Move link to {1} to '
+                    warn(('{} is deprecated. Move link to {} to '
                         'get rid of this message').format(cu(xdg_ipdir), cu(ipdir)))
                 else:
                     ipdir = xdg_ipdir
@@ -56,14 +56,14 @@ def get_ipython_dir() -> str:
 
     if os.path.exists(ipdir) and not _writable_dir(ipdir):
         # ipdir exists, but is not writable
-        warn("IPython dir '{0}' is not a writable location,"
+        warn("IPython dir '{}' is not a writable location,"
                 " using a temp directory.".format(ipdir))
         ipdir = tempfile.mkdtemp()
     elif not os.path.exists(ipdir):
         parent = os.path.dirname(ipdir)
         if not _writable_dir(parent):
             # ipdir does not exist and parent isn't writable
-            warn("IPython parent '{0}' is not a writable location,"
+            warn("IPython parent '{}' is not a writable location,"
                     " using a temp directory.".format(parent))
             ipdir = tempfile.mkdtemp()
         else:
@@ -118,5 +118,5 @@ def locate_profile(profile='default'):
         pd = ProfileDir.find_profile_dir_by_name(get_ipython_dir(), profile)
     except ProfileDirError as e:
         # IOError makes more sense when people are expecting a path
-        raise IOError("Couldn't find profile %r" % profile) from e
+        raise OSError("Couldn't find profile %r" % profile) from e
     return pd.location

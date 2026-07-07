@@ -133,7 +133,7 @@ class Alias:
         self.shell = shell
         self.name = name
         self.cmd = cmd
-        self.__doc__ = "Alias for `!{}`".format(cmd)
+        self.__doc__ = f"Alias for `!{cmd}`"
         self.nargs = self.validate()
 
     def validate(self):
@@ -163,7 +163,7 @@ class Alias:
         return nargs
 
     def __repr__(self):
-        return "<alias {} for {!r}>".format(self.name, self.cmd)
+        return f"<alias {self.name} for {self.cmd!r}>"
 
     def __call__(self, rest=''):
         cmd = self.cmd
@@ -177,14 +177,14 @@ class Alias:
             if cmd.find('%%s') >= 1:
                 cmd = cmd.replace('%%s', '%s')
             # Simple, argument-less aliases
-            cmd = '%s %s' % (cmd, rest)
+            cmd = '{} {}'.format(cmd, rest)
         else:
             # Handle aliases with positional arguments
             args = rest.split(None, nargs)
             if len(args) < nargs:
                 raise UsageError('Alias <%s> requires %s arguments, %s given.' %
                       (self.name, nargs, len(args)))
-            cmd = '%s %s' % (cmd % tuple(args[:nargs]),' '.join(args[nargs:]))
+            cmd = '{} {}'.format(cmd % tuple(args[:nargs]),' '.join(args[nargs:]))
 
         self.shell.system(cmd)
 
@@ -200,7 +200,7 @@ class AliasManager(Configurable):
     )
 
     def __init__(self, shell=None, **kwargs):
-        super(AliasManager, self).__init__(shell=shell, **kwargs)
+        super().__init__(shell=shell, **kwargs)
         # For convenient access
         if self.shell is not None:
             self.linemagics = self.shell.magics_manager.magics["line"]

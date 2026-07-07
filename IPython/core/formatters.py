@@ -486,7 +486,7 @@ class BaseFormatter(Configurable):
                     return self.type_printers[cls]
 
         # If we have reached here, the lookup failed.
-        raise KeyError("No registered printer for {0!r}".format(typ))
+        raise KeyError(f"No registered printer for {typ!r}")
 
     def for_type(self, typ, func=None):
         """Add a format function for a given type.
@@ -607,7 +607,7 @@ class BaseFormatter(Configurable):
             else:
                 old = self.deferred_printers.pop(_mod_name_key(typ), default)
         if old is _raise_key_error:
-            raise KeyError("No registered value for {0!r}".format(typ))
+            raise KeyError(f"No registered value for {typ!r}")
         return old
 
     def _in_deferred_types(self, cls):
@@ -907,7 +907,7 @@ class JSONFormatter(BaseFormatter):
         if md is not None:
             # put the tuple back together
             r = (r, md)
-        return super(JSONFormatter, self)._check_return(r, obj)
+        return super()._check_return(r, obj)
 
 
 class JavascriptFormatter(BaseFormatter):
@@ -1003,7 +1003,7 @@ class MimeBundleFormatter(BaseFormatter):
     _return_type = dict
 
     def _check_return(self, r, obj):
-        r = super(MimeBundleFormatter, self)._check_return(r, obj)
+        r = super()._check_return(r, obj)
         # always return (data, metadata):
         if r is None:
             return {}, {}

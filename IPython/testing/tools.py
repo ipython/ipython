@@ -68,7 +68,7 @@ def full_path(startPath: str, files: list[str]) -> list[str]:
     return [ os.path.join(base,f) for f in files ]
 
 
-def parse_test_output(txt: str) -> Tuple[int, int]:
+def parse_test_output(txt: str) -> tuple[int, int]:
     """Parse the output of a test run and return errors, failures.
 
     Parameters
@@ -114,7 +114,7 @@ def parse_test_output(txt: str) -> Tuple[int, int]:
 parse_test_output.__test__ = False
 
 
-def default_argv() -> List[str]:
+def default_argv() -> list[str]:
     """Return a valid default argv for creating testing instances of ipython"""
 
     return [
@@ -140,7 +140,7 @@ def default_config() -> Config:
     return config
 
 
-def get_ipython_cmd(as_string: bool=False) -> List[str]:
+def get_ipython_cmd(as_string: bool=False) -> list[str]:
     """
     Return appropriate IPython command line name. By default, this will return
     a list that can be used with subprocess.Popen, for example, but passing
@@ -158,7 +158,7 @@ def get_ipython_cmd(as_string: bool=False) -> List[str]:
 
     return ipython_cmd
 
-def ipexec(fname: str, options: Optional[List[str]]=None, commands: Tuple[str, ...]=()) -> Tuple[str, str]:
+def ipexec(fname: str, options: list[str] | None=None, commands: tuple[str, ...]=()) -> tuple[str, str]:
     """Utility to call 'ipython filename'.
 
     Starts IPython with a minimal and safe configuration to make startup as fast
@@ -217,7 +217,7 @@ def ipexec(fname: str, options: Optional[List[str]]=None, commands: Tuple[str, .
 
 
 def ipexec_validate(fname: str, expected_out: str, expected_err: str='',
-                    options: Optional[List[str]]=None, commands: Tuple[str, ...]=()):
+                    options: list[str] | None=None, commands: tuple[str, ...]=()):
     """Utility to call 'ipython filename' and validate output/error.
 
     This function raises an AssertionError if the validation fails.
@@ -332,7 +332,7 @@ class AssertPrints:
         self.tee = Tee(self.buffer, channel=self.channel)
         setattr(sys, self.channel, self.buffer if self.suppress else self.tee)
 
-    def __exit__(self, etype: Optional[Type[BaseException]], value: Optional[BaseException], traceback: Optional[TracebackType]):
+    def __exit__(self, etype: type[BaseException] | None, value: BaseException | None, traceback: TracebackType | None):
         __tracebackhide__ = True
 
         try:

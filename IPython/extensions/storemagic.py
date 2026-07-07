@@ -69,7 +69,7 @@ class StoreMagics(Magics):
     ).tag(config=True)
 
     def __init__(self, shell):
-        super(StoreMagics, self).__init__(shell=shell)
+        super().__init__(shell=shell)
         self.shell.configurables.append(self)
         if self.autorestore:
             restore_data(self.shell)
@@ -183,7 +183,7 @@ class StoreMagics(Magics):
                     fil = open(fnam, "w", encoding="utf-8")
                 with fil:
                     obj = ip.ev(args[0])
-                    print("Writing '%s' (%s) to file '%s'." % (args[0],
+                    print("Writing '{}' ({}) to file '{}'.".format(args[0],
                         obj.__class__.__name__, fnam))
 
                     if not isinstance (obj, str):
@@ -211,22 +211,22 @@ class StoreMagics(Magics):
                     staliases = db.get('stored_aliases',{})
                     staliases[name] = cmd
                     db['stored_aliases'] = staliases
-                    print("Alias stored: %s (%s)" % (name, cmd))
+                    print("Alias stored: {} ({})".format(name, cmd))
                     return
 
                 else:
                     modname = getattr(inspect.getmodule(obj), '__name__', '')
                     if modname == '__main__':
                         print(textwrap.dedent("""\
-                        Warning:%s is %s
+                        Warning:{} is {}
                         Proper storage of interactively declared classes (or instances
                         of those classes) is not possible! Only instances
-                        of classes in real modules on file system can be %%store'd.
-                        """ % (arg, obj) ))
+                        of classes in real modules on file system can be %store'd.
+                        """.format(arg, obj) ))
                         return
                     #pickled = pickle.dumps(obj)
                     db[ 'autorestore/' + arg ] = obj
-                    print("Stored '%s' (%s)" % (arg, obj.__class__.__name__))
+                    print("Stored '{}' ({})".format(arg, obj.__class__.__name__))
 
 
 def load_ipython_extension(ip):

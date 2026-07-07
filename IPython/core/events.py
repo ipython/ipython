@@ -15,7 +15,8 @@ events and the arguments which will be passed to them.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Iterable, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
+from collections.abc import Callable, Iterable
 
 if TYPE_CHECKING:
     from IPython.core.interactiveshell import (
@@ -87,7 +88,7 @@ class EventManager:
         if function in self.callbacks[event]:
             return self.callbacks[event].remove(function)
 
-        raise ValueError('Function {!r} is not registered as a {} callback'.format(function, event))
+        raise ValueError(f'Function {function!r} is not registered as a {event} callback')
 
     def trigger(self, event: str, *args: Any, **kwargs: Any) -> None:
         """Call callbacks for ``event``.

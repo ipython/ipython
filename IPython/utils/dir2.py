@@ -7,7 +7,8 @@ from __future__ import annotations
 
 import inspect
 import types
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 
 def safe_hasattr(obj: object, attr: str) -> bool:

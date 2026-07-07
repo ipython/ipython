@@ -116,7 +116,7 @@ class NamespaceMagics(Magics):
         if out == 'not found':
             try:
                 filename = get_py_filename(parameter_s)
-            except IOError as msg:
+            except OSError as msg:
                 print(msg)
                 return
             page.page(self.shell.pycolorize(read_py_file(filename, skip_encoding_cookie=False)))
@@ -464,9 +464,9 @@ class NamespaceMagics(Magics):
                 else:
                     print(aformat % (vshape, vsize, vdtype, vbytes), end=' ')
                     if vbytes < Mb:
-                        print("(%s kb)" % (vbytes / kb,))
+                        print("({} kb)".format(vbytes / kb))
                     else:
-                        print("(%s Mb)" % (vbytes / Mb,))
+                        print("({} Mb)".format(vbytes / Mb))
             elif vtype in ["DataFrame", "Series"]:
                 # Useful for DataFrames and Series
                 # Ought to work for both pandas and polars
@@ -586,14 +586,14 @@ class NamespaceMagics(Magics):
                 for n in range(1, pc):
                     key = '_i'+repr(n)
                     user_ns.pop(key,None)
-                user_ns.update(dict(_i=u'',_ii=u'',_iii=u''))
+                user_ns.update(dict(_i='',_ii='',_iii=''))
                 hm = ip.history_manager
                 # don't delete these, as %save and %macro depending on the
                 # length of these lists to be preserved
                 hm.input_hist_parsed[:] = [''] * pc
                 hm.input_hist_raw[:] = [''] * pc
                 # hm has internal machinery for _i,_ii,_iii, clear it out
-                hm._i = hm._ii = hm._iii = hm._i00 =  u''
+                hm._i = hm._ii = hm._iii = hm._i00 =  ''
 
             elif target == 'array':
                 # Support cleaning up numpy arrays

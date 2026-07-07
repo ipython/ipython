@@ -96,11 +96,11 @@ def latex_to_png(
                     color = "RGB {}".format(" ".join([str(int(x, 16)) for x in
                                                       textwrap.wrap(color[1:], 2)]))
                 except ValueError as e:
-                    raise ValueError('Invalid color specification {}.'.format(color)) from e
+                    raise ValueError(f'Invalid color specification {color}.') from e
             else:
-                raise ValueError('Invalid color specification {}.'.format(color))
+                raise ValueError(f'Invalid color specification {color}.')
     else:
-        raise ValueError('No such backend {0}'.format(backend))
+        raise ValueError(f'No such backend {backend}')
     bin_data = f(s, wrap, color, scale)
     if encode and bin_data:
         bin_data = encodebytes(bin_data)
@@ -118,7 +118,7 @@ def latex_to_png_mpl(s, wrap, color='Black', scale=1.0):
     # mpl mathtext doesn't support display math, force inline
     s = s.replace('$$', '$')
     if wrap:
-        s = u'${0}$'.format(s)
+        s = f'${s}$'
 
     try:
         prop = font_manager.FontProperties(size=12)
@@ -221,7 +221,7 @@ def genelatex(body, wrap):
     if breqn:
         packages = packages + ['breqn']
     for pack in packages:
-        yield r'\usepackage{{{0}}}'.format(pack)
+        yield fr'\usepackage{{{pack}}}'
     yield r'\pagestyle{empty}'
     if lt.preamble:
         yield lt.preamble
@@ -231,13 +231,13 @@ def genelatex(body, wrap):
         yield body
         yield r'\end{dmath*}'
     elif wrap:
-        yield u'$${0}$$'.format(body)
+        yield f'$${body}$$'
     else:
         yield body
-    yield u'\\end{document}'
+    yield '\\end{document}'
 
 
-_data_uri_template_png = u"""<img src="data:image/png;base64,%s" alt=%s />"""
+_data_uri_template_png = """<img src="data:image/png;base64,%s" alt=%s />"""
 
 def latex_to_html(s, alt='image'):
     """Render LaTeX to HTML with embedded PNG data using data URIs.

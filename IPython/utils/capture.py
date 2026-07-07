@@ -75,9 +75,9 @@ class CapturedIO:
 
     def __init__(
         self,
-        stdout: Optional[StringIO],
-        stderr: Optional[StringIO],
-        outputs: Optional[List[Any]] = None,
+        stdout: StringIO | None,
+        stderr: StringIO | None,
+        outputs: list[Any] | None = None,
     ):
         self._stdout = stdout
         self._stderr = stderr
@@ -168,7 +168,7 @@ class capture_output:
 
         return CapturedIO(stdout, stderr, outputs)
 
-    def __exit__(self, exc_type: Optional[Type[BaseException]], exc_value: Optional[BaseException], traceback: Optional[TracebackType]):
+    def __exit__(self, exc_type: type[BaseException] | None, exc_value: BaseException | None, traceback: TracebackType | None):
         sys.stdout = self.sys_stdout
         sys.stderr = self.sys_stderr
         if self.display and self.shell:

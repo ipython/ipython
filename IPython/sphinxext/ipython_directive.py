@@ -577,14 +577,14 @@ class EmbeddedSphinxShell:
             ("Traceback" in processed_output) or ("SyntaxError" in processed_output)
         ):
             s = "\n>>>" + ("-" * 73) + "\n"
-            s += "Exception in %s at block ending on line %s\n" % (filename, lineno)
+            s += "Exception in {} at block ending on line {}\n".format(filename, lineno)
             s += "Specify :okexcept: as an option in the ipython:: block to suppress this message\n"
             s += processed_output + "\n"
             s += "<<<" + ("-" * 73)
             logger.warning(s)
             if self.warning_is_error:
                 raise RuntimeError(
-                    "Unexpected exception in `{}` line {}".format(filename, lineno)
+                    f"Unexpected exception in `{filename}` line {lineno}"
                 )
 
         # output any warning raised during execution to stdout
@@ -592,7 +592,7 @@ class EmbeddedSphinxShell:
         if not is_okwarning:
             for w in ws:
                 s = "\n>>>" + ("-" * 73) + "\n"
-                s += "Warning in %s at block ending on line %s\n" % (filename, lineno)
+                s += "Warning in {} at block ending on line {}\n".format(filename, lineno)
                 s += "Specify :okwarning: as an option in the ipython:: block to suppress this message\n"
                 s += ("-" * 76) + "\n"
                 s += warnings.formatwarning(
@@ -602,7 +602,7 @@ class EmbeddedSphinxShell:
                 logger.warning(s)
                 if self.warning_is_error:
                     raise RuntimeError(
-                        "Unexpected warning in `{}` line {}".format(filename, lineno)
+                        f"Unexpected warning in `{filename}` line {lineno}"
                     )
 
         self.clear_cout()
@@ -686,7 +686,7 @@ class EmbeddedSphinxShell:
             # prompt for now, and we might have to adjust if it doesn't work
             # in other cases. Finally, the submitted output does not have
             # a trailing newline, so we must add it manually.
-            out_data.append("{0} {1}\n".format(output_prompt, data))
+            out_data.append(f"{output_prompt} {data}\n")
 
         return out_data
 
@@ -843,19 +843,19 @@ class EmbeddedSphinxShell:
                 continue
 
             # deal with lines checking for multiline
-            continuation  = u'   %s:'% ''.join(['.']*(len(str(ct))+2))
+            continuation  = '   %s:'% ''.join(['.']*(len(str(ct))+2))
             if not multiline:
-                modified = u"%s %s" % (fmtin % ct, line_stripped)
+                modified = "{} {}".format(fmtin % ct, line_stripped)
                 output.append(modified)
                 ct += 1
                 try:
                     ast.parse(line_stripped)
-                    output.append(u'')
+                    output.append('')
                 except Exception: # on a multiline
                     multiline = True
                     multiline_start = lineno
             else: # still on a multiline
-                modified = u'%s %s' % (continuation, line)
+                modified = '{} {}'.format(continuation, line)
                 output.append(modified)
 
                 # if the next line is indented, it should be part of multiline
@@ -872,7 +872,7 @@ class EmbeddedSphinxShell:
                             if isinstance(element, ast.Return):
                                 multiline = False
                     else:
-                        output.append(u'')
+                        output.append('')
                         multiline = False
                 except Exception:
                     pass
@@ -897,7 +897,7 @@ class EmbeddedSphinxShell:
         if doctest_type in doctests:
             doctests[doctest_type](self, args, input_lines, found, submitted)
         else:
-            e = "Invalid option to @doctest: {0}".format(doctest_type)
+            e = f"Invalid option to @doctest: {doctest_type}"
             raise Exception(e)
 
 
@@ -907,7 +907,7 @@ class IPythonDirective(Directive):
     required_arguments: int = 0
     optional_arguments: int = 4  # python, suppress, verbatim, doctest
     final_argumuent_whitespace: bool = True
-    option_spec: Dict[str, Any] = {
+    option_spec: dict[str, Any] = {
         "python": directives.unchanged,
         "suppress": directives.flag,
         "verbatim": directives.flag,
@@ -918,7 +918,7 @@ class IPythonDirective(Directive):
 
     shell = None
 
-    seen_docs: Set = set()
+    seen_docs: set = set()
 
     def get_config_options(self):
         # contains sphinx configuration variables
@@ -1056,7 +1056,7 @@ class IPythonDirective(Directive):
             if len(block):
                 rows, figure = self.shell.process_block(block)
                 for row in rows:
-                    lines.extend(['   {0}'.format(line)
+                    lines.extend([f'   {line}'
                                   for line in row.split('\n')])
 
                 if figure is not None:

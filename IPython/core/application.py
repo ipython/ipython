@@ -120,7 +120,7 @@ class ProfileAwareConfigLoader(PyFileConfigLoader):
             except ProfileDirError:
                 return
             path = profile_dir.location
-        return super(ProfileAwareConfigLoader, self).load_subconfig(fname, path=path)
+        return super().load_subconfig(fname, path=path)
 
 class BaseIPythonApplication(Application):
     name = "ipython"
@@ -141,7 +141,7 @@ class BaseIPythonApplication(Application):
     config_file_name = Unicode()
     @default('config_file_name')
     def _config_file_name_default(self):
-        return self.name.replace('-','_') + u'_config.py'
+        return self.name.replace('-','_') + '_config.py'
     @observe('config_file_name')
     def _config_file_name_changed(self, change):
         if change['new'] != change['old']:
@@ -149,7 +149,7 @@ class BaseIPythonApplication(Application):
 
     # The directory that contains IPython's builtin profiles.
     builtin_profile_dir = Unicode(
-        os.path.join(get_ipython_package_dir(), u'config', u'profile', u'default')
+        os.path.join(get_ipython_package_dir(), 'config', 'profile', 'default')
     )
     
     config_file_paths = List(Unicode())
@@ -173,14 +173,14 @@ class BaseIPythonApplication(Application):
         self.config_file_specified.add(new)
         self.config_files.append(new)
 
-    profile = Unicode(u'default',
+    profile = Unicode('default',
         help="""The IPython profile to use."""
     ).tag(config=True)
     
     @observe('profile')
     def _profile_changed(self, change):
         self.builtin_profile_dir = os.path.join(
-                get_ipython_package_dir(), u'config', u'profile', change['new']
+                get_ipython_package_dir(), 'config', 'profile', change['new']
         )
 
     add_ipython_dir_to_sys_path = Bool(
@@ -256,7 +256,7 @@ class BaseIPythonApplication(Application):
 
     @catch_config_error
     def __init__(self, **kwargs):
-        super(BaseIPythonApplication, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         # ensure current working directory exists
         try:
             os.getcwd()

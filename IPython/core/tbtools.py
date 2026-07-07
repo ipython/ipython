@@ -31,7 +31,7 @@ def count_lines_in_py_file(filename: str) -> int:
         return 0
     else:
         try:
-            with open(filename, "r") as file:
+            with open(filename) as file:
                 s = sum(1 for line in file)
         except UnicodeError:
             return 0
@@ -287,11 +287,11 @@ class FrameInfo:
     really long frames.
     """
 
-    description: Optional[str]
-    filename: Optional[str]
+    description: str | None
+    filename: str | None
     lineno: int
     # number of context lines to use
-    context: Optional[int]
+    context: int | None
     raw_lines: list[str]
     _sd: stack_data.core.FrameInfo
     frame: Any
@@ -312,11 +312,11 @@ class FrameInfo:
 
     def __init__(
         self,
-        description: Optional[str],
+        description: str | None,
         filename: str,
         lineno: int,
         frame: Any,
-        code: Optional[types.CodeType],
+        code: types.CodeType | None,
         *,
         sd: Any = None,
         context: int | None = None,
@@ -462,7 +462,7 @@ class TBTools:
 
     def get_parts_of_chained_exception(
         self, evalue: BaseException | None
-    ) -> Optional[Tuple[type, BaseException, TracebackType]]:
+    ) -> tuple[type, BaseException, TracebackType] | None:
         chained_evalue = self._get_chained_exception(evalue)
 
         if chained_evalue:
@@ -530,7 +530,7 @@ class TBTools:
         etype: type,
         value: BaseException | None,
         tb: TracebackType | None,
-        tb_offset: Optional[int] = None,
+        tb_offset: int | None = None,
         context: int = 5,
     ) -> str:
         """Return formatted traceback.
@@ -544,8 +544,8 @@ class TBTools:
         self,
         etype: type,
         evalue: BaseException | None,
-        etb: Optional[TracebackType] = None,
-        tb_offset: Optional[int] = None,
+        etb: TracebackType | None = None,
+        tb_offset: int | None = None,
         context: int = 5,
     ) -> list[str]:
         """Return a list of traceback frames.

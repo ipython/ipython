@@ -9,7 +9,8 @@ import tokenize
 from io import StringIO
 from keyword import iskeyword
 from tokenize import TokenInfo
-from typing import Callable, NamedTuple
+from typing import NamedTuple
+from collections.abc import Callable
 from collections.abc import Generator
 
 
@@ -21,7 +22,7 @@ class Token(NamedTuple):
     line: str
 
 
-def generate_tokens(readline: Callable) -> Generator[TokenInfo, None, None]:
+def generate_tokens(readline: Callable) -> Generator[TokenInfo]:
     """wrap generate_tkens to catch EOF errors"""
     try:
         yield from tokenize.generate_tokens(readline)
@@ -151,7 +152,7 @@ def token_at_cursor(cell: str, cursor_pos: int = 0) -> str:
                 and prev_tok.token == tokenize.OP
                 and prev_tok.text == "."
             ):
-                names[-1] = "%s.%s" % (names[-1], tok.text)
+                names[-1] = "{}.{}".format(names[-1], tok.text)
             else:
                 names.append(tok.text)
             if (

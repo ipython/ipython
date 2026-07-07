@@ -326,7 +326,7 @@ class DisplayHandle:
         self.display_id = display_id
 
     def __repr__(self):
-        return "<%s display_id=%s>" % (self.__class__.__name__, self.display_id)
+        return "<{} display_id={}>".format(self.__class__.__name__, self.display_id)
 
     def display(self, obj, **kwargs):
         """Make a new display with my id, updating existing instances.

@@ -47,7 +47,7 @@ class ExtensionManager(Configurable):
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
 
     def __init__(self, shell=None, **kwargs):
-        super(ExtensionManager, self).__init__(shell=shell, **kwargs)
+        super().__init__(shell=shell, **kwargs)
         self.loaded = set()
 
     def load_extension(self, module_str: str):
