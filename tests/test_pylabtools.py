@@ -28,7 +28,7 @@ from .test_history import hmmax3
 
 
 @pytest.mark.skipif(
-    sys.version_info[:2] == (3, 11),
+    sys.platform == "linux" and sys.version_info[:2] == (3, 11),
     reason="matplotlib marker style regression on Python 3.11 CI (ValueError: Unrecognized marker style 'None')",
 )
 def test_figure_to_svg():
@@ -64,7 +64,7 @@ def _check_pil_jpeg_bytes():
 
 @dec.skip_without("PIL.Image")
 @pytest.mark.skipif(
-    sys.version_info[:2] == (3, 11),
+    sys.platform == "linux" and sys.version_info[:2] == (3, 11),
     reason="matplotlib marker style regression on Python 3.11 CI (ValueError: Unrecognized marker style 'None')",
 )
 def test_figure_to_jpeg():
@@ -79,7 +79,7 @@ def test_figure_to_jpeg():
 
 
 @pytest.mark.skipif(
-    sys.version_info[:2] == (3, 11),
+    sys.platform == "linux" and sys.version_info[:2] == (3, 11),
     reason="matplotlib marker style regression on Python 3.11 CI (ValueError: Unrecognized marker style 'None')",
 )
 def test_retina_figure():
@@ -119,7 +119,7 @@ def test_select_figure_formats_str():
 
 
 @pytest.mark.skipif(
-    sys.version_info[:2] == (3, 11),
+    sys.platform == "linux" and sys.version_info[:2] == (3, 11),
     reason="matplotlib marker style regression on Python 3.11 CI (ValueError: Unrecognized marker style 'None')",
 )
 def test_select_figure_formats_kwargs():
