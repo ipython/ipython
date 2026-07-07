@@ -12,7 +12,6 @@ from IPython.core.kitty import (
     display_formatter_default_active_types,
     terminal_default_mime_renderers,
 )
-from IPython.utils.py3compat import input
 from IPython.utils.PyColorize import theme_table
 from IPython.utils.terminal import toggle_set_term_title, set_term_title, restore_term_title
 from IPython.utils.process import abbrev_cwd

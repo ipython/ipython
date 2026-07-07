@@ -29,7 +29,6 @@ from IPython.core.error import TryNext
 from IPython.utils.data import chop
 from IPython.utils.process import system
 from IPython.utils.terminal import get_terminal_size
-from IPython.utils import py3compat
 
 
 def display_page(strng, start=0, screen_lines=25):
@@ -340,7 +339,7 @@ if os.name == 'nt' and os.environ.get('TERM','dumb') != 'emacs':
         return result
 else:
     def page_more():
-        ans = py3compat.input('---Return to continue, q to quit--- ')
+        ans = input('---Return to continue, q to quit--- ')
         if ans.lower().startswith('q'):
             return False
         else:

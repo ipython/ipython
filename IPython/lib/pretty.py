@@ -96,14 +96,13 @@ Inheritance diagram:
 from contextlib import contextmanager
 import datetime
 import os
+import platform
 import re
 import sys
 import types
 from collections import deque
 from inspect import signature
 from io import StringIO
-
-from IPython.utils.py3compat import PYPY
 
 from typing import Dict
 
@@ -708,7 +707,7 @@ def _super_pprint(obj, p, cycle):
     p.pretty(obj.__thisclass__)
     p.text(',')
     p.breakable()
-    if PYPY: # In PyPy, super() objects don't have __self__ attributes
+    if platform.python_implementation() == "PyPy": # In PyPy, super() objects don't have __self__ attributes
         dself = obj.__repr__.__self__
         p.pretty(None if dself is obj else dself)
     else:

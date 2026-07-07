@@ -16,12 +16,19 @@ from unittest.mock import patch
 from IPython.core import debugger
 from IPython.testing import IPYTHON_TESTING_TIMEOUT_SCALE
 from IPython.testing.decorators import skip_win32
-from IPython.utils import py3compat
 import pytest
 
-# -----------------------------------------------------------------------------
+# Helper for executing files with proper debugger frame marking
+def execfile(fname, glob, loc=None, compiler=None):
+    __tracebackhide__ = "__ipython_bottom__"
+    loc = loc if (loc is not None) else glob
+    with open(fname, "rb") as f:
+        compiler_fn = compiler or compile
+        exec(compiler_fn(f.read(), fname, "exec"), glob, loc)
+
+
 # Helper classes, from CPython's Pdb test suite
-# -----------------------------------------------------------------------------
+#
 
 
 class _FakeInput(object):
@@ -304,7 +311,7 @@ def test_execfile_marks_debugger_internal_frames_hidden():
         )
 
         with pytest.raises(RuntimeError) as exc_info:
-            py3compat.execfile(script, {})
+            execfile(script, {})
 
     ipdb = debugger.Pdb()
     stack, _ = ipdb.get_stack(None, exc_info.value.__traceback__)

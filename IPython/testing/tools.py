@@ -24,7 +24,7 @@ from unittest.mock import patch
 from traitlets.config.loader import Config
 from IPython.utils.process import get_output_error_code
 from IPython.utils.io import temp_pyfile, Tee
-from IPython.utils import py3compat
+from IPython.utils.encoding import DEFAULT_ENCODING
 
 from . import decorators as dec
 from . import skipdoctest
@@ -207,8 +207,8 @@ def ipexec(fname: str, options: list[str] | None=None, commands: tuple[str, ...]
         if not isinstance(v, str):
             print(k, v)
     p = Popen(full_cmd, stdout=PIPE, stderr=PIPE, stdin=PIPE, env=env)
-    out, err = p.communicate(input=py3compat.encode('\n'.join(commands)) or None)
-    out, err = py3compat.decode(out), py3compat.decode(err)
+    out, err = p.communicate(input=('\n'.join(commands).encode(DEFAULT_ENCODING, "replace")) or None)
+    out, err = out.decode(DEFAULT_ENCODING, "replace"), err.decode(DEFAULT_ENCODING, "replace")
     # `import readline` causes 'ESC[?1034h' to be output sometimes,
     # so strip that out before doing comparisons
     if out:

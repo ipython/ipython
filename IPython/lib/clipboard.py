@@ -5,7 +5,7 @@ import os
 import subprocess
 
 from IPython.core.error import TryNext
-import IPython.utils.py3compat as py3compat
+from IPython.utils.encoding import DEFAULT_ENCODING
 
 
 class ClipboardEmpty(ValueError):
@@ -28,7 +28,7 @@ def win32_clipboard_get():
     except (TypeError, win32clipboard.error):
         try:
             text = win32clipboard.GetClipboardData(win32clipboard.CF_TEXT)
-            text = py3compat.cast_unicode(text, py3compat.DEFAULT_ENCODING)
+            text = text if isinstance(text, str) else text.decode(DEFAULT_ENCODING, "replace")
         except (TypeError, win32clipboard.error) as e:
             raise ClipboardEmpty from e
     finally:
@@ -44,7 +44,7 @@ def osx_clipboard_get() -> str:
     bytes_, stderr = p.communicate()
     # Text comes in with old Mac \r line endings. Change them to \n.
     bytes_ = bytes_.replace(b'\r', b'\n')
-    text = py3compat.decode(bytes_)
+    text = bytes_.decode(DEFAULT_ENCODING, "replace")
     return text
 
 
@@ -68,7 +68,7 @@ def tkinter_clipboard_get():
         raise ClipboardEmpty from e
     finally:
         root.destroy()
-    text = py3compat.cast_unicode(text, py3compat.DEFAULT_ENCODING)
+    text = text if isinstance(text, str) else text.decode(DEFAULT_ENCODING, "replace")
     return text
 
 
@@ -95,7 +95,7 @@ def wayland_clipboard_get():
         raise ClipboardEmpty
 
     try:
-        text = py3compat.decode(raw)
+        text = raw.decode(DEFAULT_ENCODING, "replace")
     except UnicodeDecodeError as e:
         raise ClipboardEmpty from e
 

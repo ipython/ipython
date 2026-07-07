@@ -15,7 +15,6 @@ from threading import Thread
 from types import TracebackType
 from typing import List, Optional
 
-from . import py3compat
 from ._process_common import arg_split as py_arg_split
 
 from ._process_common import process_handler, read_no_interrupt
@@ -156,7 +155,7 @@ def getoutput(cmd: str) -> str:
 
     if out is None:
         out = b""
-    return py3compat.decode(out)
+    return out.decode(DEFAULT_ENCODING, "replace")
 
 
 try:
