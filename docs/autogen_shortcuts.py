@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from inspect import getsource
 from pathlib import Path
-from typing import cast, List, Union
+from typing import cast
 from html import escape as html_escape
 import re
 
@@ -17,7 +19,7 @@ from IPython.terminal.shortcuts.filters import KEYBINDING_FILTERS
 @dataclass
 class Shortcut:
     #: a sequence of keys (each element on the list corresponds to pressing one or more keys)
-    keys_sequence: List[str]
+    keys_sequence: list[str]
     filter: str
 
 
@@ -36,7 +38,7 @@ class Binding:
 class _NestedFilter(Filter):
     """Protocol reflecting non-public prompt_toolkit's `_AndList` and `_OrList`."""
 
-    filters: List[Filter]
+    filters: list[Filter]
 
 
 class _Invert(Filter):
@@ -56,7 +58,7 @@ HUMAN_NAMES_FOR_FILTERS = {
 
 
 def format_filter(
-    filter_: Union[Filter, _NestedFilter, Condition, _Invert],
+    filter_: Filter | _NestedFilter | Condition | _Invert,
     is_top_level=True,
     skip=None,
 ) -> str:
@@ -116,9 +118,9 @@ class _DummyTerminal:
     auto_suggest = None
 
 
-def bindings_from_prompt_toolkit(prompt_bindings: KeyBindingsBase) -> List[Binding]:
+def bindings_from_prompt_toolkit(prompt_bindings: KeyBindingsBase) -> list[Binding]:
     """Collect bindings to a simple format that does not depend on prompt-toolkit internals"""
-    bindings: List[Binding] = []
+    bindings: list[Binding] = []
 
     for kb in prompt_bindings.bindings:
         bindings.append(
@@ -148,7 +150,7 @@ def format_prompt_keys(keys: str, add_alternatives=True) -> str:
         escaped = key.replace("\\", "\\\\")
         return f":kbd:`{escaped}`"
 
-    keys_to_press: List[str]
+    keys_to_press: list[str]
 
     prefixes = {
         "c-s-": [to_rst("ctrl"), to_rst("shift")],
