@@ -11,6 +11,7 @@ This module defines the logic display publishing. The display publisher uses
 the ``display_data`` message type that is defined in the IPython messaging
 spec.
 """
+from __future__ import annotations
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
@@ -23,8 +24,6 @@ from traitlets import List
 # This used to be defined here - it is imported for backwards compatibility
 from .display_functions import publish_display_data
 from .history import HistoryOutput
-
-import typing as t
 
 # -----------------------------------------------------------------------------
 # Main payload class
@@ -143,7 +142,7 @@ class DisplayPublisher(Configurable):
                 stacklevel=2,
             )
 
-        handlers: t.Dict = {}
+        handlers: dict = {}
         if self.shell is not None:
             handlers = getattr(self.shell, "mime_renderers", {})
 

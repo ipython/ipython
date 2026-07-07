@@ -3,6 +3,7 @@
 Everything in this module is a private API,
 not to be used outside IPython.
 """
+from __future__ import annotations
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.

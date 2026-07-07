@@ -1,5 +1,6 @@
 """Implementation of magic functions that control various automatic behaviors.
 """
+from __future__ import annotations
 #-----------------------------------------------------------------------------
 #  Copyright (c) 2012 The IPython Development Team.
 #

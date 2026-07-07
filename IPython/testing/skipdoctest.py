@@ -4,6 +4,8 @@ The IPython.testing.decorators module triggers various extra imports, including
 numpy and sympy if they're present. Since this decorator is used in core parts
 of IPython, it's in a separate module so that running IPython doesn't trigger
 those imports."""
+from __future__ import annotations
+
 from typing import Any
 
 # Copyright (C) IPython Development Team

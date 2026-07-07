@@ -1,4 +1,5 @@
 """Implementation of basic magic functions."""
+from __future__ import annotations
 
 
 from logging import error
