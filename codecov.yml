@@ -15,14 +15,17 @@ coverage:
           - '**/tests/**'
           - '**/testing/**'
         threshold: 0.2%
+# Note: an invalid codecov.yml is silently ignored (Codecov falls back to
+# defaults, e.g. notifying before all reports are in). Check changes with:
+#   curl --data-binary @codecov.yml https://codecov.io/validate
 flag_management:
   default_rules:
     statuses:
       - type: patch
-        target: auto%
+        target: auto
         threshold: 0.2%
       - type: project
-        target: auto%
+        target: auto
         threshold: 0.2%
   individual_flags:
     - name: unit-tests
