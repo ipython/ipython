@@ -27,7 +27,7 @@ class Tee:
     # Inspired by:
     # http://mail.python.org/pipermail/python-list/2007-May/442737.html
 
-    def __init__(self, file_or_name: Union[str, StringIO], mode: str="w", channel: str='stdout'):
+    def __init__(self, file_or_name: str | StringIO, mode: str="w", channel: str='stdout'):
         """Construct a new Tee object.
 
         Parameters

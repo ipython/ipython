@@ -27,7 +27,8 @@ from traitlets import Bool, Dict, Instance, observe
 from logging import error
 
 import typing as t
-from typing import Any, Callable, Literal, TypeVar, overload
+from typing import Any, Literal, TypeVar, overload
+from collections.abc import Callable
 
 if t.TYPE_CHECKING:
     from types import FrameType
@@ -404,7 +405,7 @@ class MagicsManager(Configurable):
         user_magics: Magics | None = None,
         **traits: Any,
     ) -> None:
-        super(MagicsManager, self).__init__(
+        super().__init__(
             shell=shell, config=config, user_magics=user_magics, **traits
         )
         self.magics = dict(line={}, cell={})
@@ -653,7 +654,7 @@ class Magics(Configurable):
                     tab[magic_name] = meth_name
         # Configurable **needs** to be initiated at the end or the config
         # magics get screwed up.
-        super(Magics, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def arg_err(self, func: Callable[..., Any]) -> None:
         """Print docstring if incorrect arguments were passed"""
@@ -717,7 +718,7 @@ class Magics(Configurable):
 
         # inject default options at the beginning of the input line
         caller = sys._getframe(1).f_code.co_name
-        arg_str = "%s %s" % (self.options_table.get(caller, ""), arg_str)
+        arg_str = "{} {}".format(self.options_table.get(caller, ""), arg_str)
 
         mode = kw.get("mode", "string")
         if mode not in ["string", "list"]:
@@ -800,7 +801,7 @@ class MagicAlias:
         self.magic_params = magic_params
         self.magic_kind = magic_kind
 
-        self.pretty_target = "%s%s" % (magic_escapes[self.magic_kind], self.magic_name)
+        self.pretty_target = "{}{}".format(magic_escapes[self.magic_kind], self.magic_name)
         self.__doc__ = "Alias for `%s`." % self.pretty_target
 
         self._in_call = False

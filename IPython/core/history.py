@@ -139,7 +139,7 @@ def catch_corrupt_db(f, self, *a, **kw):  # type: ignore [no-untyped-def]
                 if size >= _SAVE_DB_SIZE:
                     # if there's significant content, avoid clobbering
                     now = (
-                        datetime.datetime.now(datetime.timezone.utc)
+                        datetime.datetime.now(datetime.UTC)
                         .isoformat()
                         .replace(":", ".")
                     )
@@ -183,7 +183,7 @@ class HistoryAccessorBase(LoggingConfigurable):
         raw: bool = True,
         search_raw: bool = True,
         output: bool = False,
-        n: Optional[int] = None,
+        n: int | None = None,
         unique: bool = False,
     ) -> Iterable[tuple[int, int, InOrInOut]]:
         raise NotImplementedError
@@ -192,7 +192,7 @@ class HistoryAccessorBase(LoggingConfigurable):
         self,
         session: int,
         start: int = 1,
-        stop: Optional[int] = None,
+        stop: int | None = None,
         raw: bool = True,
         output: bool = False,
     ) -> Iterable[tuple[int, int, InOrInOut]]:
@@ -269,7 +269,7 @@ class HistoryAccessor(HistoryAccessorBase):
         new = change["new"]
         connection_types = (DummyDB, sqlite3.Connection)
         if not isinstance(new, connection_types):
-            msg = "%s.db must be sqlite3 Connection or DummyDB, not %r" % (
+            msg = "{}.db must be sqlite3 Connection or DummyDB, not {!r}".format(
                 self.__class__.__name__,
                 new,
             )
@@ -290,7 +290,7 @@ class HistoryAccessor(HistoryAccessorBase):
         config : :class:`~traitlets.config.loader.Config`
             Config object. hist_file can also be set through this.
         """
-        super(HistoryAccessor, self).__init__(**traits)
+        super().__init__(**traits)
         # defer setting hist_file from kwarg until after init,
         # otherwise the default kwarg value would clobber any value
         # set by config
@@ -392,7 +392,7 @@ class HistoryAccessor(HistoryAccessorBase):
             toget = "history.%s, output_history.output" % toget
         if latest:
             toget += ", MAX(session * 128 * 1024 + line)"
-        this_querry = "SELECT session, line, %s FROM %s " % (toget, sqlfrom) + sql
+        this_querry = "SELECT session, line, {} FROM {} ".format(toget, sqlfrom) + sql
         cur = self.db.execute(this_querry, params)
         if latest:
             cur = (row[:-1] for row in cur)
@@ -404,7 +404,7 @@ class HistoryAccessor(HistoryAccessorBase):
     @catch_corrupt_db
     def get_session_info(
         self, session: int
-    ) -> tuple[int, datetime.datetime, Optional[datetime.datetime], Optional[int], str]:
+    ) -> tuple[int, datetime.datetime, datetime.datetime | None, int | None, str]:
         """Get info about a session.
 
         Parameters
@@ -429,7 +429,7 @@ class HistoryAccessor(HistoryAccessorBase):
         return self.db.execute(query, (session,)).fetchone()
 
     @catch_corrupt_db
-    def get_last_session_id(self) -> Optional[int]:
+    def get_last_session_id(self) -> int | None:
         """Get the last session ID currently in the database.
 
         Within IPython, this should be the same as the value stored in
@@ -481,7 +481,7 @@ class HistoryAccessor(HistoryAccessorBase):
         raw: bool = True,
         search_raw: bool = True,
         output: bool = False,
-        n: Optional[int] = None,
+        n: int | None = None,
         unique: bool = False,
     ) -> Iterable[tuple[int, int, InOrInOut]]:
         """Search the database using unix glob-style matching (wildcards
@@ -512,7 +512,7 @@ class HistoryAccessor(HistoryAccessorBase):
         sqlform = "WHERE %s GLOB ?" % tosearch
         params: tuple[typing.Any, ...] = (pattern,)
         if unique:
-            sqlform += " GROUP BY {0}".format(tosearch)
+            sqlform += f" GROUP BY {tosearch}"
         if n is not None:
             sqlform += " ORDER BY session DESC, line DESC LIMIT ?"
             params += (n,)
@@ -528,7 +528,7 @@ class HistoryAccessor(HistoryAccessorBase):
         self,
         session: int,
         start: int = 1,
-        stop: Optional[int] = None,
+        stop: int | None = None,
         raw: bool = True,
         output: bool = False,
     ) -> Iterable[tuple[int, int, InOrInOut]]:
@@ -600,7 +600,7 @@ class HistoryOutput:
     output_type: typing.Literal[
         "out_stream", "err_stream", "display_data", "execute_result"
     ]
-    bundle: typing.Dict[str, str | list[str]]
+    bundle: dict[str, str | list[str]]
 
 
 class HistoryManager(HistoryAccessor):
@@ -630,11 +630,11 @@ class HistoryManager(HistoryAccessor):
     # execution count.
     output_hist = Dict()
     # The text/plain repr of outputs.
-    output_hist_reprs: typing.Dict[int, str] = Dict()  # type: ignore [assignment]
+    output_hist_reprs: dict[int, str] = Dict()  # type: ignore [assignment]
     # Maps execution_count to MIME bundles
-    outputs: typing.Dict[int, typing.List[HistoryOutput]] = defaultdict(list)
+    outputs: dict[int, list[HistoryOutput]] = defaultdict(list)
     # Maps execution_count to exception tracebacks
-    exceptions: typing.Dict[int, typing.Dict[str, Any]] = Dict()  # type: ignore [assignment]
+    exceptions: dict[int, dict[str, Any]] = Dict()  # type: ignore [assignment]
 
     # The number of the current session in the history database
     session_number: int = Integer()  # type: ignore [assignment]
@@ -680,7 +680,7 @@ class HistoryManager(HistoryAccessor):
     def __init__(
         self,
         shell: InteractiveShell,
-        config: Optional[Configuration] = None,
+        config: Configuration | None = None,
         **traits: typing.Any,
     ):
         """Create a new history manager associated with a shell instance."""
@@ -746,7 +746,7 @@ class HistoryManager(HistoryAccessor):
             self.save_thread = HistorySavingThread(self)
             self.save_thread.start()
 
-    def _get_hist_file_name(self, profile: Optional[str] = None) -> Path:
+    def _get_hist_file_name(self, profile: str | None = None) -> Path:
         """Get default history file name based on the Shell's profile.
 
         The profile parameter is ignored, but must exist for compatibility with
@@ -755,7 +755,7 @@ class HistoryManager(HistoryAccessor):
         return Path(profile_dir) / "history.sqlite"
 
     @only_when_enabled
-    def new_session(self, conn: Optional[sqlite3.Connection] = None) -> None:
+    def new_session(self, conn: sqlite3.Connection | None = None) -> None:
         """Get a new session number."""
         if conn is None:
             conn = self.db
@@ -777,7 +777,7 @@ class HistoryManager(HistoryAccessor):
                 """UPDATE sessions SET end=?, num_cmds=? WHERE
                             session==?""",
                 (
-                    datetime.datetime.now(datetime.timezone.utc).isoformat(" "),
+                    datetime.datetime.now(datetime.UTC).isoformat(" "),
                     len(self.input_hist_parsed) - 1,
                     self.session_number,
                 ),
@@ -819,7 +819,7 @@ class HistoryManager(HistoryAccessor):
     # ------------------------------
     def get_session_info(
         self, session: int = 0
-    ) -> tuple[int, datetime.datetime, Optional[datetime.datetime], Optional[int], str]:
+    ) -> tuple[int, datetime.datetime, datetime.datetime | None, int | None, str]:
         """Get info about a session.
 
         Parameters
@@ -844,7 +844,7 @@ class HistoryManager(HistoryAccessor):
         if session <= 0:
             session += self.session_number
 
-        return super(HistoryManager, self).get_session_info(session=session)
+        return super().get_session_info(session=session)
 
     @catch_corrupt_db
     def get_tail(
@@ -908,7 +908,7 @@ class HistoryManager(HistoryAccessor):
     def _get_range_session(
         self,
         start: int = 1,
-        stop: Optional[int] = None,
+        stop: int | None = None,
         raw: bool = True,
         output: bool = False,
     ) -> Iterable[tuple[int, int, InOrInOut]]:
@@ -935,7 +935,7 @@ class HistoryManager(HistoryAccessor):
         self,
         session: int = 0,
         start: int = 1,
-        stop: Optional[int] = None,
+        stop: int | None = None,
         raw: bool = True,
         output: bool = False,
     ) -> Iterable[tuple[int, int, InOrInOut]]:
@@ -970,13 +970,13 @@ class HistoryManager(HistoryAccessor):
             session += self.session_number
         if session == self.session_number:  # Current session
             return self._get_range_session(start, stop, raw, output)
-        return super(HistoryManager, self).get_range(session, start, stop, raw, output)
+        return super().get_range(session, start, stop, raw, output)
 
     ## ----------------------------
     ## Methods for storing history:
     ## ----------------------------
     def store_inputs(
-        self, line_num: int, source: str, source_raw: Optional[str] = None
+        self, line_num: int, source: str, source_raw: str | None = None
     ) -> None:
         """Store source and raw input in history and create input cache
         variables ``_i*``.
@@ -1064,7 +1064,7 @@ class HistoryManager(HistoryAccessor):
                 )
 
     @only_when_enabled
-    def writeout_cache(self, conn: Optional[sqlite3.Connection] = None) -> None:
+    def writeout_cache(self, conn: sqlite3.Connection | None = None) -> None:
         """Write any entries in the cache to the database."""
         if conn is None:
             conn = self.db
@@ -1135,7 +1135,7 @@ class HistorySavingThread(threading.Thread):
     _stopped = False
 
     def __init__(self, history_manager: HistoryManager) -> None:
-        super(HistorySavingThread, self).__init__(name="IPythonHistorySavingThread")
+        super().__init__(name="IPythonHistorySavingThread")
         self.history_manager = ref(history_manager)
         self.enabled = history_manager.enabled
         self.save_flag = threading.Event()
@@ -1210,7 +1210,7 @@ $""",
 )
 
 
-def extract_hist_ranges(ranges_str: str) -> Iterable[tuple[int, int, Optional[int]]]:
+def extract_hist_ranges(ranges_str: str) -> Iterable[tuple[int, int, int | None]]:
     """Turn a string of history ranges into 3-tuples of (session, start, stop).
 
     Empty string results in a `[(0, 1, None)]`, i.e. "everything from current
@@ -1271,4 +1271,4 @@ def _format_lineno(session: int, line: int) -> str:
     """Helper function to format line numbers properly."""
     if session == 0:
         return str(line)
-    return "%s#%s" % (session, line)
+    return "{}#{}".format(session, line)

@@ -816,7 +816,7 @@ def _exception_pprint(obj, p, cycle):
     """Base pprint for all exceptions."""
     name = getattr(obj.__class__, '__qualname__', obj.__class__.__name__)
     if obj.__class__.__module__ not in ('exceptions', 'builtins'):
-        name = '%s.%s' % (obj.__class__.__module__, name)
+        name = '{}.{}'.format(obj.__class__.__module__, name)
 
     p.pretty(CallExpression(name, *getattr(obj, 'args', ())))
 
@@ -864,7 +864,7 @@ _type_pprinters[range] = _repr_pprint
 _type_pprinters[bytes] = _repr_pprint
 
 #: printers for types specified by name
-_deferred_type_pprinters: Dict = {}
+_deferred_type_pprinters: dict = {}
 
 
 def for_type(typ, func):

@@ -769,7 +769,7 @@ class TerminalInteractiveShell(InteractiveShell):
             restore_term_title()
 
     def init_display_formatter(self):
-        super(TerminalInteractiveShell, self).init_display_formatter()
+        super().init_display_formatter()
         # terminal only supports plain text if not explicitly configured
         config = self.display_formatter._trait_values["config"]
         if not (
@@ -975,13 +975,13 @@ class TerminalInteractiveShell(InteractiveShell):
         colorama.init()
 
     def init_magics(self):
-        super(TerminalInteractiveShell, self).init_magics()
+        super().init_magics()
         self.register_magics(TerminalMagics)
 
     def init_alias(self):
         # The parent class defines aliases that can be safely used with any
         # frontend.
-        super(TerminalInteractiveShell, self).init_alias()
+        super().init_alias()
 
         # Now define aliases that only make sense on the terminal, because they
         # need direct access to the console in a way that we can't emulate in
@@ -1056,9 +1056,9 @@ class TerminalInteractiveShell(InteractiveShell):
         if self._inputhook is not None:
             self._inputhook(context)
 
-    active_eventloop: Optional[str] = None
+    active_eventloop: str | None = None
 
-    def enable_gui(self, gui: Optional[str] = None) -> None:
+    def enable_gui(self, gui: str | None = None) -> None:
         if gui:
             from ..core.pylabtools import _convert_gui_from_matplotlib
 

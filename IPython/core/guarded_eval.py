@@ -65,7 +65,7 @@ class DoesNotHaveGetAttr(Protocol):
 MayHaveGetattr = Union[HasGetAttr, DoesNotHaveGetAttr]
 
 
-def _unbind_method(func: Callable) -> Union[Callable, None]:
+def _unbind_method(func: Callable) -> Callable | None:
     """Get unbound method for given bound method.
 
     Returns None if cannot get unbound method, or method is already unbound.
@@ -513,7 +513,7 @@ class ImpersonatingDuck:
 class _Duck:
     """A dummy class used to create objects pretending to have given attributes"""
 
-    def __init__(self, attributes: Optional[dict] = None, items: Optional[dict] = None):
+    def __init__(self, attributes: dict | None = None, items: dict | None = None):
         self.attributes = attributes if attributes is not None else {}
         self.items = items if items is not None else {}
 
@@ -536,7 +536,7 @@ class _Duck:
         return self.items.keys()
 
 
-def _find_dunder(node_op, dunders) -> Union[tuple[str, ...], None]:
+def _find_dunder(node_op, dunders) -> tuple[str, ...] | None:
     dunder = None
     for op, candidate_dunder in dunders.items():
         if isinstance(node_op, op):
@@ -751,7 +751,7 @@ def _is_instance_attribute_assignment(
     )
 
 
-def _get_coroutine_attributes() -> dict[str, Optional[object]]:
+def _get_coroutine_attributes() -> dict[str, object | None]:
     async def _dummy():
         return None
 
@@ -762,7 +762,7 @@ def _get_coroutine_attributes() -> dict[str, Optional[object]]:
         coro.close()
 
 
-def eval_node(node: Union[ast.AST, None], context: EvaluationContext):
+def eval_node(node: ast.AST | None, context: EvaluationContext):
     """Evaluate AST node in provided context.
 
     Applies evaluation restrictions defined in the context. Currently does not support evaluation of functions with keyword arguments.

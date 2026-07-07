@@ -800,7 +800,7 @@ class Pdb(OldPdb):
         if arrow:
             # This is the line with the error
             pad = numbers_width - len(str(lineno)) - len(bp_mark)
-            num = "%s%s" % (self.theme.make_arrow(pad), str(lineno))
+            num = "{}{}".format(self.theme.make_arrow(pad), str(lineno))
         else:
             num = "%*s" % (numbers_width - len(bp_mark), str(lineno))
         bp_str = (BreakpointToken, bp_mark)

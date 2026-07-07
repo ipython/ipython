@@ -170,13 +170,13 @@ class BasicMagics(Magics):
 
         if args.line:
             mman.register_alias(name, target, 'line', params)
-            print('Created `%s%s` as an alias for `%s%s%s`.' % (
+            print('Created `{}{}` as an alias for `{}{}{}`.'.format(
                 magic_escapes['line'], name,
                 magic_escapes['line'], target, params_str))
 
         if args.cell:
             mman.register_alias(name, target, 'cell', params)
-            print('Created `%s%s` as an alias for `%s%s%s`.' % (
+            print('Created `{}{}` as an alias for `{}{}{}`.'.format(
                 magic_escapes['cell'], name,
                 magic_escapes['cell'], target, params_str))
 
@@ -668,7 +668,7 @@ Currently the magic system has the following functions:""",
         notary = NotebookNotary()
         notary.update_config(self.shell.config)
         notary.sign(nb)
-        with io.open(outfname, "w", encoding="utf-8") as f:
+        with open(outfname, "w", encoding="utf-8") as f:
             write(nb, f, version=4)
 
     def _get_kernel_language_info(self) -> dict | None:

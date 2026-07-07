@@ -38,7 +38,7 @@ __all__ = ["create_ipython_shortcuts"]
 @dataclass
 class BaseBinding:
     command: Callable[[KeyPressEvent], Any]
-    keys: List[str]
+    keys: list[str]
 
 
 @dataclass
@@ -52,7 +52,7 @@ class Binding(BaseBinding):
     # than created from strings), by using strings we ensure that users will
     # be able to create filters in configuration (e.g. JSON) files too, which
     # also benefits the documentation by enforcing human-readable filter names.
-    condition: Optional[str] = None
+    condition: str | None = None
 
     def __post_init__(self):
         if self.condition:
@@ -366,7 +366,7 @@ def create_ipython_shortcuts(shell, skip=None) -> KeyBindings:
 
     def set_input_mode(self, mode):
         shape = {InputMode.NAVIGATION: 2, InputMode.REPLACE: 4}.get(mode, 6)
-        cursor = "\x1b[{} q".format(shape)
+        cursor = f"\x1b[{shape} q"
 
         sys.stdout.write(cursor)
         sys.stdout.flush()

@@ -39,14 +39,14 @@ def read_no_interrupt(stream: IO[bytes]) -> bytes | None:
 
     try:
         return stream.read()
-    except IOError as err:
+    except OSError as err:
         if err.errno != errno.EINTR:
             raise
     return None
 
 
 def process_handler(
-    cmd: Union[str, List[str]],
+    cmd: str | list[str],
     callback: Callable[[subprocess.Popen[bytes]], _T],
     stderr: int = subprocess.PIPE,
 ) -> _T | None:

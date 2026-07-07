@@ -99,7 +99,7 @@ from IPython.utils.text import DollarFormatter, LSString, SList, format_screen
 from IPython.core.oinspect import OInfo
 
 
-sphinxify: Optional[Callable]
+sphinxify: Callable | None
 
 try:
     import docrepr.sphinxify as sphx
@@ -201,7 +201,7 @@ class SeparateUnicode(Unicode):
     def validate(self, obj, value):
         if value == '0': value = ''
         value = value.replace('\\n','\n')
-        return super(SeparateUnicode, self).validate(obj, value)
+        return super().validate(obj, value)
 
 
 class _IPythonMainModuleBase(types.ModuleType):
@@ -308,9 +308,9 @@ class ExecutionResult:
     Stores information about what took place.
     """
 
-    execution_count: Optional[int] = None
-    error_before_exec: Optional[BaseException] = None
-    error_in_exec: Optional[BaseException] = None
+    execution_count: int | None = None
+    error_before_exec: BaseException | None = None
+    error_in_exec: BaseException | None = None
     info = None
     result = None
 
@@ -623,7 +623,7 @@ class InteractiveShell(SingletonConfigurable):
                  custom_exceptions=((), None), **kwargs):
         # This is where traits with a config_key argument are updated
         # from the values on config.
-        super(InteractiveShell, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.configurables = [self]
 
         # These are relatively independent and stateless
@@ -1042,7 +1042,7 @@ class InteractiveShell(SingletonConfigurable):
         if self.banner2:
             banner += '\n' + self.banner2
         elif self.enable_tip:
-            banner += "Tip: {tip}\n".format(tip=pick_tip())
+            banner += f"Tip: {pick_tip()}\n"
         return banner
 
     def show_banner(self, banner=None):
@@ -1657,7 +1657,7 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to object introspection
     #-------------------------------------------------------------------------
     @staticmethod
-    def _find_parts(oname: str) -> Tuple[bool, ListType[str]]:
+    def _find_parts(oname: str) -> tuple[bool, ListType[str]]:
         """
         Given an object name, return a list of parts of this object name.
 
@@ -1702,7 +1702,7 @@ class InteractiveShell(SingletonConfigurable):
         return parts_ok, parts
 
     def _ofind(
-        self, oname: str, namespaces: Optional[Sequence[Tuple[str, AnyType]]] = None
+        self, oname: str, namespaces: Sequence[tuple[str, AnyType]] | None = None
     ) -> OInfo:
         """Find an object in the available namespaces.
 
@@ -2567,13 +2567,13 @@ class InteractiveShell(SingletonConfigurable):
         if fn is None:
             lm = self.find_line_magic(magic_name)
             etpl = "Cell magic `%%{0}` not found{1}."
-            extra = '' if lm is None else (' (But line magic `%{0}` exists, '
+            extra = '' if lm is None else (' (But line magic `%{}` exists, '
                             'did you mean that instead?)'.format(magic_name))
             raise UsageError(etpl.format(magic_name, extra))
         elif cell == '':
-            message = '%%{0} is a cell magic, but the cell body is empty.'.format(magic_name)
+            message = f'%%{magic_name} is a cell magic, but the cell body is empty.'
             if self.find_line_magic(magic_name) is not None:
-                message += ' Did you mean the line magic %{0} (single %)?'.format(magic_name)
+                message += f' Did you mean the line magic %{magic_name} (single %)?'
             raise UsageError(message)
         else:
             # Note: this is the distance in the stack to the user's frame.
@@ -2706,7 +2706,7 @@ class InteractiveShell(SingletonConfigurable):
             from IPython.utils._process_win32 import AvoidUNCPath
             with AvoidUNCPath() as path:
                 if path is not None:
-                    cmd = '"pushd %s &&"%s' % (path, cmd)
+                    cmd = '"pushd {} &&"{}'.format(path, cmd)
                 try:
                     ec = os.system(cmd)
                 except KeyboardInterrupt:
@@ -3289,8 +3289,8 @@ class InteractiveShell(SingletonConfigurable):
         silent=False,
         shell_futures=True,
         *,
-        transformed_cell: Optional[str] = None,
-        preprocessing_exc_tuple: Optional[AnyType] = None,
+        transformed_cell: str | None = None,
+        preprocessing_exc_tuple: AnyType | None = None,
         cell_id=None,
     ) -> ExecutionResult:
         """Run a complete IPython cell asynchronously.
@@ -3775,7 +3775,7 @@ class InteractiveShell(SingletonConfigurable):
     # For backwards compatibility
     runcode = run_code
 
-    def check_complete(self, code: str) -> Tuple[str, str]:
+    def check_complete(self, code: str) -> tuple[str, str]:
         """Return whether a block of code is ready to execute, or should be continued
 
         Parameters
@@ -3799,7 +3799,7 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to GUI support and pylab
     #-------------------------------------------------------------------------
 
-    active_eventloop: Optional[str] = None
+    active_eventloop: str | None = None
 
     def enable_gui(self, gui=None):
         raise NotImplementedError('Implement enable_gui in a subclass')
@@ -4053,7 +4053,7 @@ class InteractiveShell(SingletonConfigurable):
         potential_target = [target]
         try :
             potential_target.insert(0,get_py_filename(target))
-        except IOError:
+        except OSError:
             pass
 
         for tgt in potential_target :

@@ -38,11 +38,11 @@ def source_to_unicode(txt: str | bytes | BytesIO, errors: str = 'replace', skip_
     with TextIOWrapper(buffer, encoding, errors=errors, line_buffering=True) as text:
         text.mode = 'r'
         if skip_encoding_cookie:
-            return u"".join(strip_encoding_cookie(text))
+            return "".join(strip_encoding_cookie(text))
         else:
             return text.read()
 
-def strip_encoding_cookie(filelike: Iterable[str]) -> Generator[str, None, None]:
+def strip_encoding_cookie(filelike: Iterable[str]) -> Generator[str]:
     """Generator to pull lines from a text-mode file, skipping the encoding
     cookie if it is found in the first two lines.
     """

@@ -139,7 +139,7 @@ def has_binding(api):
 
     for submod in required:
         try:
-            spec = find_spec('%s.%s' % (module_name, submod))
+            spec = find_spec('{}.{}'.format(module_name, submod))
         except ImportError:
             # Package (e.g. PyQt5) not found
             return False

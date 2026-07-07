@@ -352,9 +352,9 @@ class DisplayObject:
     def __repr__(self):
         if not self._show_mem_addr:
             cls = self.__class__
-            r = "<%s.%s object>" % (cls.__module__, cls.__name__)
+            r = "<{}.{} object>".format(cls.__module__, cls.__name__)
         else:
-            r = super(DisplayObject, self).__repr__()
+            r = super().__repr__()
         return r
 
     def _check_data(self):
@@ -425,7 +425,7 @@ class TextDisplayObject(DisplayObject):
     """
     def _check_data(self):
         if self.data is not None and not isinstance(self.data, str):
-            raise TypeError("%s expects text, not %r" % (self.__class__.__name__, self.data))
+            raise TypeError("{} expects text, not {!r}".format(self.__class__.__name__, self.data))
 
 class Pretty(TextDisplayObject):
 
@@ -450,7 +450,7 @@ class HTML(TextDisplayObject):
 
         if warn():
             warnings.warn("Consider using IPython.display.IFrame instead")
-        super(HTML, self).__init__(data=data, url=url, filename=filename, metadata=metadata)
+        super().__init__(data=data, url=url, filename=filename, metadata=metadata)
 
     def _repr_html_(self):
         return self._data_and_metadata()
@@ -496,7 +496,7 @@ class SVG(DisplayObject):
     _read_flags = 'rb'
     # wrap data in a property, which extracts the <svg> tag, discarding
     # document headers
-    _data: Optional[str] = None
+    _data: str | None = None
 
     @property
     def data(self):
@@ -621,11 +621,11 @@ class JSON(DisplayObject):
             self.metadata.update(metadata)
         if kwargs:
             self.metadata.update(kwargs)
-        super(JSON, self).__init__(data=data, url=url, filename=filename)
+        super().__init__(data=data, url=url, filename=filename)
 
     def _check_data(self):
         if self.data is not None and not isinstance(self.data, (dict, list)):
-            raise TypeError("%s expects JSONable dict or list, not %r" % (self.__class__.__name__, self.data))
+            raise TypeError("{} expects JSONable dict or list, not {!r}".format(self.__class__.__name__, self.data))
 
     @property
     def data(self):
@@ -724,7 +724,7 @@ class GeoJSON(JSON):
 
         """
 
-        super(GeoJSON, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
     def _ipython_display_(self):
@@ -783,7 +783,7 @@ class Javascript(TextDisplayObject):
             raise TypeError('expected sequence, got: %r' % css)
         self.lib = lib
         self.css = css
-        super(Javascript, self).__init__(data=data, url=url, filename=filename)
+        super().__init__(data=data, url=url, filename=filename)
 
     def _repr_javascript_(self):
         r = ''
@@ -1019,7 +1019,7 @@ class Image(DisplayObject):
         self.retina = retina
         self.unconfined = unconfined
         self.alt = alt
-        super(Image, self).__init__(data=data, url=url, filename=filename,
+        super().__init__(data=data, url=url, filename=filename,
                 metadata=metadata)
 
         if self.width is None and self.metadata.get('width', {}):
@@ -1049,7 +1049,7 @@ class Image(DisplayObject):
     def reload(self):
         """Reload the raw data from file or URL."""
         if self.embed:
-            super(Image,self).reload()
+            super().reload()
             if self.retina:
                 self._retina_shape()
 
@@ -1213,7 +1213,7 @@ class Video(DisplayObject):
         self.width = width
         self.height = height
         self.html_attributes = html_attributes
-        super(Video, self).__init__(data=data, url=url, filename=filename)
+        super().__init__(data=data, url=url, filename=filename)
 
     def _repr_html_(self):
         width = height = ''
@@ -1226,7 +1226,7 @@ class Video(DisplayObject):
         # notebook output.
         if not self.embed:
             url = self.url if self.url is not None else self.filename
-            output = """<video src="{0}" {1} {2} {3}>
+            output = """<video src="{}" {} {} {}>
       Your browser does not support the <code>video</code> element.
     </video>""".format(url, self.html_attributes, width, height)
             return output

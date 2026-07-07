@@ -88,7 +88,7 @@ class Prompts:
             (Token.Prompt, ('-' * (width - 2)) + '> '),
         ]
 
-    def out_prompt_tokens(self) -> List[Tuple[_TokenType, str]]:
+    def out_prompt_tokens(self) -> list[tuple[_TokenType, str]]:
         return [
             (Token.OutPrompt, 'Out['),
             (Token.OutPromptNum, str(self.shell.execution_count - 1)),
@@ -132,7 +132,7 @@ class RichPromptDisplayHook(DisplayHook):
             else:
                 sys.stdout.write(prompt_txt)
 
-    def write_format_data(self, format_dict: Dict[str, str], md_dict: Optional[Dict[Any, Any]]=None) -> None:
+    def write_format_data(self, format_dict: dict[str, str], md_dict: dict[Any, Any] | None=None) -> None:
         assert self.shell is not None
         if self.shell.mime_renderers:
 

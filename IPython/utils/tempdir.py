@@ -38,7 +38,7 @@ class NamedFileInTemporaryDirectory:
     def __enter__(self) -> BufferedWriter:
         return self.file
 
-    def __exit__(self, type: Optional[Type[BaseException]], value: Optional[BaseException], traceback: Optional[TracebackType]):
+    def __exit__(self, type: type[BaseException] | None, value: BaseException | None, traceback: TracebackType | None):
         self.cleanup()
 
 
@@ -55,8 +55,8 @@ class TemporaryWorkingDirectory(TemporaryDirectory):
     def __enter__(self) -> str:
         self.old_wd = Path.cwd()
         _os.chdir(self.name)
-        return super(TemporaryWorkingDirectory, self).__enter__()
+        return super().__enter__()
 
-    def __exit__(self, exc: Optional[Type[BaseException]], value: Optional[BaseException], tb: Optional[TracebackType]) -> None:
+    def __exit__(self, exc: type[BaseException] | None, value: BaseException | None, tb: TracebackType | None) -> None:
         _os.chdir(self.old_wd)
-        return super(TemporaryWorkingDirectory, self).__exit__(exc, value, tb)
+        return super().__exit__(exc, value, tb)

@@ -39,7 +39,7 @@ def get_pasted_lines(sentinel, l_input=py3compat.input, quiet=False):
 @magics_class
 class TerminalMagics(Magics):
     def __init__(self, shell):
-        super(TerminalMagics, self).__init__(shell)
+        super().__init__(shell)
 
     def store_or_execute(self, block, name, store_history=False):
         """ Execute a block, or store it in a variable, per the user's request.
@@ -145,7 +145,7 @@ class TerminalMagics(Magics):
 
         quiet = ('q' in opts)
 
-        sentinel = opts.get('s', u'--')
+        sentinel = opts.get('s', '--')
         block = '\n'.join(get_pasted_lines(sentinel, quiet=quiet))
         self.store_or_execute(block, name, store_history=True)
 

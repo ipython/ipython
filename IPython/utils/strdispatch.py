@@ -6,7 +6,7 @@ import re
 
 # Our own modules
 from IPython.core.hooks import CommandChainDispatcher
-from typing import Callable
+from collections.abc import Callable
 
 # Code begins
 class StrDispatch:
@@ -53,7 +53,7 @@ class StrDispatch:
                 pass
 
     def __repr__(self):
-        return "<Strdispatch %s, %s>" % (self.strs, self.regexs)
+        return "<Strdispatch {}, {}>".format(self.strs, self.regexs)
 
     def s_matches(self, key):
         if key not in self.strs:

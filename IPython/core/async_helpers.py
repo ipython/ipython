@@ -131,7 +131,7 @@ def _pseudo_sync_runner(coro):
     else:
         # TODO: do not raise but return an execution result with the right info.
         raise RuntimeError(
-            "{coro_name!r} needs a real async loop".format(coro_name=coro.__name__)
+            f"{coro.__name__!r} needs a real async loop"
         )
 
 

@@ -248,7 +248,7 @@ class BackgroundJobManager:
         if group:
             print('%s jobs:' % name)
             for job in group:
-                print('%s : %s' % (job.num,job))
+                print('{} : {}'.format(job.num,job))
             print()
             return True
 
@@ -260,7 +260,7 @@ class BackgroundJobManager:
         njobs = len(group)
         if njobs:
             plural = {1:''}.setdefault(njobs,'s')
-            print('Flushing %s %s job%s.' % (njobs,name,plural))
+            print('Flushing {} {} job{}.'.format(njobs,name,plural))
             group[:] = []
             return True
         

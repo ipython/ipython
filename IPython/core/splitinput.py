@@ -148,7 +148,7 @@ class LineInfo:
         return ip._ofind(self.ifun)
 
     def __str__(self) -> str:
-        return "LineInfo [%s|%s|%s|%s]" % (self.pre, self.esc, self.ifun, self.the_rest)
+        return "LineInfo [{}|{}|{}|{}]".format(self.pre, self.esc, self.ifun, self.the_rest)
 
     def __repr__(self) -> str:
         return "<" + str(self) + ">"

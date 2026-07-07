@@ -290,7 +290,7 @@ class PickleShareLink:
     def __repr__(self):
         db = self.__dict__["db"]
         keys = db.keys(self.__dict__["keydir"] + "/*")
-        return "<PickleShareLink '%s': %s>" % (
+        return "<PickleShareLink '{}': {}>".format(
             self.__dict__["keydir"],
             ";".join([Path(k).basename() for k in keys]),
         )

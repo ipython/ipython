@@ -147,9 +147,9 @@ class ListTB(TBTools):
     def structured_traceback(
         self,
         etype: type,
-        evalue: Optional[BaseException],
-        etb: Optional[TracebackType] = None,
-        tb_offset: Optional[int] = None,
+        evalue: BaseException | None,
+        etb: TracebackType | None = None,
+        tb_offset: int | None = None,
         context: int = 5,
     ) -> list[str]:
         """Return a color formatted string with the traceback info.
@@ -777,10 +777,10 @@ class VerboseTB(TBTools):
     def format_exception_as_a_whole(
         self,
         etype: type,
-        evalue: Optional[BaseException],
-        etb: Optional[TracebackType],
+        evalue: BaseException | None,
+        etb: TracebackType | None,
         context: int,
-        tb_offset: Optional[int],
+        tb_offset: int | None,
     ) -> list[list[str]]:
         """Formats the header, traceback and exception message for a single exception.
 
@@ -867,7 +867,7 @@ class VerboseTB(TBTools):
         )
 
         # Collect traceback frames and their module sizes.
-        cf: Optional[TracebackType] = etb
+        cf: TracebackType | None = etb
         tbs: list[tuple[TracebackType, int]] = []
         while cf is not None:
             try:
@@ -934,9 +934,9 @@ class VerboseTB(TBTools):
     def structured_traceback(
         self,
         etype: type,
-        evalue: Optional[BaseException],
-        etb: Optional[TracebackType] = None,
-        tb_offset: Optional[int] = None,
+        evalue: BaseException | None,
+        etb: TracebackType | None = None,
+        tb_offset: int | None = None,
         context: int = 5,
     ) -> list[str]:
         """Return a nice text document describing the traceback."""
@@ -1167,7 +1167,7 @@ class FormattedTB(VerboseTB, ListTB):
         """Convert a structured traceback (a list) to a string."""
         return self.tb_join_char.join(stb)
 
-    def set_mode(self, mode: Optional[str] = None) -> None:
+    def set_mode(self, mode: str | None = None) -> None:
         """Switch to the desired mode.
 
         If mode is not specified, cycles through the available modes."""
@@ -1250,9 +1250,9 @@ class AutoFormattedTB(FormattedTB):
     def structured_traceback(
         self,
         etype: type,
-        evalue: Optional[BaseException],
-        etb: Optional[TracebackType] = None,
-        tb_offset: Optional[int] = None,
+        evalue: BaseException | None,
+        etb: TracebackType | None = None,
+        tb_offset: int | None = None,
         context: int = 5,
     ) -> list[str]:
         # tb: TracebackType or tupleof tb types ?
@@ -1321,7 +1321,7 @@ class SyntaxTB(ListTB):
             if newtext:
                 value.text = newtext
         self.last_syntax_error = value
-        return super(SyntaxTB, self).structured_traceback(
+        return super().structured_traceback(
             etype, value, etb, tb_offset=tb_offset, context=context
         )
 

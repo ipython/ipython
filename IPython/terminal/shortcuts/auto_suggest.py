@@ -206,7 +206,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
 
     def get_suggestion(
         self, buffer: Buffer, document: Document
-    ) -> Optional[Suggestion]:
+    ) -> Suggestion | None:
         text = _get_query(document)
 
         if text.strip():
@@ -223,7 +223,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
 
     def _find_match(
         self, text: str, skip_lines: float, history: History, previous: bool
-    ) -> Generator[Tuple[str, float], None, None]:
+    ) -> Generator[tuple[str, float], None, None]:
         """
         text : str
             Text content to find a match for, the user cursor is most of the
@@ -264,7 +264,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
 
     def _find_next_match(
         self, text: str, skip_lines: float, history: History
-    ) -> Generator[Tuple[str, float], None, None]:
+    ) -> Generator[tuple[str, float], None, None]:
         return self._find_match(text, skip_lines, history, previous=False)
 
     def _find_previous_match(self, text: str, skip_lines: float, history: History):
@@ -574,7 +574,7 @@ def accept_token(event: KeyPressEvent):
         prefix = _get_query(b.document)
         text = prefix + suggestion.text
 
-        tokens: List[Optional[str]] = [None, None, None]
+        tokens: list[str | None] = [None, None, None]
         substrings = [""]
         i = 0
 

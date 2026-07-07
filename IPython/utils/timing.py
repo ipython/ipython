@@ -16,7 +16,8 @@ Utilities for timing code execution.
 from __future__ import annotations
 
 import time
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 #-----------------------------------------------------------------------------
 # Code

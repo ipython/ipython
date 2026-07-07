@@ -63,27 +63,27 @@ def install_editor(template, wait=False):
 
 # in these, exe is always the path/name of the executable. Useful
 # if you don't have the editor directory in your path
-def komodo(exe=u'komodo'):
+def komodo(exe='komodo'):
     """ Activestate Komodo [Edit] """
-    install_editor(exe + u' -l {line} {filename}', wait=True)
+    install_editor(exe + ' -l {line} {filename}', wait=True)
 
 
-def scite(exe=u"scite"):
+def scite(exe="scite"):
     """ SciTE or Sc1 """
-    install_editor(exe + u' {filename} -goto:{line}')
+    install_editor(exe + ' {filename} -goto:{line}')
 
 
-def notepadplusplus(exe=u'notepad++'):
+def notepadplusplus(exe='notepad++'):
     """ Notepad++ http://notepad-plus.sourceforge.net """
-    install_editor(exe + u' -n{line} {filename}')
+    install_editor(exe + ' -n{line} {filename}')
 
 
-def jed(exe=u'jed'):
+def jed(exe='jed'):
     """ JED, the lightweight emacsish editor """
-    install_editor(exe + u' +{line} {filename}')
+    install_editor(exe + ' +{line} {filename}')
 
 
-def idle(exe=u'idle'):
+def idle(exe='idle'):
     """ Idle, the editor bundled with python
 
     Parameters
@@ -97,13 +97,13 @@ def idle(exe=u'idle'):
         # i'm not sure if this actually works. Is this idle.py script
         # guaranteed to be executable?
         exe = os.path.join(p, 'idle.py')
-    install_editor(exe + u' {filename}')
+    install_editor(exe + ' {filename}')
 
 
-def mate(exe=u'mate'):
+def mate(exe='mate'):
     """ TextMate, the missing editor"""
     # wait=True is not required since we're using the -w flag to mate
-    install_editor(exe + u' -w -l {line} {filename}')
+    install_editor(exe + ' -w -l {line} {filename}')
 
 
 # ##########################################
@@ -111,17 +111,17 @@ def mate(exe=u'mate'):
 # ##########################################
 
 
-def emacs(exe=u'emacs'):
-    install_editor(exe + u' +{line} {filename}')
+def emacs(exe='emacs'):
+    install_editor(exe + ' +{line} {filename}')
 
 
-def gnuclient(exe=u'gnuclient'):
-    install_editor(exe + u' -nw +{line} {filename}')
+def gnuclient(exe='gnuclient'):
+    install_editor(exe + ' -nw +{line} {filename}')
 
 
-def crimson_editor(exe=u'cedt.exe'):
-    install_editor(exe + u' /L:{line} {filename}')
+def crimson_editor(exe='cedt.exe'):
+    install_editor(exe + ' /L:{line} {filename}')
 
 
-def kate(exe=u'kate'):
-    install_editor(exe + u' -u -l {line} {filename}')
+def kate(exe='kate'):
+    install_editor(exe + ' -u -l {line} {filename}')

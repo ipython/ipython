@@ -131,7 +131,7 @@ class ScriptMagics(Magics):
     ).tag(config=True)
     
     def __init__(self, shell=None):
-        super(ScriptMagics, self).__init__(shell=shell)
+        super().__init__(shell=shell)
         self._generate_script_magics()
         self.bg_processes = []
         atexit.register(self.kill_bg_processes)
@@ -154,19 +154,19 @@ class ScriptMagics(Magics):
         def named_script_magic(line, cell):
             # if line, add it as cl-flags
             if line:
-                line = "%s %s" % (script, line)
+                line = "{} {}".format(script, line)
             else:
                 line = script
             return self.shebang(line, cell)
         
         # write a basic docstring:
         named_script_magic.__doc__ = \
-        """%%{name} script magic
+        f"""%%{name} script magic
         
         Run cells with {script} in a subprocess.
         
         This is a shortcut for `%%script {script}`
-        """.format(**locals())
+        """
         
         return named_script_magic
     

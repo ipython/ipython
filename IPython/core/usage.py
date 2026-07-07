@@ -334,7 +334,7 @@ The following magic functions are currently available:
 
 default_banner_parts = ["Python %s\n"%sys.version.split("\n")[0],
     "Type 'copyright', 'credits' or 'license' for more information\n" ,
-    "IPython {version} -- An enhanced Interactive Python. Type '?' for help.\n".format(version=release.version),
+    f"IPython {release.version} -- An enhanced Interactive Python. Type '?' for help.\n",
 ]
 
 default_banner = ''.join(default_banner_parts)

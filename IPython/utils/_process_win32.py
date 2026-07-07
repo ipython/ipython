@@ -43,7 +43,7 @@ class AvoidUNCPath:
             os.system(cmd)
     """
 
-    def __enter__(self) -> Optional[str]:
+    def __enter__(self) -> str | None:
         self.path = os.getcwd()
         self.is_unc_path = self.path.startswith(r"\\")
         if self.is_unc_path:
@@ -57,9 +57,9 @@ class AvoidUNCPath:
 
     def __exit__(
         self,
-        exc_type: Optional[type[BaseException]],
-        exc_value: Optional[BaseException],
-        traceback: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
     ) -> None:
         if self.is_unc_path:
             os.chdir(self.path)
@@ -113,7 +113,7 @@ def _system_body(p: subprocess.Popen[bytes]) -> int:
     return result
 
 
-def system(cmd: str) -> Optional[int]:
+def system(cmd: str) -> int | None:
     """Win32 version of os.system() that works with network shares.
 
     Note that this implementation returns None, as meant for use in IPython.
@@ -129,7 +129,7 @@ def system(cmd: str) -> Optional[int]:
     """
     with AvoidUNCPath() as path:
         if path is not None:
-            cmd = '"pushd %s &&"%s' % (path, cmd)
+            cmd = '"pushd {} &&"{}'.format(path, cmd)
         res = process_handler(cmd, _system_body)
         return res
 
@@ -151,7 +151,7 @@ def getoutput(cmd: str) -> str:
 
     with AvoidUNCPath() as path:
         if path is not None:
-            cmd = '"pushd %s &&"%s' % (path, cmd)
+            cmd = '"pushd {} &&"{}'.format(path, cmd)
         out = process_handler(cmd, lambda p: p.communicate()[0], STDOUT)
 
     if out is None:
@@ -170,7 +170,7 @@ try:
 
     def arg_split(
         commandline: str, posix: bool = False, strict: bool = True
-    ) -> List[str]:
+    ) -> list[str]:
         """Split a command line's arguments in a shell-like manner.
 
         This is a special version for windows that use a ctypes call to CommandLineToArgvW

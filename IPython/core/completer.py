@@ -336,7 +336,7 @@ def provisionalcompleter(action='ignore'):
         yield
 
 
-def has_open_quotes(s: str) -> Union[str, bool]:
+def has_open_quotes(s: str) -> str | bool:
     """Return whether a string has open quotes.
 
     This simply counts whether the number of quote characters of either type in
@@ -508,7 +508,7 @@ class Completion:
         end: int,
         text: str,
         *,
-        type: Optional[str] = None,
+        type: str | None = None,
         _origin="",
         signature="",
     ) -> None:
@@ -565,7 +565,7 @@ class SimpleCompletion:
 
     __slots__ = ["text", "type"]
 
-    def __init__(self, text: str, *, type: Optional[str] = None):
+    def __init__(self, text: str, *, type: str | None = None):
         self.text = text
         self.type = type
 
@@ -581,7 +581,7 @@ class _MatcherResultBase(TypedDict):
 
     #: Whether to suppress results from all other matchers (True), some
     #: matchers (set of identifiers) or none (False); default is False.
-    suppress: NotRequired[Union[bool, set[str]]]
+    suppress: NotRequired[bool | set[str]]
 
     #: Identifiers of matchers which should NOT be suppressed when this matcher
     #: requests to suppress all other matchers; defaults to an empty set.
@@ -641,7 +641,7 @@ class CompletionContext:
     #: Matchers can use this information to abort early.
     #: The built-in Jedi matcher is currently excepted from this limit.
     # If not given, return all possible completions.
-    limit: Optional[int]
+    limit: int | None
 
     @cached_property
     def text_until_cursor(self) -> str:
@@ -667,7 +667,7 @@ class _MatcherAPIv1Base(Protocol):
 
 class _MatcherAPIv1Total(_MatcherAPIv1Base, Protocol):
     #: API version
-    matcher_api_version: Optional[Literal[1]]
+    matcher_api_version: Literal[1] | None
 
     def __call__(self, text: str) -> list[str]:
         """Call signature."""
@@ -738,8 +738,8 @@ def has_any_completions(result: MatcherResult) -> bool:
 
 def completion_matcher(
     *,
-    priority: Optional[float] = None,
-    identifier: Optional[str] = None,
+    priority: float | None = None,
+    identifier: str | None = None,
     api_version: int = 1,
 ) -> Callable[[Matcher], Matcher]:
     """Adds attributes describing the matcher.
@@ -1103,7 +1103,7 @@ class Completer(Configurable):
 
         self.custom_matchers = []
 
-        super(Completer, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def complete(self, text, state):
         """Return the next possible completion for 'text'.
@@ -1125,7 +1125,7 @@ class Completer(Configurable):
         except IndexError:
             return None
 
-    def global_matches(self, text: str, context: Optional[CompletionContext] = None):
+    def global_matches(self, text: str, context: CompletionContext | None = None):
         """Compute matches when text is a simple name.
 
         Return a list of all keywords, built-in functions and names currently
@@ -1255,7 +1255,7 @@ class Completer(Configurable):
         self,
         text: str,
         include_prefix: bool = True,
-        context: Optional[CompletionContext] = None,
+        context: CompletionContext | None = None,
     ) -> tuple[Sequence[str], str]:
         m2 = self._ATTR_MATCH_RE.match(text)
         if not m2:
@@ -1330,7 +1330,7 @@ class Completer(Configurable):
             prefix_after_space = ""
 
         return (
-            ["%s.%s" % (prefix_after_space, w) for w in words if w[:n] == attr],
+            ["{}.{}".format(prefix_after_space, w) for w in words if w[:n] == attr],
             "." + attr,
         )
 
@@ -1442,7 +1442,7 @@ def _parse_tokens(c):
             return tokens
 
 
-def _match_number_in_dict_key_prefix(prefix: str) -> Union[str, None]:
+def _match_number_in_dict_key_prefix(prefix: str) -> str | None:
     """Match any valid Python numeric literal in a prefix of dictionary keys.
 
     References:
@@ -1485,10 +1485,10 @@ _INT_FORMATS = {
 
 
 def match_dict_keys(
-    keys: list[Union[str, bytes, tuple[Union[str, bytes], ...]]],
+    keys: list[str | bytes | tuple[str | bytes, ...]],
     prefix: str,
     delims: str,
-    extra_prefix: Optional[tuple[Union[str, bytes], ...]] = None,
+    extra_prefix: tuple[str | bytes, ...] | None = None,
 ) -> tuple[str, int, dict[str, _DictKeyState]]:
     """Used by dict_key_matches, matching the prefix to a list of keys
 
@@ -1539,7 +1539,7 @@ def match_dict_keys(
         return True
 
     filtered_key_is_final: dict[
-        Union[str, bytes, int, float], _DictKeyState
+        str | bytes | int | float, _DictKeyState
     ] = defaultdict(lambda: _DictKeyState.BASELINE)
 
     for k in keys:
@@ -1601,7 +1601,7 @@ def match_dict_keys(
 
     matched: dict[str, _DictKeyState] = {}
 
-    str_key: Union[str, bytes]
+    str_key: str | bytes
 
     for key in filtered_keys:
         if isinstance(key, (int, float)):
@@ -1639,7 +1639,7 @@ def match_dict_keys(
             rem_repr = rem_repr.replace('"', '\\"')
 
         # then reinsert prefix from start of token
-        match = "%s%s" % (token_prefix, rem_repr)
+        match = "{}{}".format(token_prefix, rem_repr)
 
         matched[match] = filtered_key_is_final[key]
     return quote, token_start, matched
@@ -1669,7 +1669,7 @@ def cursor_to_position(text:str, line:int, column:int)->int:
 
     """
     lines = text.split('\n')
-    assert line <= len(lines), '{} <= {}'.format(str(line), str(len(lines)))
+    assert line <= len(lines), f'{str(line)} <= {str(len(lines))}'
 
     return sum(len(line) + 1 for line in lines[:line]) + column
 
@@ -1699,7 +1699,7 @@ def position_to_cursor(text: str, offset: int) -> tuple[int, int]:
 
     """
 
-    assert 0 <= offset <= len(text) , "0 <= %s <= %s" % (offset , len(text))
+    assert 0 <= offset <= len(text) , "0 <= {} <= {}".format(offset , len(text))
 
     before = text[:offset]
     blines = before.split('\n')  # ! splitnes trim trailing \n
@@ -1927,7 +1927,7 @@ def _convert_matcher_v1_result_to_v2_no_no(
 def _convert_matcher_v1_result_to_v2(
     matches: Sequence[str],
     type: str,
-    fragment: Optional[str] = None,
+    fragment: str | None = None,
     suppress_if_matches: bool = False,
 ) -> SimpleMatcherResult:
     """Utility to help with transition"""
@@ -2229,9 +2229,9 @@ class IPCompleter(Completer):
         # when escaped with backslash
         if text.startswith('!'):
             text = text[1:]
-            text_prefix = u'!'
+            text_prefix = '!'
         else:
-            text_prefix = u''
+            text_prefix = ''
 
         text_until_cursor = self.text_until_cursor
         # track strings with open quotes
@@ -2428,9 +2428,9 @@ class IPCompleter(Completer):
 
         if len(texts) > 0 and (texts[0] == 'config' or texts[0] == '%config'):
             # get all configuration classes
-            classes = sorted(set([ c for c in self.shell.configurables
+            classes = sorted({ c for c in self.shell.configurables
                                    if c.__class__.class_traits(config=True)
-                                   ]), key=lambda x: x.__class__.__name__)
+                                   }, key=lambda x: x.__class__.__name__)
             classnames = [ c.__class__.__name__ for c in classes ]
 
             # return all classnames if config or %config is given
@@ -2537,7 +2537,7 @@ class IPCompleter(Completer):
                 elif self.omit__names == 0:
                     completion_filter = lambda x:x
                 else:
-                    raise ValueError("Don't understand self.omit__names == {}".format(self.omit__names))
+                    raise ValueError(f"Don't understand self.omit__names == {self.omit__names}")
 
         interpreter = jedi.Interpreter(text[:offset], namespaces)
         try_jedi = True
@@ -3321,7 +3321,7 @@ class IPCompleter(Completer):
                       category=ProvisionalCompleterWarning, stacklevel=2)
 
         seen = set()
-        profiler:Optional[cProfile.Profile]
+        profiler:cProfile.Profile | None
         try:
             if self.profile_completions:
                 import cProfile
@@ -3689,7 +3689,7 @@ class IPCompleter(Completer):
             result["matched_fragment"] = result.get("matched_fragment", context.token)
 
             if not suppressed_matchers:
-                suppression_recommended: Union[bool, set[str]] = result.get(
+                suppression_recommended: bool | set[str] = result.get(
                     "suppress", False
                 )
 

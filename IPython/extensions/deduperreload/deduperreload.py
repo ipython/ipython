@@ -116,7 +116,7 @@ class ConstexprDetector(ast.NodeVisitor):
         self._allow_builtins_exceptions = True
 
     @contextlib.contextmanager
-    def disallow_builtins_exceptions(self) -> Generator[None, None, None]:
+    def disallow_builtins_exceptions(self) -> Generator[None]:
         prev_allow = self._allow_builtins_exceptions
         self._allow_builtins_exceptions = False
         try:

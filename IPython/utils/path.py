@@ -86,7 +86,7 @@ def get_py_filename(name):
         py_name = name + ".py"
         if os.path.isfile(py_name):
             return py_name
-    raise IOError("File `%r` not found." % name)
+    raise OSError("File `%r` not found." % name)
 
 
 def filefind(filename: str, path_dirs=None) -> str:
@@ -144,7 +144,7 @@ def filefind(filename: str, path_dirs=None) -> str:
         if os.path.isfile(testname):
             return os.path.abspath(testname)
 
-    raise IOError("File %r does not exist in any of the search paths: %r" %
+    raise OSError("File %r does not exist in any of the search paths: %r" %
                   (filename, path_dirs) )
 
 
@@ -260,7 +260,7 @@ def unescape_glob(string):
     """Unescape glob pattern in `string`."""
     def unescape(s):
         for pattern in '*[]!?':
-            s = s.replace(r'\{0}'.format(pattern), pattern)
+            s = s.replace(fr'\{pattern}', pattern)
         return s
     return '\\'.join(map(unescape, string.split('\\\\')))
 
@@ -350,4 +350,4 @@ def ensure_dir_exists(path: str, mode: int=0o755):
             if e.errno != errno.EEXIST:
                 raise
     elif not os.path.isdir(path):
-        raise IOError("%r exists but is not a directory" % path)
+        raise OSError("%r exists but is not a directory" % path)

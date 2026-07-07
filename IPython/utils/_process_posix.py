@@ -47,7 +47,7 @@ class ProcessHandler:
             shell_name = os.environ.get("SHELL", "sh")
             self._sh = pexpect.which(shell_name)
             if self._sh is None:
-                raise OSError('"{}" shell not found'.format(shell_name))
+                raise OSError(f'"{shell_name}" shell not found')
 
         return self._sh
 
