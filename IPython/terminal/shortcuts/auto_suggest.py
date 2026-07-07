@@ -2,7 +2,7 @@ import re
 import asyncio
 import tokenize
 from io import StringIO
-from typing import List, Optional, Union, Tuple, ClassVar, Any
+from typing import ClassVar, Any
 from collections.abc import Callable, Generator
 import warnings
 
@@ -607,7 +607,7 @@ def accept_token(event: KeyPressEvent):
     nc.forward_word(event)
 
 
-Provider = Union[AutoSuggestFromHistory, NavigableAutoSuggestFromHistory, None]
+Provider = AutoSuggestFromHistory | NavigableAutoSuggestFromHistory | None
 
 
 def _swap_autosuggestion(

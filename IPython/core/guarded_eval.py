@@ -62,7 +62,7 @@ class DoesNotHaveGetAttr(Protocol):
 
 
 # By default `__getattr__` is not explicitly implemented on most objects
-MayHaveGetattr = Union[HasGetAttr, DoesNotHaveGetAttr]
+MayHaveGetattr = HasGetAttr | DoesNotHaveGetAttr
 
 
 def _unbind_method(func: Callable) -> Callable | None:
