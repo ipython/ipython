@@ -139,7 +139,7 @@ def test_demo_run_and_finish(make_demo, capsys):
 
 def test_demo_interactive_confirm(make_demo, capsys, monkeypatch):
     d = make_demo("run_me = True\n")
-    monkeypatch.setattr(demo_module.py3compat, "input", lambda prompt="": "")
+    monkeypatch.setattr("builtins.input", lambda prompt="": "")
     d()
     out = capsys.readouterr().out
     assert "Press <q> to quit" in out
@@ -148,7 +148,7 @@ def test_demo_interactive_confirm(make_demo, capsys, monkeypatch):
 
 def test_demo_interactive_quit(make_demo, capsys, monkeypatch):
     d = make_demo("skipped = True\n")
-    monkeypatch.setattr(demo_module.py3compat, "input", lambda prompt="": "q")
+    monkeypatch.setattr("builtins.input", lambda prompt="": "q")
     d()
     out = capsys.readouterr().out
     assert "Block NOT executed" in out
@@ -369,7 +369,7 @@ def test_slide(tmp_path, monkeypatch, capsys):
             created.append(self)
 
     monkeypatch.setattr(demo_module, "Demo", TrackingDemo)
-    monkeypatch.setattr(demo_module.py3compat, "input", lambda prompt="": "")
+    monkeypatch.setattr("builtins.input", lambda prompt="": "")
     try:
         slide(str(fname), noclear=True, auto_all=True, format_rst=False)
         (d,) = created
@@ -397,7 +397,7 @@ def test_slide_with_clear(tmp_path, monkeypatch, capsys):
             created.append(self)
 
     monkeypatch.setattr(demo_module, "ClearDemo", TrackingClearDemo)
-    monkeypatch.setattr(demo_module.py3compat, "input", lambda prompt="": "")
+    monkeypatch.setattr("builtins.input", lambda prompt="": "")
     monkeypatch.setattr(terminal, "_term_clear", lambda: None)
     try:
         slide(str(fname), noclear=False, auto_all=True, format_rst=False)
@@ -425,7 +425,7 @@ def test_slide_keyboard_interrupt(tmp_path, monkeypatch):
         raise KeyboardInterrupt
 
     monkeypatch.setattr(demo_module, "Demo", TrackingDemo)
-    monkeypatch.setattr(demo_module.py3compat, "input", raise_interrupt)
+    monkeypatch.setattr("builtins.input", raise_interrupt)
     try:
         with pytest.raises(SystemExit):
             slide(str(fname), noclear=True, auto_all=True, format_rst=False)

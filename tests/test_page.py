@@ -17,7 +17,6 @@ import pytest
 # N.B. For the test suite, page.pager_page is overridden (see tests/conftest.py)
 from IPython.core import page
 from IPython.core.error import TryNext
-from IPython.utils import py3compat
 
 
 @pytest.fixture
@@ -430,5 +429,5 @@ def test_get_pager_start():
     [("", True), ("y", True), ("q", False), ("Quit", False)],
 )
 def test_page_more(monkeypatch, answer, expected):
-    monkeypatch.setattr(py3compat, "input", lambda prompt: answer)
+    monkeypatch.setattr("builtins.input", lambda prompt: answer)
     assert page.page_more() is expected
