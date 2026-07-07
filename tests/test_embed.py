@@ -15,6 +15,9 @@ import os
 import subprocess
 import sys
 
+import pytest
+
+from IPython.terminal.embed import _EmbedGlobals
 from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 from IPython.testing.decorators import skip_win32
 from IPython.testing import IPYTHON_TESTING_TIMEOUT_SCALE
@@ -22,6 +25,58 @@ from IPython.testing import IPYTHON_TESTING_TIMEOUT_SCALE
 # -----------------------------------------------------------------------------
 # Tests
 # -----------------------------------------------------------------------------
+
+
+def test_embed_globals_lookup_order():
+    module_dict = {"g": 1, "shadowed": "global"}
+    local_ns = {"foo": 42, "shadowed": "local"}
+    g = _EmbedGlobals(module_dict, local_ns)
+
+    # caller locals first, as regular closure lookup would
+    assert g["foo"] == 42
+    assert g["shadowed"] == "local"
+    # then the module globals
+    assert g["g"] == 1
+    # globals set in the real module after entry are still visible
+    module_dict["late"] = "added"
+    assert g["late"] == "added"
+    # missing names raise KeyError so LOAD_GLOBAL falls back to builtins
+    with pytest.raises(KeyError):
+        g["nowhere"]
+
+
+def test_embed_globals_exec_nested_scopes():
+    local_ns = {"foo": 42}
+    g = _EmbedGlobals({"g": 1}, local_ns)
+
+    # nested scopes resolve caller locals through globals, and
+    # builtins (`range`) are still reachable
+    exec("result = (lambda: [foo + g for _ in range(1)][0])()", g, local_ns)
+    assert local_ns["result"] == 43
+
+
+def test_embed_globals_sync_to_module():
+    module_dict = {"unchanged": 1, "rebound": 2, "removed": 3}
+    g = _EmbedGlobals(module_dict, {})
+
+    # STORE_GLOBAL/DELETE_GLOBAL from code defined in the shell bypass
+    # __setitem__ and mutate the C-level dict storage directly
+    exec(
+        "def s():\n"
+        "    global added, rebound, removed\n"
+        "    added = 5\n"
+        "    rebound = 20\n"
+        "    del removed\n"
+        "s()",
+        g,
+        {},
+    )
+    assert "added" not in module_dict
+    g.sync_to_module()
+    assert module_dict["added"] == 5
+    assert module_dict["rebound"] == 20
+    assert module_dict["unchanged"] == 1
+    assert "removed" not in module_dict
 
 
 _sample_embed = """
