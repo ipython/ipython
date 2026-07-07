@@ -1,5 +1,6 @@
 """Utilities for working with data structures like lists, dicts and tuples.
 """
+from __future__ import annotations
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team

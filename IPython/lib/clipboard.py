@@ -1,5 +1,6 @@
 """ Utilities for accessing the platform's clipboard.
 """
+from __future__ import annotations
 
 import os
 import subprocess
