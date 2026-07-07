@@ -479,6 +479,241 @@ def test_calling_run_cell(hmmax2):
     assert session_number == new_session_number, ValueError(f"{session_number} != {new_session_number}")
 
 
+@pytest.fixture
+def hist_magic_shell(hmmax2, tmp_path):
+    """Shell with a fresh HistoryManager, for testing history-related magics."""
+    ip = get_ipython()
+    hist_manager_ori = ip.history_manager
+    ip.history_manager = HistoryManager(
+        shell=ip, hist_file=tmp_path / "history_magics.sqlite"
+    )
+    try:
+        yield ip
+    finally:
+        ip.history_manager.end_session()
+        ip.history_manager.save_thread.stop()
+        ip.history_manager.db.close()
+        ip.history_manager = hist_manager_ori
+
+
+def test_history_magic_output_and_prompts(hist_magic_shell, capsys):
+    ip = hist_magic_shell
+    hm = ip.history_manager
+    hm.db_log_output = True
+    hm.store_inputs(1, "1+1")
+    hm.output_hist_reprs[1] = "2"
+    hm.store_output(1)
+    hm.store_inputs(2, "for i in range(2):\n\tpass")
+    capsys.readouterr()
+
+    # -o shows outputs alongside inputs
+    ip.run_line_magic("history", "-o")
+    out = capsys.readouterr().out
+    assert "1+1" in out
+    assert "\n2\n" in out
+
+    # -p prints classic python prompts, with continuation prompts for
+    # multiline input; tabs are expanded to 4 spaces
+    ip.run_line_magic("history", "-p")
+    out = capsys.readouterr().out
+    assert ">>> 1+1" in out
+    assert ">>> for i in range(2):" in out
+    assert "...     pass" in out
+
+    # -n prints line numbers
+    ip.run_line_magic("history", "-n 1")
+    out = capsys.readouterr().out
+    assert out.splitlines()[0].strip() == "1: 1+1"
+
+
+def test_history_magic_grep(hist_magic_shell, capsys):
+    ip = hist_magic_shell
+    hm = ip.history_manager
+    hm.store_inputs(1, "grepable_alpha = 1")
+    hm.store_inputs(2, "other_line = 2")
+    hm.writeout_cache()
+    hm.reset(new_session=True)
+    hm.store_inputs(1, "grepable_alpha = 1")
+    hm.writeout_cache()
+    capsys.readouterr()
+
+    # -g searches all sessions and prints session/line numbers
+    ip.run_line_magic("history", "-g grepable")
+    out = capsys.readouterr().out
+    assert "1/1:" in out
+    assert out.count("grepable_alpha") == 2
+    assert "other_line" not in out
+
+    # bare -g shows the full history
+    ip.run_line_magic("history", "-g")
+    out = capsys.readouterr().out
+    assert "grepable_alpha" in out
+    assert "other_line" in out
+
+    # -u shows only unique matches
+    ip.run_line_magic("history", "-u -g grepable")
+    out = capsys.readouterr().out
+    assert out.count("grepable_alpha") == 1
+
+
+def test_history_magic_limit(hist_magic_shell, capsys):
+    ip = hist_magic_shell
+    hm = ip.history_manager
+    hm.store_inputs(1, "limited_a = 1")
+    hm.store_inputs(2, "limited_b = 2")
+    hm.store_inputs(3, "limited_c = 3")
+    capsys.readouterr()
+
+    # -l n : last n lines, not including the latest
+    ip.run_line_magic("history", "-l 1")
+    out = capsys.readouterr().out
+    assert out == "limited_b = 2\n"
+
+    # bare -l defaults to the last 10 lines
+    ip.run_line_magic("history", "-l")
+    out = capsys.readouterr().out
+    assert "limited_a" in out
+    assert "limited_b" in out
+
+
+def test_history_magic_range_with_pattern(hist_magic_shell, capsys):
+    ip = hist_magic_shell
+    hm = ip.history_manager
+    hm.store_inputs(1, "alpha_match = 1")
+    hm.store_inputs(2, "beta_nomatch = 2")
+    capsys.readouterr()
+
+    ip.run_line_magic("history", "1-2 -g alpha")
+    out = capsys.readouterr().out
+    assert "alpha_match" in out
+    assert "beta_nomatch" not in out
+
+
+class _FakeTTYStdin:
+    def isatty(self):
+        return True
+
+
+def test_history_magic_to_file(hist_magic_shell, tmp_path, capsys, monkeypatch):
+    from IPython.core.error import StdinNotImplementedError
+
+    ip = hist_magic_shell
+    hm = ip.history_manager
+    hm.store_inputs(1, "filed_line = 1")
+    outfname = tmp_path / "histout.txt"
+
+    ip.run_line_magic("history", "-f %s" % outfname)
+    assert "filed_line = 1" in outfname.read_text(encoding="utf-8")
+
+    # File exists now; without a tty, StdinNotImplementedError means assume yes
+    def raiser(*a, **k):
+        raise StdinNotImplementedError()
+
+    monkeypatch.setattr("IPython.utils.io.ask_yes_no", raiser)
+    capsys.readouterr()
+    ip.run_line_magic("history", "-f %s" % outfname)
+    assert "Overwriting file." in capsys.readouterr().out
+
+    # With a tty, the user is asked; answering no aborts
+    monkeypatch.setattr("sys.stdin", _FakeTTYStdin())
+    monkeypatch.setattr("IPython.utils.io.ask_yes_no", lambda *a, **k: False)
+    ip.run_line_magic("history", "-f %s" % outfname)
+    assert "Aborting." in capsys.readouterr().out
+
+    # answering yes overwrites
+    monkeypatch.setattr("IPython.utils.io.ask_yes_no", lambda *a, **k: True)
+    ip.run_line_magic("history", "-f %s" % outfname)
+    assert "Overwriting file." in capsys.readouterr().out
+
+    # -y skips the prompt entirely
+    monkeypatch.setattr("IPython.utils.io.ask_yes_no", raiser)
+    ip.run_line_magic("history", "-y -f %s" % outfname)
+    out = capsys.readouterr().out
+    assert "Overwriting file." not in out
+    assert "filed_line = 1" in outfname.read_text(encoding="utf-8")
+
+
+def test_recall_magic(hist_magic_shell, capsys, monkeypatch):
+    ip = hist_magic_shell
+    hm = ip.history_manager
+    captured = []
+    monkeypatch.setattr(
+        ip, "set_next_input", lambda s, replace=False: captured.append(s)
+    )
+
+    # no argument: recall last output. Produce the output via a real cell so
+    # the displayhook's tracking of '_' is not broken for later tests.
+    ip.run_cell("'last_out_value'", store_history=False)
+    ip.run_line_magic("recall", "")
+    assert captured[-1] == "last_out_value"
+
+    # history line number
+    hm.store_inputs(1, "rc_line_one = 1")
+    ip.run_line_magic("recall", "1")
+    assert captured[-1] == "rc_line_one = 1"
+
+    # expression evaluated in the user namespace
+    ip.run_line_magic("recall", "40+2")
+    assert captured[-1] == "42"
+
+    # search in history for a substring; more recent matches mentioning
+    # recall/rep are skipped
+    hm.store_inputs(2, "special_srch_token = 5")
+    hm.store_inputs(3, "special_srch_token  # rep")
+    hm.writeout_cache()
+    ip.run_line_magic("recall", "special_srch_token")
+    assert captured[-1] == "special_srch_token = 5"
+
+    # nothing found
+    capsys.readouterr()
+    n_captured = len(captured)
+    ip.run_line_magic("recall", "zqxvw_none")
+    assert "Couldn't evaluate or find in history: zqxvw_none" in capsys.readouterr().out
+    assert len(captured) == n_captured
+
+
+def test_rerun_magic_bad_options(hist_magic_shell, capsys):
+    ip = hist_magic_shell
+
+    ip.run_line_magic("rerun", "-l notanint")
+    assert "Number of lines must be an integer" in capsys.readouterr().out
+
+    ip.run_line_magic("rerun", "-l 0")
+    assert "Requested 0 last lines - nothing to run" in capsys.readouterr().out
+
+    ip.run_line_magic("rerun", "-l -2")
+    assert "Number of lines to rerun cannot be negative" in capsys.readouterr().out
+
+    ip.run_line_magic("rerun", "-g zzz_nothing_matches")
+    assert "No lines in history match specification" in capsys.readouterr().out
+
+
+def test_rerun_magic_executes(hist_magic_shell, capsys):
+    ip = hist_magic_shell
+    hm = ip.history_manager
+    ip.user_ns["rr_acc"] = 0
+    hm.store_inputs(1, "rr_acc += 1")
+    hm.store_inputs(2, "rr_acc += 10")
+    hm.store_inputs(3, "pass")
+    capsys.readouterr()
+
+    # -l n reruns the last n lines, not including the latest
+    ip.run_line_magic("rerun", "-l 1")
+    out = capsys.readouterr().out
+    assert "=== Executing: ===" in out
+    assert "rr_acc += 10" in out
+    assert ip.user_ns["rr_acc"] == 10
+
+    # explicit history range
+    ip.run_line_magic("rerun", "1")
+    assert ip.user_ns["rr_acc"] == 11
+
+    # -g reruns the most recent matching line
+    hm.writeout_cache()
+    ip.run_line_magic("rerun", "-g rr_acc")
+    assert ip.user_ns["rr_acc"] == 21
+
+
 def _make_history_db(hist_file: Path, n_entries: int) -> None:
     """Create a history database with the standard schema and some entries."""
     with closing(sqlite3.connect(hist_file)) as con:
