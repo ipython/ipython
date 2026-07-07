@@ -2982,13 +2982,19 @@ class InteractiveShell(SingletonConfigurable):
         # Python inserts the script's directory into sys.path
         dname = str(fname.parent)
 
+        def execfile(fname, glob, loc=None, compiler=None):
+            __tracebackhide__ = "__ipython_bottom__"
+            loc = loc if (loc is not None) else glob
+            with open(fname, "rb") as f:
+                compiler = compiler or compile
+                exec(compiler(f.read(), fname, "exec"), glob, loc)
+
         with prepended_to_syspath(dname), self.builtin_trap:
             try:
                 glob, loc = (where + (None, ))[:2]
-                loc = loc if (loc is not None) else glob
-                with open(fname, "rb") as f:
-                    compiler_fn = self.compile if shell_futures else compile
-                    exec(compiler_fn(f.read(), fname, "exec"), glob, loc)
+                execfile(
+                    fname, glob, loc,
+                    self.compile if shell_futures else None)
             except SystemExit as status:
                 # If the call was made with 0 or None exit status (sys.exit(0)
                 # or sys.exit() ), don't bother showing a traceback, as both of
