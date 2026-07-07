@@ -11,6 +11,8 @@
 # Imports
 # -----------------------------------------------------------------------------
 
+import atexit
+import gc
 import os
 import subprocess
 import sys
@@ -113,6 +115,27 @@ def _embed_config():
     config.TerminalInteractiveShell.confirm_exit = False
     config.TerminalInteractiveShell.colors = "nocolor"
     return config
+
+
+@pytest.fixture(autouse=True)
+def _reap_embedded_shells():
+    """Release embedded shells created during a test.
+
+    InteractiveShell.__init__ registers a bound method with atexit, which
+    keeps every embedded shell (and its HistoryManager) alive for the rest
+    of the test session; the HistoryManager._instances WeakSet then grows
+    past _max_inst and trips the guard assertion in unrelated test files.
+    """
+    before = set(HistoryManager._instances)
+    yield
+    for hm in set(HistoryManager._instances) - before:
+        if hm.save_thread is not None:
+            atexit.unregister(hm.save_thread.stop)
+            hm.save_thread.stop()
+        if hm.shell is not None:
+            atexit.unregister(hm.shell.atexit_operations)
+        HistoryManager._instances.discard(hm)
+    gc.collect()
 
 
 @pytest.fixture

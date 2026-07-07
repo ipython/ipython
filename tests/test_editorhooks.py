@@ -88,9 +88,7 @@ def test_wait_prompts_for_enter():
 
     with (
         mock.patch("subprocess.Popen", fake_popen),
-        mock.patch.object(
-            editorhooks.py3compat, "input", lambda prompt: prompts.append(prompt)
-        ),
+        mock.patch("builtins.input", lambda prompt: prompts.append(prompt)),
     ):
         get_ipython().hooks.editor("the file", 1)
 
