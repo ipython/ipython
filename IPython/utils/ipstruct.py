@@ -5,6 +5,7 @@ Authors:
 * Fernando Perez (original)
 * Brian Granger (refactoring to a dict subclass)
 """
+from __future__ import annotations
 from typing import Any
 
 #-----------------------------------------------------------------------------
