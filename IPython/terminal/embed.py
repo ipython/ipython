@@ -20,6 +20,64 @@ from IPython.utils.io import ask_yes_no
 
 from typing import Set
 
+
+class _EmbedGlobals(dict):
+    """Globals namespace for an embedded shell.
+
+    Code typed in an embedded shell is compiled as module-level code, so
+    any new nested scope it creates (a lambda, a generator expression, a
+    comprehension, a function body...) looks its free variables up in
+    ``globals()``, not in the local namespace the shell was embedded in.
+    With a plain module ``__dict__`` as globals this makes the caller's
+    local variables invisible to those scopes (gh-136)::
+
+        def f():
+            x = 1
+            embed()   # then type: (lambda: x)()  -> NameError
+
+    This dict subclass keeps the interpreter's normal, C-level storage as
+    a snapshot of the caller module's globals, but resolves reads through
+    the caller's local namespace first, mimicking the closure lookup the
+    code would have had if it were written in place. The interpreter only
+    honors this ``__getitem__`` override because the shell passes a dict
+    *subclass* to ``exec``, which disables the exact-dict fast path of
+    ``LOAD_GLOBAL``.
+
+    ``STORE_GLOBAL``/``DELETE_GLOBAL`` bypass ``__setitem__`` overrides
+    and mutate the C-level storage directly, so :meth:`sync_to_module`
+    propagates those (rare) mutations back to the real module on exit.
+    """
+
+    def __init__(self, module_dict, local_ns):
+        super().__init__(module_dict)
+        self._module_dict = module_dict
+        self._local_ns = local_ns
+        self._snapshot = dict(module_dict)
+
+    def __getitem__(self, key):
+        try:
+            return self._local_ns[key]
+        except KeyError:
+            pass
+        try:
+            return dict.__getitem__(self, key)
+        except KeyError:
+            pass
+        # Fall back to the live module dict, so globals set in the real
+        # module while the shell is active are visible; raises KeyError,
+        # letting LOAD_GLOBAL continue to builtins.
+        return self._module_dict[key]
+
+    def sync_to_module(self):
+        """Write back mutations of our snapshot to the real module."""
+        for key, value in dict.items(self):
+            if key not in self._snapshot or self._snapshot[key] is not value:
+                self._module_dict[key] = value
+        for key in self._snapshot:
+            if not dict.__contains__(self, key):
+                self._module_dict.pop(key, None)
+
+
 class KillEmbedded(Exception):pass
 
 # kept for backward compatibility as IPython 6 was released with
@@ -317,10 +375,18 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         # data, but we also need the locals. We'll throw our hidden variables
         # like _ih and get_ipython() into the local namespace, but delete them
         # later.
+        embed_globals = None
         if local_ns is not None:
             reentrant_local_ns = {k: v for (k, v) in local_ns.items() if k not in self.user_ns_hidden.keys()}
             self.user_ns = reentrant_local_ns
             self.init_user_ns()
+
+            # Replace the module's globals with a namespace that falls back
+            # to the local one, so that nested scopes created interactively
+            # (lambdas, generator expressions, comprehensions, functions)
+            # can see the caller's local variables (gh-136).
+            embed_globals = _EmbedGlobals(self.user_global_ns, reentrant_local_ns)
+            self.user_module = make_main_module_type(embed_globals)()
 
         # Compiler flags
         if compile_flags is not None:
@@ -336,6 +402,10 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         # now, purge out the local namespace of IPython's hidden variables.
         if local_ns is not None:
             local_ns.update({k: v for (k, v) in self.user_ns.items() if k not in self.user_ns_hidden.keys()})
+            # and propagate `global` assignments made by functions defined in
+            # the shell back to the real module.
+            if embed_globals is not None:
+                embed_globals.sync_to_module()
 
         
         # Restore original namespace so shell can shut down when we exit.

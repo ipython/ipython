@@ -39,6 +39,80 @@ print('bye!')
 _exit = "exit\r"
 
 
+_sample_embed_locals = """
+import IPython
+
+shadowed = 'global'
+seen_by_module = None
+
+def check_seen():
+    return seen_by_module
+
+def bar(foo):
+    shadowed = 'local'
+    IPython.embed(banner1='', banner2='')
+    return foo * 2
+
+print('RESULT:', bar(21))
+print('SYNCED:', check_seen())
+"""
+
+_embed_locals_commands = "\r".join(
+    [
+        "print('genexp:', sum(foo for _ in range(1)))",
+        "print('lambda:', (lambda: foo)())",
+        "print('listcomp:', [foo for _ in range(1)][0])",
+        "def g():\r    return foo\r",
+        "print('nested-def:', g())",
+        "print('shadow:', (lambda: shadowed)())",
+        "def s():\r    global seen_by_module\r    seen_by_module = 'set-in-shell'\r",
+        "s()",
+        "exit",
+    ]
+) + "\r"
+
+
+def test_ipython_embed_sees_locals_in_nested_scopes():
+    """Nested scopes created in an embedded shell see the caller's locals.
+
+    Generator expressions, lambdas, comprehensions and function bodies typed
+    into an embedded shell look up free variables through ``globals()``;
+    check they can still resolve variables local to the embedding frame.
+    See https://github.com/ipython/ipython/issues/136
+    """
+    with NamedFileInTemporaryDirectory("file_with_embed.py", "w") as f:
+        f.write(_sample_embed_locals)
+        f.flush()
+        f.close()
+
+        env = os.environ.copy()
+        env["IPY_TEST_SIMPLE_PROMPT"] = "1"
+
+        p = subprocess.Popen(
+            [sys.executable, f.name],
+            env=env,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="UTF-8",
+        )
+        std, err = p.communicate(_embed_locals_commands)
+
+        assert p.returncode == 0, (p.returncode, std, err)
+        assert "NameError" not in std, std
+        assert "genexp: 21" in std
+        assert "lambda: 21" in std
+        assert "listcomp: 21" in std
+        assert "nested-def: 21" in std
+        # a local shadowing a module global wins, as in regular closures
+        assert "shadow: local" in std
+        assert "RESULT: 42" in std
+        # `global` assignments made by shell-defined functions reach the
+        # real module once the shell exits
+        assert "SYNCED: set-in-shell" in std
+
+
 def test_ipython_embed():
     """test that `IPython.embed()` works"""
     with NamedFileInTemporaryDirectory("file_with_embed.py", "w") as f:
