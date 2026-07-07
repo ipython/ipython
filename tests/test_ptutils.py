@@ -122,8 +122,11 @@ def test_pt_completer_empty_line_yields_nothing():
     assert list(completer.get_completions(Document("   ", 3), Mock())) == []
 
 
-def test_pt_completer_completes_print():
+def test_pt_completer_completes_print(monkeypatch):
     ip = get_ipython()
+    # function-signature display ('print()') needs jedi; earlier tests may
+    # have flipped use_jedi off on the session-wide shell.
+    monkeypatch.setattr(ip.Completer, "use_jedi", True)
     completer = IPythonPTCompleter(shell=ip)
     completions = list(completer.get_completions(Document("pri", 3), Mock()))
     texts = [c.text for c in completions]

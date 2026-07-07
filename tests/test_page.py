@@ -9,10 +9,18 @@ import importlib.util
 import io
 import os
 import sys
-import termios
-import curses
+
+try:
+    import curses
+    import termios
+except ImportError:
+    # not available on Windows
+    curses = None
+    termios = None
 
 import pytest
+
+from IPython.testing.decorators import skip_win32
 
 # N.B. For the test suite, page.pager_page is overridden (see tests/conftest.py)
 from IPython.core import page
@@ -156,6 +164,7 @@ def test_detect_screen_size_no_curses(monkeypatch):
     assert page._detect_screen_size(42) == 42
 
 
+@pytest.mark.skipif(termios is None, reason="requires termios")
 def test_detect_screen_size_termios_error(monkeypatch):
     monkeypatch.setenv("TERM", "xterm")
 
@@ -167,6 +176,7 @@ def test_detect_screen_size_termios_error(monkeypatch):
         page._detect_screen_size(42)
 
 
+@pytest.mark.skipif(termios is None, reason="requires termios and curses")
 def test_detect_screen_size_curses_incomplete(monkeypatch):
     monkeypatch.setenv("TERM", "xterm")
     monkeypatch.setattr(termios, "tcgetattr", lambda fd: "flags")
@@ -178,6 +188,7 @@ def test_detect_screen_size_curses_incomplete(monkeypatch):
     assert page._detect_screen_size(42) == 42
 
 
+@pytest.mark.skipif(termios is None, reason="requires termios and curses")
 def test_detect_screen_size_success(monkeypatch):
     monkeypatch.setenv("TERM", "xterm-color")
     monkeypatch.setattr(termios, "tcgetattr", lambda fd: "flags")
@@ -237,6 +248,7 @@ def test_pager_page_detect_failure_prints(page_mod, monkeypatch, capsys):
     assert capsys.readouterr().out == "plain text\n"
 
 
+@skip_win32
 def test_pager_page_uses_pager(page_mod, monkeypatch):
     monkeypatch.setenv("TERM", "xterm")
     dumb_calls = []
@@ -249,6 +261,7 @@ def test_pager_page_uses_pager(page_mod, monkeypatch):
     assert dumb_calls == []
 
 
+@skip_win32
 def test_pager_page_falls_back_to_page_dumb(page_mod, monkeypatch):
     monkeypatch.setenv("TERM", "xterm")
     dumb_calls = []
@@ -260,6 +273,7 @@ def test_pager_page_falls_back_to_page_dumb(page_mod, monkeypatch):
     assert dumb_calls == [text]
 
 
+@skip_win32
 def test_pager_page_broken_pipe(page_mod, monkeypatch):
     # a broken pipe means the user quit the pager: not an error
     monkeypatch.setenv("TERM", "xterm")
@@ -277,6 +291,7 @@ def test_pager_page_broken_pipe(page_mod, monkeypatch):
     assert dumb_calls == []
 
 
+@skip_win32
 def test_pager_page_oserror_falls_back(page_mod, monkeypatch):
     monkeypatch.setenv("TERM", "xterm")
     dumb_calls = []

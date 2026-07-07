@@ -180,7 +180,7 @@ def doctest_reset_del():
 
     In [3]: a = A()
 
-    In [4]: get_ipython().reset(); import gc; x = gc.collect(0)
+    In [4]: get_ipython().reset(); import gc; x = gc.collect()
     Hi
 
     In [5]: 1+1

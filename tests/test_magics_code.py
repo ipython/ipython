@@ -492,10 +492,20 @@ def test_edit_object_without_source_warns(editor):
 def test_edit_interactively_defined(editor, capsys):
     ip = get_ipython()
     # %edit on an interactively defined object looks the input up by the
-    # prompt number embedded in the compiled cell filename, so make sure the
-    # execution count matches the session history cache (other tests may have
-    # left them out of sync).
-    ip.execution_count = len(ip.history_manager.input_hist_raw)
+    # prompt number embedded in the compiled cell filename, so the execution
+    # count must match the session input cache (other tests may have left
+    # them out of sync). Never lower execution_count to resync: cells would
+    # then reuse (session, line) numbers already written to the history db.
+    hm = ip.history_manager
+    if ip.execution_count > len(hm.input_hist_raw):
+        hm.input_hist_raw.extend(
+            [""] * (ip.execution_count - len(hm.input_hist_raw))
+        )
+        hm.input_hist_parsed.extend(
+            [""] * (ip.execution_count - len(hm.input_hist_parsed))
+        )
+    else:
+        ip.execution_count = len(hm.input_hist_raw)
     ip.run_cell("def _intdef_f(): return 41", store_history=True)
     editor.content = "def _intdef_f(): return 42\n"
     result = ip.run_line_magic("edit", "_intdef_f")
