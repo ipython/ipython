@@ -10,6 +10,8 @@ from pathlib import Path
 
 import pytest
 
+from IPython.testing.decorators import skip_win32
+
 from IPython.core.magics import packaging
 
 
@@ -37,6 +39,7 @@ def fake_conda_env(monkeypatch, tmp_path):
     return tmp_path
 
 
+@skip_win32
 def test_pip_runs_current_interpreter(recorded_commands, capsys):
     ip.run_line_magic("pip", "install foo")
     assert recorded_commands == [
@@ -45,6 +48,7 @@ def test_pip_runs_current_interpreter(recorded_commands, capsys):
     assert "restart the kernel" in capsys.readouterr().out
 
 
+@skip_win32
 def test_pip_quotes_interpreter_path(recorded_commands, monkeypatch):
     monkeypatch.setattr(sys, "executable", "/spa ced/python")
     ip.run_line_magic("pip", "install foo")
@@ -60,6 +64,7 @@ def test_pip_windows_quoting(recorded_commands, monkeypatch):
     ]
 
 
+@skip_win32
 def test_uv_runs_current_interpreter(recorded_commands, capsys):
     ip.run_line_magic("uv", "pip install foo")
     assert recorded_commands == [

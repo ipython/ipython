@@ -7,6 +7,8 @@ import types
 
 import pytest
 
+from IPython.testing.decorators import skip_win32
+
 from IPython.utils import data as data_mod
 from IPython.utils import encoding as encoding_mod
 from IPython.utils import frame as frame_mod
@@ -41,6 +43,7 @@ def test_chop():
 # -----------------------------------------------------------------------------
 
 
+@skip_win32
 def test_clock_functions():
     user = timing_mod.clocku()
     system = timing_mod.clocks()
