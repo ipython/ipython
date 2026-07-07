@@ -140,6 +140,8 @@ def print_figure(fig, fmt="png", bbox_inches="tight", base64=False, **kwargs):
     .. versionadded:: 7.29
         base64 argument
     """
+    import matplotlib
+
     # When there's an empty figure, we shouldn't return anything, otherwise we
     # get big blank areas in the qt console.
     if not fig.axes and not fig.lines:
@@ -166,11 +168,11 @@ def print_figure(fig, fmt="png", bbox_inches="tight", base64=False, **kwargs):
         from matplotlib.backend_bases import FigureCanvasBase
         FigureCanvasBase(fig)
 
-    import matplotlib
-    with matplotlib.rc_context():
-        marker = matplotlib.rcParams.get("lines.marker")
-        if isinstance(marker, str) and marker.lower() == "none":
-            matplotlib.rcParams["lines.marker"] = "none"
+    with matplotlib.rc_context(
+        {"lines.marker": "none"}
+        if matplotlib.rcParams.get("lines.marker") == "None"
+        else {}
+    ):
         fig.canvas.print_figure(bytes_io, **kw)
     data = bytes_io.getvalue()
     if fmt == 'svg':
