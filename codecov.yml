@@ -18,6 +18,52 @@ coverage:
 # Note: an invalid codecov.yml is silently ignored (Codecov falls back to
 # defaults, e.g. notifying before all reports are in). Check changes with:
 #   curl --data-binary @codecov.yml https://codecov.io/validate
+component_management:
+  default_rules:
+    # Components are informational buckets in the Codecov UI; do not add
+    # extra per-component status checks to PRs.
+    statuses: []
+  individual_components:
+    - component_id: library
+      name: Library
+      paths:
+        - IPython/**
+        - '!IPython/testing/**'
+        - '!**/tests/**'
+    - component_id: test-suite
+      name: Test suite
+      paths:
+        - tests/**
+        - IPython/testing/**
+    - component_id: core
+      name: Core
+      paths:
+        - IPython/core/**
+        - '!IPython/core/magics/**'
+    - component_id: magics
+      name: Magics
+      paths:
+        - IPython/core/magics/**
+    - component_id: terminal
+      name: Terminal
+      paths:
+        - IPython/terminal/**
+    - component_id: lib
+      name: Lib
+      paths:
+        - IPython/lib/**
+    - component_id: utils
+      name: Utils
+      paths:
+        - IPython/utils/**
+    - component_id: extensions
+      name: Extensions
+      paths:
+        - IPython/extensions/**
+    - component_id: external
+      name: External
+      paths:
+        - IPython/external/**
 flag_management:
   default_rules:
     statuses:

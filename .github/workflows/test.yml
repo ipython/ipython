@@ -101,6 +101,9 @@ jobs:
          token: ${{ secrets.CODECOV_TOKEN }}
          name: Test
          files: /home/runner/work/ipython/ipython/coverage.xml
+         # Both flags are attached to the same report; each flag's
+         # `paths` filter in codecov.yml carves out its bucket.
+         flags: library,unit-tests
 
   oldest-deps:
     # pro-actively check backward compatibility
