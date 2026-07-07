@@ -179,6 +179,7 @@ def _tokens_filename(
     em: wether bold or not
     file : str
     """
+    assert file is None or isinstance(file, str)
     Normal = Token.NormalEm if em else Token.Normal
     Filename = Token.FilenameEm if em else Token.Filename
     ipinst = get_ipython()
@@ -202,8 +203,6 @@ def _tokens_filename(
             ]
     else:
         file_str = file or ""
-        if isinstance(file_str, bytes):
-            file_str = file_str.decode(util_path.fs_encoding, "replace")
         name = util_path.compress_user(file_str)
         if lineno is None:
             return [
