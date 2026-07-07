@@ -36,6 +36,12 @@ flag_management:
 codecov:
   require_ci_to_pass: false
   branch: main
+  notify:
+    # Number of coverage reports uploaded by the "test" job matrix in
+    # .github/workflows/test.yml (one per matrix combination that runs
+    # with --cov). Update this if the matrix changes.
+    after_n_builds: 11
+    wait_for_ci: true
 
 ignore:
   - IPython/kernel/*
