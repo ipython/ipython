@@ -15,7 +15,7 @@ from apigen import ApiDocWriter
 source = pjoin(here, 'source')
 
 #*****************************************************************************
-if __name__ == '__main__':
+def main():
     package = 'IPython'
     outdir = pjoin(source, 'api', 'generated')
     docwriter = ApiDocWriter(package,rst_extension='.rst')
@@ -63,3 +63,7 @@ if __name__ == '__main__':
                           relative_to = pjoin(source, 'api')
                           )
     print ('%d files written' % len(docwriter.written_modules))
+
+
+if __name__ == '__main__':
+    main()
