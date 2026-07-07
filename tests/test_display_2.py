@@ -217,7 +217,7 @@ def test_set_matplotlib_formats_kwargs():
 
 @dec.skip_without("matplotlib")
 @pytest.mark.skipif(
-    sys.version_info[:2] == (3, 11),
+    sys.platform == "linux" and sys.version_info[:2] == (3, 11),
     reason="matplotlib marker style regression on Python 3.11 CI causes plots to silently fail to render",
 )
 def test_matplotlib_positioning():

@@ -531,7 +531,7 @@ def test_simplenamespace(obj, expected):
 
 @pytest.mark.skipif(sys.version_info[1] == 12, reason="issue on old-deps + python 3.12")
 @pytest.mark.skipif(
-    sys.version_info[:2] == (3, 11),
+    sys.platform == "linux" and sys.version_info[:2] == (3, 11),
     reason="os.environ repr format differs on Python 3.11 CI",
 )
 def test_pretty_environ():
