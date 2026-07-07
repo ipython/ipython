@@ -2,6 +2,7 @@
 
 This file is only meant to be imported by process.py, not by end-users.
 """
+from __future__ import annotations
 
 #-----------------------------------------------------------------------------
 # Imports

@@ -1,5 +1,7 @@
 """Find files and directories which IPython uses.
 """
+from __future__ import annotations
+
 import os.path
 import tempfile
 from warnings import warn
