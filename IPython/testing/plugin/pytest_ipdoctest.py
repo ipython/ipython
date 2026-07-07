@@ -4,6 +4,7 @@
 #
 # Copyright (c) 2004-2021 Holger Krekel and others
 """Discover and run ipdoctests in modules and test files."""
+from __future__ import annotations
 
 import bdb
 import builtins
@@ -19,12 +20,6 @@ from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
-    Dict,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    Union,
 )
 from re import Pattern
 from collections.abc import Callable, Generator, Iterable, Sequence
@@ -69,7 +64,7 @@ DOCTEST_REPORT_CHOICES = (
 # Lazy definition of runner class
 RUNNER_CLASS = None
 # Lazy definition of output checker class
-CHECKER_CLASS: type["IPDoctestOutputChecker"] | None = None
+CHECKER_CLASS: type[IPDoctestOutputChecker] | None = None
 
 pytest_version = tuple([int(part) for part in pytest.__version__.split(".")])
 
@@ -133,7 +128,7 @@ def pytest_unconfigure() -> None:
 def pytest_collect_file(
     file_path: Path,
     parent: Collector,
-) -> Union["IPDoctestModule", "IPDoctestTextfile"] | None:
+) -> IPDoctestModule | IPDoctestTextfile | None:
     config = parent.config
     if file_path.suffix == ".py":
         if config.option.ipdoctestmodules and not any(
@@ -153,7 +148,7 @@ if pytest_version[0] < 7:
     def pytest_collect_file(
         path,
         parent: Collector,
-    ) -> Union["IPDoctestModule", "IPDoctestTextfile"] | None:
+    ) -> IPDoctestModule | IPDoctestTextfile | None:
         return _collect_file(Path(path), parent)
 
     _import_path = import_path
@@ -196,12 +191,12 @@ class ReprFailDoctest(TerminalRepr):
 
 
 class MultipleDoctestFailures(Exception):
-    def __init__(self, failures: Sequence["doctest.DocTestFailure"]) -> None:
+    def __init__(self, failures: Sequence[doctest.DocTestFailure]) -> None:
         super().__init__()
         self.failures = failures
 
 
-def _init_runner_class() -> type["IPDocTestRunner"]:
+def _init_runner_class() -> type[IPDocTestRunner]:
     import doctest
     from .ipdoctest import IPDocTestRunner
 
@@ -214,7 +209,7 @@ def _init_runner_class() -> type["IPDocTestRunner"]:
 
         def __init__(
             self,
-            checker: Optional["IPDoctestOutputChecker"] = None,
+            checker: IPDoctestOutputChecker | None = None,
             verbose: bool | None = None,
             optionflags: int = 0,
             continue_on_failure: bool = True,
@@ -225,8 +220,8 @@ def _init_runner_class() -> type["IPDocTestRunner"]:
         def report_failure(
             self,
             out,
-            test: "doctest.DocTest",
-            example: "doctest.Example",
+            test: doctest.DocTest,
+            example: doctest.Example,
             got: str,
         ) -> None:
             failure = doctest.DocTestFailure(test, example, got)
@@ -238,8 +233,8 @@ def _init_runner_class() -> type["IPDocTestRunner"]:
         def report_unexpected_exception(
             self,
             out,
-            test: "doctest.DocTest",
-            example: "doctest.Example",
+            test: doctest.DocTest,
+            example: doctest.Example,
             exc_info: tuple[type[BaseException], BaseException, types.TracebackType],
         ) -> None:
             if isinstance(exc_info[1], OutcomeException):
@@ -256,11 +251,11 @@ def _init_runner_class() -> type["IPDocTestRunner"]:
 
 
 def _get_runner(
-    checker: Optional["IPDoctestOutputChecker"] = None,
+    checker: IPDoctestOutputChecker | None = None,
     verbose: bool | None = None,
     optionflags: int = 0,
     continue_on_failure: bool = True,
-) -> "IPDocTestRunner":
+) -> IPDocTestRunner:
     # We need this in order to do a lazy import on doctest
     global RUNNER_CLASS
     if RUNNER_CLASS is None:
@@ -281,9 +276,9 @@ class IPDoctestItem(pytest.Item):
     def __init__(
         self,
         name: str,
-        parent: "Union[IPDoctestTextfile, IPDoctestModule]",
-        runner: Optional["IPDocTestRunner"] = None,
-        dtest: Optional["doctest.DocTest"] = None,
+        parent: IPDoctestTextfile | IPDoctestModule,
+        runner: IPDocTestRunner | None = None,
+        dtest: doctest.DocTest | None = None,
     ) -> None:
         super().__init__(name, parent)
         self.runner = runner
@@ -295,12 +290,12 @@ class IPDoctestItem(pytest.Item):
     @classmethod
     def from_parent(  # type: ignore
         cls,
-        parent: "Union[IPDoctestTextfile, IPDoctestModule]",
+        parent: IPDoctestTextfile | IPDoctestModule,
         *,
         name: str,
-        runner: "IPDocTestRunner",
-        dtest: "doctest.DocTest",
-    ) -> "IPDoctestItem":
+        runner: IPDocTestRunner,
+        dtest: doctest.DocTest,
+    ) -> IPDoctestItem:
         # incompatible signature due to imposed limits on subclass
         """The public named constructor."""
         return super().from_parent(name=name, parent=parent, runner=runner, dtest=dtest)
@@ -448,7 +443,7 @@ class IPDoctestItem(pytest.Item):
             reprlocation_lines.append((reprlocation, lines))
         return ReprFailDoctest(reprlocation_lines)
 
-    def reportinfo(self) -> tuple[Union["os.PathLike[str]", str], int | None, str]:
+    def reportinfo(self) -> tuple[os.PathLike[str] | str, int | None, str]:
         assert self.dtest is not None
         return self.path, self.dtest.lineno, "[ipdoctest] %s" % self.name
 
@@ -475,7 +470,7 @@ def _get_flag_lookup() -> dict[str, int]:
     )
 
 
-def get_optionflags(parent: "IPDoctestModule") -> int:
+def get_optionflags(parent: IPDoctestModule) -> int:
     optionflags_str = parent.config.getini("ipdoctest_optionflags")
     flag_lookup_table = _get_flag_lookup()
     flag_acc = 0
@@ -546,7 +541,7 @@ class IPDoctestTextfile(pytest.Module):
             return super().from_parent(parent=parent, fspath=fspath, **kw)
 
 
-def _check_all_skipped(test: "doctest.DocTest") -> None:
+def _check_all_skipped(test: doctest.DocTest) -> None:
     """Raise pytest.skip() if all examples in the given DocTest have the SKIP
     option set."""
     import doctest
@@ -721,7 +716,7 @@ def _setup_fixtures(doctest_item: IPDoctestItem) -> FixtureRequest:
     return fixture_request
 
 
-def _init_checker_class() -> type["IPDoctestOutputChecker"]:
+def _init_checker_class() -> type[IPDoctestOutputChecker]:
     import re
     from .ipdoctest import IPDoctestOutputChecker
 
@@ -809,7 +804,7 @@ def _init_checker_class() -> type["IPDoctestOutputChecker"]:
     return LiteralsOutputChecker
 
 
-def _get_checker() -> "IPDoctestOutputChecker":
+def _get_checker() -> IPDoctestOutputChecker:
     """Return a IPDoctestOutputChecker subclass that supports some
     additional options:
 
