@@ -4,8 +4,6 @@ from IPython.core.interactiveshell import InteractiveShell
 from IPython.core.magic import MagicAlias
 from IPython.utils.text import dedent, indent
 
-shell = InteractiveShell.instance()
-magics = shell.magics_manager.magics
 
 def _strip_underline(line):
     chars = set(line.strip())
@@ -22,45 +20,54 @@ def format_docstring(func):
     lines = [_strip_underline(l) for l in docstring.splitlines()]
     return "\n".join(lines)
 
-output = [
-"Line magics",
-"===========",
-"",
-]
-
 # Case insensitive sort by name
 def sortkey(s): return s[0].lower()
 
-for name, func in sorted(magics["line"].items(), key=sortkey):
-    if isinstance(func, Alias) or isinstance(func, MagicAlias):
-        # Aliases are magics, but shouldn't be documented here
-        # Also skip aliases to other magics
-        continue
-    output.extend([".. magic:: {}".format(name),
-                   "",
-                   format_docstring(func),
-                   ""])
 
-output.extend([
-"Cell magics",
-"===========",
-"",
-])
+def main():
+    shell = InteractiveShell.instance()
+    magics = shell.magics_manager.magics
 
-for name, func in sorted(magics["cell"].items(), key=sortkey):
-    if name == "!":
-        # Special case - don't encourage people to use %%!
-        continue
-    if func == magics["line"].get(name, "QQQP"):
-        # Don't redocument line magics that double as cell magics
-        continue
-    if isinstance(func, MagicAlias):
-        continue
-    output.extend([".. cellmagic:: {}".format(name),
-                   "",
-                   format_docstring(func),
-                   ""])
+    output = [
+        "Line magics",
+        "===========",
+        "",
+    ]
 
-src_path = Path(__file__).parent
-dest = src_path.joinpath("source", "interactive", "magics-generated.txt")
-dest.write_text("\n".join(output), encoding="utf-8")
+    for name, func in sorted(magics["line"].items(), key=sortkey):
+        if isinstance(func, Alias) or isinstance(func, MagicAlias):
+            # Aliases are magics, but shouldn't be documented here
+            # Also skip aliases to other magics
+            continue
+        output.extend([".. magic:: {}".format(name),
+                       "",
+                       format_docstring(func),
+                       ""])
+
+    output.extend([
+        "Cell magics",
+        "===========",
+        "",
+    ])
+
+    for name, func in sorted(magics["cell"].items(), key=sortkey):
+        if name == "!":
+            # Special case - don't encourage people to use %%!
+            continue
+        if func == magics["line"].get(name, "QQQP"):
+            # Don't redocument line magics that double as cell magics
+            continue
+        if isinstance(func, MagicAlias):
+            continue
+        output.extend([".. cellmagic:: {}".format(name),
+                       "",
+                       format_docstring(func),
+                       ""])
+
+    src_path = Path(__file__).parent
+    dest = src_path.joinpath("source", "interactive", "magics-generated.txt")
+    dest.write_text("\n".join(output), encoding="utf-8")
+
+
+if __name__ == "__main__":
+    main()

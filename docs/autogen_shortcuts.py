@@ -182,7 +182,11 @@ def format_prompt_keys(keys: str, add_alternatives=True) -> str:
     return result
 
 
-if __name__ == "__main__":
+def _sort_key(binding: Binding):
+    return binding.handler.identifier, binding.shortcut.filter
+
+
+def main():
     here = Path(__file__).parent
     dest = here / "source" / "config" / "shortcuts"
 
@@ -197,12 +201,8 @@ if __name__ == "__main__":
 
     bindings = bindings_from_prompt_toolkit(prompt_bindings)
 
-    def sort_key(binding: Binding):
-        return binding.handler.identifier, binding.shortcut.filter
-
-    filters = []
     with (dest / "table.tsv").open("w", encoding="utf-8") as csv:
-        for binding in sorted(bindings, key=sort_key):
+        for binding in sorted(bindings, key=_sort_key):
             sequence = ", ".join(
                 [format_prompt_keys(keys) for keys in binding.shortcut.keys_sequence]
             )
@@ -223,3 +223,7 @@ if __name__ == "__main__":
                 )
                 + "\n"
             )
+
+
+if __name__ == "__main__":
+    main()

@@ -111,8 +111,12 @@ def write_doc(name, title, app, preamble=None):
             f.write('\n')
 
 
-if __name__ == '__main__':
+def main():
     # Touch this file for the make target
     Path(generated).write_text("", encoding="utf-8")
 
     write_doc('terminal', 'Terminal IPython options', TerminalIPythonApp())
+
+
+if __name__ == '__main__':
+    main()
