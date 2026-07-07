@@ -641,9 +641,11 @@ def test_recall_magic(hist_magic_shell, capsys, monkeypatch):
         ip, "set_next_input", lambda s, replace=False: captured.append(s)
     )
 
-    # no argument: recall last output. Produce the output via a real cell so
-    # the displayhook's tracking of '_' is not broken for later tests.
-    ip.run_cell("'last_out_value'", store_history=False)
+    # no argument: recall last output, read straight from user_ns["_"].
+    # Set it via monkeypatch rather than by running a cell: earlier tests
+    # (e.g. test_displayhook) may have assigned '_' manually, which stops
+    # the displayhook from tracking it for the rest of the session.
+    monkeypatch.setitem(ip.user_ns, "_", "last_out_value")
     ip.run_line_magic("recall", "")
     assert captured[-1] == "last_out_value"
 
