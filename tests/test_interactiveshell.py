@@ -1399,6 +1399,8 @@ def test_enable_gui_osx():
 
     ip.simple_prompt = simple_prompt
 
+import unittest
+
 class TestCellMeta(unittest.TestCase):
 
     def test_cell_meta(self):
