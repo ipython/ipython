@@ -12,6 +12,16 @@ directory ([`promote_kernel.py`](promote_kernel.py)) with an end-to-end test
 ([`test_promote_e2e.py`](test_promote_e2e.py)) that drives a real `ipython` under pexpect,
 promotes it, attaches a `jupyter_client`, and verifies shared state and iopub output.
 
+**Design direction (maintainer feedback).** Execution should stay on the **main thread**
+if possible (some libraries misbehave off it), and it is acceptable — expected, even —
+that a promoted terminal stops being interactive: finish the prompt_toolkit session and
+hand the namespace over to ipykernel. That is architecture B below; the PoC now
+implements it as the default `%promote` mode (**verified: client code runs on
+`MainThread`, `signal` handlers are installable, `interrupt_request` delivers
+`KeyboardInterrupt` into busy user code, `shutdown_request` exits cleanly**). The
+background-thread dual-frontend variant (architecture A) is kept as `%promote --share`
+for experimentation.
+
 ---
 
 ## TL;DR
@@ -33,13 +43,14 @@ Feasible, and much closer than expected. Two discoveries do most of the work:
    `ipykernel/kernelapp.py:600-609`), the connection file is written normally, and a
    client can execute against a namespace shared with the main thread.
 
-So a `%promote` magic that starts the kernel machinery in a daemon thread, shares
-`user_ns`/`user_module` with the live terminal shell, and writes its connection file into
-the external-connection dir gives a *working* terminal+notebook dual-frontend session
-today — the PoC here does exactly that. The remaining hard problems are about making it
-*correct* rather than possible: shell identity (one shell object vs. two sharing a
-namespace), execution serialization between the two frontends, stdout ownership, and
-interrupt semantics.
+So a `%promote` magic is implementable today, and the PoC here ships two variants:
+the default **hand-off** (architecture B — the terminal session ends, the process
+becomes a kernel executing on the *main thread*, with working signal-based interrupt),
+and `--share` (architecture A — kernel machinery in a daemon thread, terminal stays
+interactive, both frontends sharing `user_ns`). For `--share`, the remaining hard
+problems are about making it *correct* rather than possible: shell identity (one shell
+object vs. two sharing a namespace), execution serialization between the two frontends,
+stdout ownership, and interrupt semantics — hand-off sidesteps all of them.
 
 ---
 
@@ -81,7 +92,7 @@ microsoft/vscode-jupyter#13849); Spyder can.
 
 ## Candidate architectures
 
-### A. Background-thread kernel adopting the live session (what the PoC does)
+### A. Background-thread kernel adopting the live session (PoC: `%promote --share`)
 
 `%promote` starts `IPKernelApp` in a daemon thread; the terminal REPL keeps the main
 thread; both frontends stay live, sharing `user_ns`/`user_module`.
@@ -97,17 +108,41 @@ thread; both frontends stay live, sharing `user_ns`/`user_module`.
   semantics are a permanent support burden unless the terminal goes read-only or
   submissions are funneled through one queue (see D).
 
-### B. Suspend-and-hand-off (`%promote` exits the REPL, process becomes a kernel)
+### B. Suspend-and-hand-off (PoC: default `%promote`) — **selected direction**
 
-Exit `interact()` (via `keep_running`/`ask_exit`, `IPython/terminal/interactiveshell.py:997-1001`
-— but through a new exit path that skips `mainloop()`'s `_atexit_once()`, which wipes
-`user_ns` and closes history), then run essentially `ipykernel.embed.embed_kernel`
-(`ipykernel/embed.py:17-57`) on the main thread, transplanting shell state. The user
-re-attaches interactively with `jupyter console --existing` — same tty, now a ZMQ
-frontend. Clean threading story (kernel owns the main thread; interrupts and GUI loops
-work), one-way door in v1. The synthesis agent recommended this as the shippable v1;
-the PoC results suggest A is more attractive than expected, but B remains the correct
-semantics for "move" rather than "share".
+Finish the prompt_toolkit session and hand the namespace to ipykernel running on the
+**main thread**. The PoC implements this by blocking inside the magic
+(`embed_kernel`-style): we are inside `run_cell` inside `interact()` and deliberately
+never return, because returning through `mainloop()` runs `_atexit_once()`
+(`terminal/interactiveshell.py:1045`), which calls `shell.reset()` — wiping the very
+`user_ns` dict that was just handed to the kernel (it is *shared*, not copied;
+`core/interactiveshell.py:4091-4101`). `shell.keep_running` is set to `False` so that if
+the kernel loop ever stops (shutdown), the process falls out through
+`interact()`/`mainloop()` and exits cleanly — at which point `_atexit_once()` is the
+correct teardown.
+
+Verified end-to-end in `test_promote_e2e.py::test_handoff`, on both stock and multiton
+traitlets:
+
+- client executions run on `MainThread` (the whole point);
+- `signal.signal(...)` works from client code (main-thread-only API);
+- `interrupt_request` on the control channel → `os.kill(pid, SIGINT)`
+  (`kernelbase.py:1040-1055`) → `default_int_handler` installed around handlers
+  (`kernelbase.py:496-503`) → `KeyboardInterrupt` lands in busy user code;
+- streams, `execute_result`, **and `display_data`** all reach iopub —
+  the singleton hand-over is *globally correct* here (`get_ipython()` should resolve
+  to the kernel shell once the terminal is done), so none of mode A's identity
+  contortions are needed;
+- the `patch_stdout` eviction problem (obstacle 3) disappears — there are no further
+  prompts, so `OutStream(echo=tty)` installed by `init_io` stays put and the old tty
+  keeps mirroring kernel output;
+- `shutdown_request` exits the process cleanly.
+
+One-way door by design; the user re-attaches interactively with
+`jupyter console --existing` — same tty, now a ZMQ frontend. A proper implementation
+in IPython would replace "block inside the magic" with a real exit path: `interact()`
+returns a "promote" disposition and `mainloop()`/`TerminalIPythonApp.start()` runs the
+kernel loop instead of `_atexit_once()`.
 
 ### C. Kernel-first (`ipython --promotable` = kernel + local ZMQ frontend from the start)
 
@@ -190,20 +225,80 @@ All verified by experiment in this exploration, not just code reading:
    normally would wipe `user_ns` and close history before the kernel starts; B needs an
    exit path that skips it.
 
+## The traitlets `multiton` branch (Carreau/traitlets, `SingletonScope`)
+
+Evaluated empirically against this PoC (branch adds contextvar-scoped singleton
+registries: `Base.scope()` returns a `SingletonScope`; while active on a thread/task,
+`.instance()` on the covered subtree resolves in the scope, never touching the
+process-global `_instance`; re-enterable; `add()` pre-seeds; new threads do *not*
+inherit the parent's scope).
+
+**For `--share` (dual-frontend) mode it is exactly the right tool.** The kernel thread
+activates `SingletonConfigurable.scope()` and both PoC hacks disappear:
+
+- no `clear_instance()` dance — `IPKernelApp` and `ZMQInteractiveShell` are created
+  inside the scope while `TerminalIPythonApp`/`TerminalInteractiveShell` remain the
+  untouched globals (so e.g. `Application.instance()` from the main thread still
+  resolves the terminal app, which the clear-hack broke);
+- no `InteractiveShell._instance = shell` restore — `get_ipython()` resolves
+  *per-thread*: terminal shell on the main thread (the prompt_toolkit key-binding
+  filters keep working, obstacle 2 gone), ZMQ shell on the kernel thread (contextvars
+  propagate into the io_loop callbacks registered inside the scope);
+- **bonus capability:** `IPython.display.display()` from notebook clients resolves
+  `InteractiveShell.instance()` (`core/display_functions.py:65`) *in the kernel
+  thread's scope* → `ZMQDisplayPublisher` → real `display_data` messages reach the
+  notebook. Verified by `test_promote_e2e.py::test_share`, which passes the
+  display-data assertion with the branch installed and (expectedly) not without it.
+
+**For the default hand-off mode it is not needed** — the terminal relinquishes the
+session, so globally re-pointing the singletons at the kernel objects is the correct
+end state, and hand-off passes all checks on stock traitlets. It would still tidy the
+transient window during promotion, and `scope.add()` could pre-seed a scope with the
+adopted shell.
+
+Caveat for other consumers: scopes do not fall back to the global registry, so code
+run inside a broad scope re-creates any singleton it touches (fresh profile dir apps,
+etc.). Using `SingletonConfigurable.scope()` (maximal blast radius) was fine for the
+kernel thread; a narrower base (`InteractiveShell` + `BaseIPythonApplication`) would be
+more surgical.
+
 ## What a real implementation would change
 
-- **ipykernel:** allow injecting an existing shell (or a shell *object*) into
-  `IPythonKernel` instead of `shell_class.instance(...)` (`ipkernel.py:140`); factor
-  `IPKernelApp.initialize()` so IO/signal/singleton steps are individually optional.
-  (`embed_kernel`'s `IPKernelApp.initialized()` guard, `embed.py:33-36`, already makes
-  promotion idempotent for free.)
-- **IPython:** a `%promote` magic (or `ipython --promotable`); a "kernel-capable" seam on
-  `InteractiveShell` where DisplayPublisher/DisplayHook/streams can be swapped or teed
-  at runtime (they are already trait-selected classes — the exact seam ipykernel
-  overrides); an `interact()` exit path without `_atexit_once()`; longer-term, the D
-  refactor putting the prompt and ZMQ on one loop with the terminal as a subshell owner.
-- **Nothing needed** in jupyter_client/jupyter_server for a first release —
-  `external_connection_dir` covers discovery; a provisioner + Lab UX polish can come later.
+**ipykernel patches that would make this clean** (today the PoC works around all of
+these from the outside):
+
+1. **Shell injection.** `IPythonKernel.__init__` hard-codes
+   `self.shell = self.shell_class.instance(...)` (`ipkernel.py:140`). Make it honor an
+   already-set `shell` trait (`if self.shell is None: ...`), so a promoter can pass a
+   pre-built shell — and eventually the *terminal's own shell object*, which would
+   collapse the two-shells-one-namespace model and its `get_ipython()` identity issues.
+2. **Non-registering construction.** `embed_kernel`/promotion paths should not require
+   `IPKernelApp.instance()` — it collides with the host app's `Application` singleton
+   (verified `MultipleInstanceError` vs `TerminalIPythonApp`). Either construct the app
+   directly (plain `IPKernelApp(...)`), or adopt `SingletonScope` once it lands in
+   traitlets.
+3. **Factored `initialize()`.** Split transport setup (connection file, sockets,
+   heartbeat, session) from process takeover (`init_io`, `init_signal`,
+   `init_blackhole`) so an embedding caller can take the former and opt out of / defer
+   the latter. Most of the split already exists as separate methods; what's missing is
+   a supported entry point that composes them à la carte.
+4. **State-adoption API.** A supported `kernel.adopt(user_ns=..., user_module=...,
+   execution_count=..., history_manager=...)` instead of the PoC's attribute pokes;
+   history handoff needs thought (sqlite thread affinity vs. a second session on the
+   same file).
+5. **`embed_kernel(connection_file=...)`** pass-through, so promoted kernels can write
+   straight into a jupyter_server `external_connection_dir`.
+
+**IPython:**
+
+- a real `%promote` (hand-off) exit path: `interact()` returns a "promote" disposition;
+  `mainloop()`/`TerminalIPythonApp.start()` then runs the kernel loop instead of
+  `_atexit_once()` — replacing the PoC's block-inside-the-magic;
+- longer-term (architecture D): put the prompt and ZMQ on one loop with the terminal as
+  a subshell owner, making promotion two-way and the terminal a first-class frontend.
+
+**Nothing needed** in jupyter_client/jupyter_server for a first release —
+`external_connection_dir` covers discovery; a provisioner + Lab UX polish can come later.
 
 ## Prior art
 
@@ -241,7 +336,10 @@ All verified by experiment in this exploration, not just code reading:
 cd exploration/terminal-to-kernel
 PYTHONPATH=. ipython
 In [1]: %load_ext promote_kernel
-In [2]: %promote --external-dir /tmp/ext-kernels
+In [2]: %promote --external-dir /tmp/ext-kernels          # hand-off (default):
+#         terminal stops prompting, process becomes a main-thread kernel
+#  ... or keep the terminal interactive too (experimental dual-frontend):
+In [2]: %promote --share --external-dir /tmp/ext-kernels
 
 # terminal 2 — console attach (works with nothing else)
 jupyter console --existing /tmp/ext-kernels/kernel-<pid>.json
@@ -251,6 +349,9 @@ jupyter lab --ServerApp.allow_external_kernels=True \
             --ServerApp.external_connection_dir=/tmp/ext-kernels
 # → the session appears in the kernel picker; open a notebook on it.
 
-# automated end-to-end check (needs pexpect):
+# automated end-to-end check of both modes (needs pexpect):
 python test_promote_e2e.py
+
+# optional: scoped-singleton variant for --share mode
+pip install git+https://github.com/Carreau/traitlets@multiton
 ```
