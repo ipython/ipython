@@ -5,6 +5,7 @@ Uses syntax highlighting for presenting the various information elements.
 Similar in spirit to the inspect module, but all calls take a name argument to
 reference the name under which an object is being read.
 """
+from __future__ import annotations
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
@@ -29,13 +30,8 @@ from pygments.token import Token
 from typing import (
     cast,
     Any,
-    Optional,
-    Dict,
-    Union,
-    List,
     TypedDict,
     TypeAlias,
-    Tuple,
 )
 
 import traitlets
@@ -229,7 +225,7 @@ def getdoc(obj) -> str | None:
     return docstr
 
 
-def getsource(obj, oname='') -> str |None:
+def getsource(obj, oname='') -> str | None:
     """Wrapper around inspect.getsource.
 
     This can be modified by other projects to provide customized source
@@ -416,7 +412,7 @@ class Inspector(Configurable):
     def format(self, *args, **kwargs):
         return self.parser.format(*args, **kwargs)
 
-    def _getdef(self,obj,oname='') -> str |None:
+    def _getdef(self,obj,oname='') -> str | None:
         """Return the call signature for any callable object.
 
         If any exception is generated, None is returned instead and the
