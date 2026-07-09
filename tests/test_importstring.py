@@ -7,9 +7,9 @@
 #  the file COPYING, distributed as part of this software.
 # -----------------------------------------------------------------------------
 
-# -----------------------------------------------------------------------------
-# Imports
-# -----------------------------------------------------------------------------
+import os
+import os.path
+import sys
 
 import pytest
 
@@ -21,21 +21,45 @@ from IPython.utils.importstring import import_item
 
 
 def test_import_plain():
-    "Test simple imports"
-    import os
-
     os2 = import_item("os")
     assert os is os2
 
 
 def test_import_nested():
-    "Test nested imports from the stdlib"
-    from os import path
-
     path2 = import_item("os.path")
-    assert path is path2
+    assert os.path is path2
 
 
 def test_import_raises():
-    "Test that failing imports raise the right exception"
     pytest.raises(ImportError, import_item, "IPython.foobar")
+
+
+@pytest.mark.parametrize("name,expected", [
+    ("os", os),
+    ("sys", sys),
+    ("os.path", os.path),
+])
+def test_import_returns_correct_object(name, expected):
+    assert import_item(name) is expected
+
+
+@pytest.mark.parametrize("bad_name", [
+    "IPython.nonexistent_module",
+    "completely.fake.module",
+    "os.nonexistent_attribute",
+])
+def test_import_invalid_raises_importerror(bad_name):
+    with pytest.raises(ImportError):
+        import_item(bad_name)
+
+
+def test_import_deep_nested():
+    from collections import abc
+    result = import_item("collections.abc")
+    assert result is abc
+
+
+def test_import_result_is_callable_for_functions():
+    result = import_item("os.path.join")
+    assert callable(result)
+    assert result("a", "b") == os.path.join("a", "b")
