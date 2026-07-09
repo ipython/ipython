@@ -65,7 +65,6 @@ DOCTEST_REPORT_CHOICES = (
 RUNNER_CLASS = None
 # Lazy definition of output checker class
 CHECKER_CLASS: type[IPDoctestOutputChecker] | None = None
-
 pytest_version = tuple([int(part) for part in pytest.__version__.split(".")])
 
 
@@ -198,6 +197,7 @@ class MultipleDoctestFailures(Exception):
 
 def _init_runner_class() -> type[IPDocTestRunner]:
     import doctest
+
     from .ipdoctest import IPDocTestRunner
 
     class PytestDoctestRunner(IPDocTestRunner):
@@ -385,9 +385,7 @@ class IPDoctestItem(pytest.Item):
     ) -> str | TerminalRepr:
         import doctest
 
-        failures: None | (
-            Sequence[doctest.DocTestFailure | doctest.UnexpectedException]
-        ) = None
+        failures: Sequence[doctest.DocTestFailure | doctest.UnexpectedException] | None = None
         if isinstance(
             excinfo.value, (doctest.DocTestFailure, doctest.UnexpectedException)
         ):
@@ -718,6 +716,7 @@ def _setup_fixtures(doctest_item: IPDoctestItem) -> FixtureRequest:
 
 def _init_checker_class() -> type[IPDoctestOutputChecker]:
     import re
+
     from .ipdoctest import IPDoctestOutputChecker
 
     class LiteralsOutputChecker(IPDoctestOutputChecker):

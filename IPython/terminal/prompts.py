@@ -1,5 +1,7 @@
 """Terminal input and output prompts."""
 
+from __future__ import annotations
+
 from pygments.token import _TokenType, Token
 import sys
 
@@ -15,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class Prompts:
-    def __init__(self, shell: "TerminalInteractiveShell"):
+    def __init__(self, shell: TerminalInteractiveShell):
         self.shell = shell
 
     def vi_mode(self):
@@ -132,7 +134,7 @@ class RichPromptDisplayHook(DisplayHook):
             else:
                 sys.stdout.write(prompt_txt)
 
-    def write_format_data(self, format_dict: dict[str, str], md_dict: dict[Any, Any] | None=None) -> None:
+    def write_format_data(self, format_dict: dict[str, str], md_dict: dict[Any, Any] | None = None) -> None:
         assert self.shell is not None
         if self.shell.mime_renderers:
 
@@ -140,6 +142,6 @@ class RichPromptDisplayHook(DisplayHook):
                 if mime in format_dict:
                     handler(format_dict[mime], None)
                     return
-                
+
         super().write_format_data(format_dict, md_dict)
 
