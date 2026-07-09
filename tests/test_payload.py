@@ -19,6 +19,12 @@ def test_write_payload_requires_dict():
         pm.write_payload("not a dict")
 
 
+def test_write_payload_list_raises_type_error():
+    pm = PayloadManager()
+    with pytest.raises(TypeError):
+        pm.write_payload(["a", "b"])
+
+
 def test_write_and_read_payload():
     pm = PayloadManager()
     assert pm.read_payload() == []
@@ -62,12 +68,33 @@ def test_write_payload_without_source_appends():
     assert pm.read_payload() == [{"text": "a"}, {"text": "b"}]
 
 
+def test_read_payload_returns_all():
+    pm = PayloadManager()
+    pm.write_payload({"source": "a"})
+    pm.write_payload({"source": "b"})
+    result = pm.read_payload()
+    sources = [p["source"] for p in result]
+    assert "a" in sources
+    assert "b" in sources
+
+
 def test_clear_payload():
     pm = PayloadManager()
     pm.write_payload({"source": "page", "text": "a"})
     pm.clear_payload()
     assert pm.read_payload() == []
 
+
+def test_clear_payload_idempotent():
+    pm = PayloadManager()
+    pm.clear_payload()
+    pm.clear_payload()
+    assert pm.read_payload() == []
+
+
+def test_initial_payload_is_empty():
+    pm = PayloadManager()
+    assert pm.read_payload() == []
 
 # -----------------------------------------------------------------------------
 # payloadpage.page

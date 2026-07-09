@@ -45,10 +45,15 @@ class Macro:
     def __getstate__(self):
         """ needed for safe pickling via %store """
         return {'value': self.value}
-    
+
+    def __setstate__(self, state):
+        self.value = state['value']
+
     def __add__(self, other: Macro | str) -> Macro:
         if isinstance(other, Macro):
             return Macro(self.value + other.value)
         elif isinstance(other, str):
             return Macro(self.value + other)
-        raise TypeError
+        raise TypeError(
+            f"unsupported operand type(s) for +: 'Macro' and {type(other).__name__!r}"
+        )
