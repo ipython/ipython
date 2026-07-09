@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import inspect
 import pydoc
@@ -185,6 +187,7 @@ def _tokens_filename(
     ipinst = get_ipython()
     if (
         ipinst is not None
+        and file is not None
         and (data := ipinst.compile.format_code_name(file)) is not None
     ):
         label, name = data
@@ -298,7 +301,7 @@ class FrameInfo:
     @classmethod
     def _from_stack_data_FrameInfo(
         cls, frame_info: stack_data.core.FrameInfo | stack_data.core.RepeatedFrames
-    ) -> "FrameInfo":
+    ) -> FrameInfo:
         return cls(
             getattr(frame_info, "description", None),
             getattr(frame_info, "filename", None),  # type: ignore[arg-type]
