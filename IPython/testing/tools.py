@@ -9,6 +9,8 @@ Authors
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from __future__ import annotations
+
 import os
 from pathlib import Path
 import re
@@ -19,6 +21,7 @@ import unittest
 from contextlib import contextmanager
 from io import StringIO
 from subprocess import Popen, PIPE
+from types import TracebackType
 from unittest.mock import patch
 
 from traitlets.config.loader import Config
@@ -28,7 +31,6 @@ from IPython.utils.encoding import DEFAULT_ENCODING
 
 from . import decorators as dec
 from . import skipdoctest
-from types import TracebackType
 
 
 # The docstring for full_path doctests differently on win32 (different path

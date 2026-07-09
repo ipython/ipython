@@ -4,6 +4,8 @@ These classes add extra features such as creating a named file in temporary dire
 creating a context manager for the working directory which is also temporary.
 """
 
+from __future__ import annotations
+
 import os as _os
 from io import BufferedWriter
 from pathlib import Path
@@ -37,7 +39,7 @@ class NamedFileInTemporaryDirectory:
     def __enter__(self) -> BufferedWriter:
         return self.file
 
-    def __exit__(self, type: type[BaseException] | None, value: BaseException | None, traceback: TracebackType | None):
+    def __exit__(self, type: type[BaseException] | None, value: BaseException | None, traceback: TracebackType | None) -> None:
         self.cleanup()
 
 
