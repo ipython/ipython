@@ -21,7 +21,7 @@ from IPython.utils.ipstruct import Struct
 
 class MagicsDisplay:
     def __init__(self, magics_manager, ignore=None):
-        self.ignore = ignore if ignore else []
+        self.ignore = ignore or []
         self.magics_manager = magics_manager
 
     def _lsmagic(self):

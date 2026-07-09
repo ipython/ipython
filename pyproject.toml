@@ -226,15 +226,55 @@ disable_error_code = [
   "union-attr"
 ]
 
+# Newly promoted to type-checking (previously fully ignored).
+# These pass a lenient check (real type errors surfaced) but are not yet
+# fully annotated, so untyped defs are still permitted for now.
+[[tool.mypy.overrides]]
+module = [
+    "IPython.core.async_helpers",
+    "IPython.core.builtin_trap",
+    "IPython.core.extensions",
+    "IPython.core.hooks",
+    "IPython.core.macro",
+    "IPython.core.magic_arguments",
+    "IPython.core.magics.ast_mod",
+    "IPython.core.payload",
+    "IPython.core.profiledir",
+    "IPython.external.qt_for_kernel",
+    "IPython.lib.guisupport",
+    "IPython.paths",
+    "IPython.sphinxext.ipython_console_highlighting",
+    "IPython.terminal.pt_inputhooks.asyncio",
+    "IPython.terminal.pt_inputhooks.gtk",
+    "IPython.terminal.pt_inputhooks.gtk3",
+    "IPython.terminal.pt_inputhooks.gtk4",
+    "IPython.terminal.pt_inputhooks.pyglet",
+    "IPython.terminal.pt_inputhooks.qt",
+    "IPython.terminal.pt_inputhooks.wx",
+    "IPython.terminal.ptutils",
+    "IPython.terminal.shortcuts.auto_match",
+    "IPython.utils._process_emscripten",
+    "IPython.utils.ipstruct",
+    "IPython.utils.process",
+    "IPython.utils.strdispatch",
+    "IPython.utils.terminal",
+]
+check_untyped_defs = true
+disallow_incomplete_defs = false
+disallow_untyped_defs = false
+disallow_untyped_calls = false
+disallow_untyped_decorators = false
+ignore_errors = false
+ignore_missing_imports = true
+
 # gloabl ignore error
 [[tool.mypy.overrides]]
 module = [
     "IPython",
-    "IPython.conftest",
+    "IPython.terminal.pt_inputhooks",
+    "IPython.terminal.shortcuts",
     "IPython.core.alias",
-    "IPython.core.async_helpers",
     "IPython.core.autocall",
-    "IPython.core.builtin_trap",
     "IPython.core.compilerop",
     "IPython.core.completer",
     "IPython.core.completerlib",
@@ -243,17 +283,12 @@ module = [
     "IPython.core.display_trap",
     "IPython.core.displayhook",
     "IPython.core.displaypub",
-    "IPython.core.extensions",
     "IPython.core.formatters",
     "IPython.core.getipython",
     "IPython.core.guarded_eval",
     "IPython.core.historyapp",
-    "IPython.core.hooks",
     "IPython.core.inputtransformer2",
     "IPython.core.logger",
-    "IPython.core.macro",
-    "IPython.core.magic_arguments",
-    "IPython.core.magics.ast_mod",
     "IPython.core.magics.auto",
     "IPython.core.magics.basic",
     "IPython.core.magics.code",
@@ -270,67 +305,37 @@ module = [
     "IPython.core.magics.script",
     "IPython.core.oinspect",
     "IPython.core.page",
-    "IPython.core.payload",
     "IPython.core.payloadpage",
     "IPython.core.prefilter",
-    "IPython.core.profiledir",
-    "IPython.core.prompts",
     "IPython.core.pylabtools",
     "IPython.core.shellapp",
     "IPython.core.splitinput",
     "IPython.extensions.autoreload",
     "IPython.extensions.storemagic",
     "IPython.external.pickleshare",
-    "IPython.external.qt_for_kernel",
     "IPython.external.qt_loaders",
     "IPython.lib.backgroundjobs",
     "IPython.lib.clipboard",
     "IPython.lib.demo",
     "IPython.lib.display",
     "IPython.lib.editorhooks",
-    "IPython.lib.guisupport",
     "IPython.lib.latextools",
-    "IPython.lib.lexers",
     "IPython.lib.pretty",
-    "IPython.paths",
-    "IPython.sphinxext.ipython_console_highlighting",
     "IPython.terminal.debugger",
     "IPython.terminal.embed",
     "IPython.terminal.interactiveshell",
     "IPython.terminal.magics",
     "IPython.terminal.prompts",
-    "IPython.terminal.pt_inputhooks",
-    "IPython.terminal.pt_inputhooks.asyncio",
     "IPython.terminal.pt_inputhooks.glut",
-    "IPython.terminal.pt_inputhooks.gtk",
-    "IPython.terminal.pt_inputhooks.gtk3",
-    "IPython.terminal.pt_inputhooks.gtk4",
     "IPython.terminal.pt_inputhooks.osx",
-    "IPython.terminal.pt_inputhooks.pyglet",
-    "IPython.terminal.pt_inputhooks.qt",
     "IPython.terminal.pt_inputhooks.tk",
-    "IPython.terminal.pt_inputhooks.wx",
-    "IPython.terminal.ptutils",
-    "IPython.terminal.shortcuts",
-    "IPython.terminal.shortcuts.auto_match",
     "IPython.terminal.shortcuts.auto_suggest",
     "IPython.terminal.shortcuts.filters",
-    "IPython.utils._process_emscripten",
     "IPython.utils.capture",
-    "IPython.utils.coloransi",
-    "IPython.utils.contexts",
-    "IPython.utils.decorators",
     "IPython.utils.dir2",
-    "IPython.utils.frame",
     "IPython.utils.io",
-    "IPython.utils.ipstruct",
     "IPython.utils.openpy",
-    "IPython.utils.process",
-    "IPython.utils.py3compat",
-    "IPython.utils.strdispatch",
-    "IPython.utils.sysinfo",
     "IPython.utils.tempdir",
-    "IPython.utils.terminal",
     "IPython.utils.timing",
     "IPython.utils.tokenutil",
     "IPython.utils.wildcard",
@@ -460,9 +465,13 @@ extend-select = [
     # "UP036",        #  3   Version block is outdated for minimum Python version
     "UP037",        #  1   [*] Remove quotes from type annotation
     # "UP038",        # 21   Use `X | Y` in `isinstance` call instead of `(X, Y)`
-    #  "YTT",         # flake8-2020
-    #  "EXE",         # flake8-executable
-    #  "PYI",         # flake8-pyi
+    "YTT",         # flake8-2020            (0 violations, locked in)
+    "FURB",        # refurb                 (readability/modernization)
+    #  "EXE",         # flake8-executable   (file-mode/shebang churn across examples)
+    #  "PYI",         # flake8-pyi          (stub-oriented; little value on source)
+    #  "ICN",         # flake8-import-conventions (codebase uses plain `matplotlib`, not `mpl`)
+    #  "RUF100",      # unused `noqa` (entangled with the F401 global-ignore; strips intentional markers)
+    #  "PT",          # flake8-pytest-style (PT015 false-positives on non-test `assert False`)
     #  "S",           # flake8-bandit
 ]
 ignore = [
@@ -495,4 +504,5 @@ unfixable = [
 ]
 
 [tool.ruff]
+target-version = "py311"
 extend-exclude = ["tests"]

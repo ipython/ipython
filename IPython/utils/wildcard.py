@@ -76,7 +76,7 @@ def filter_ns(ns, name_pattern="*", type_pattern="all", ignore_case=True,
     """Filter a namespace dictionary by name pattern and item type."""
     pattern = name_pattern.replace("*",".*").replace("?",".")
     if ignore_case:
-        reg = re.compile(pattern+"$", re.I)
+        reg = re.compile(pattern+"$", re.IGNORECASE)
     else:
         reg = re.compile(pattern+"$")
 
