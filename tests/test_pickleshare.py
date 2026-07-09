@@ -145,12 +145,22 @@ def test_hset_hget(db):
 
 def test_hget_default_and_missing(db):
     db.hset("hashroot", "key1", "value1")
-    assert db.hget("hashroot", "missing", "fallback") == "fallback"
+    # The probe key must land in a different (empty) bucket than key1: buckets
+    # come from the randomized builtin hash(), and if the probe collides with
+    # key1's bucket the fast-path hget finds that bucket and cannot tell the
+    # absent key apart. Pick a probe whose bucket differs from key1's.
+    key1_bucket = gethashfile("key1")
+    missing = next(
+        k
+        for k in ("missing", "absent", "nope", "void", "gap", "zzz", "qqq")
+        if gethashfile(k) != key1_bucket
+    )
+    assert db.hget("hashroot", missing, "fallback") == "fallback"
     with pytest.raises(KeyError):
-        db.hget("hashroot", "missing")
+        db.hget("hashroot", missing)
     # missing hashroot entirely
     with pytest.raises(KeyError):
-        db.hget("nosuchroot", "missing")
+        db.hget("nosuchroot", missing)
 
 
 def test_hset_overwrites(db):
@@ -169,7 +179,12 @@ def test_hdict(db):
 
 def test_hdict_deletes_corrupt_files(db, capsys):
     db.hset("hashroot", "key1", "value1")
-    corrupt = db.root / "hashroot" / "aa"
+    # Pick a bucket name that differs from the one "key1" hashes into so the
+    # corrupt file never clobbers key1's data. gethashfile relies on the
+    # randomized builtin hash(), so a hard-coded name can collide (see PYTHONHASHSEED).
+    key1_bucket = gethashfile("key1")
+    corrupt_bucket = "aa" if key1_bucket != "aa" else "bb"
+    corrupt = db.root / "hashroot" / corrupt_bucket
     corrupt.write_bytes(b"not a pickle at all")
     d = db.hdict("hashroot")
     assert d == {"key1": "value1"}
