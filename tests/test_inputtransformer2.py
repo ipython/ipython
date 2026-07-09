@@ -248,16 +248,14 @@ def test_transform_magic_escape():
     check_transform(ipt2.EscapedCommand, CRLF_MAGIC)
 
 
-def test_find_autocalls():
-    for case in [AUTOCALL_QUOTE, AUTOCALL_QUOTE2, AUTOCALL_PAREN]:
-        print("Testing %r" % case[0])
-        check_find(ipt2.EscapedCommand, case)
+@pytest.mark.parametrize("case", [AUTOCALL_QUOTE, AUTOCALL_QUOTE2, AUTOCALL_PAREN])
+def test_find_autocalls(case):
+    check_find(ipt2.EscapedCommand, case)
 
 
-def test_transform_autocall():
-    for case in [AUTOCALL_QUOTE, AUTOCALL_QUOTE2, AUTOCALL_PAREN]:
-        print("Testing %r" % case[0])
-        check_transform(ipt2.EscapedCommand, case)
+@pytest.mark.parametrize("case", [AUTOCALL_QUOTE, AUTOCALL_QUOTE2, AUTOCALL_PAREN])
+def test_transform_autocall(case):
+    check_transform(ipt2.EscapedCommand, case)
 
 
 def test_find_help():

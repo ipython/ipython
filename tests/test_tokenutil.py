@@ -168,10 +168,10 @@ def test_line_at_cursor():
 
 @pytest.mark.parametrize(
     "c, token",
-    zip(
+    list(zip(
         list(range(16, 22)) + list(range(22, 28)),
         ["int"] * (22 - 16) + ["map"] * (28 - 22),
-    ),
+    )),
 )
 def test_multiline_statement(c, token):
     cell = """a = (1,
