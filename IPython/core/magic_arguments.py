@@ -202,8 +202,7 @@ def real_name(magic_func):
     """ Find the real name of the magic.
     """
     magic_name = magic_func.__name__
-    if magic_name.startswith('magic_'):
-        magic_name = magic_name[len('magic_'):]
+    magic_name = magic_name.removeprefix('magic_')
     return getattr(magic_func, 'argcmd_name', magic_name)
 
 

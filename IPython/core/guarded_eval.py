@@ -1244,7 +1244,7 @@ def _merge_values(values, policy: EvaluationPolicy):
 
     if len(types) == 1:
         t = next(iter(types))
-        if t not in (dict,) and not (
+        if t is not dict and not (
             hasattr(next(iter(values)), "__getitem__")
             and (
                 hasattr(next(iter(values)), "items")
@@ -1519,7 +1519,7 @@ BUILTIN_GETITEM: set[InstancesHaveGetItem] = {
 
 def _list_methods(cls, source=None):
     """For use on immutable objects or with methods returning a copy"""
-    return [getattr(cls, k) for k in (source if source else dir(cls))]
+    return [getattr(cls, k) for k in (source or dir(cls))]
 
 
 dict_non_mutating_methods = ("copy", "keys", "values", "items")

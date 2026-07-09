@@ -1146,7 +1146,7 @@ class ExecutionMagics(Magics):
 
         timefunc = timeit.default_timer
         number = int(getattr(opts, "n", 0))
-        default_repeat = 7 if timeit.default_repeat < 7 else timeit.default_repeat
+        default_repeat = max(timeit.default_repeat, 7)
         repeat = int(getattr(opts, "r", default_repeat))
         precision = int(getattr(opts, "p", 3))
         quiet = "q" in opts
