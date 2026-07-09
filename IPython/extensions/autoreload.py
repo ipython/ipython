@@ -891,7 +891,7 @@ class AutoreloadMagics(Magics):
                         # name.asname is Z in the case of from X import Y as Z
                         # we should update Z in the shell in this situation, so track it too.
                         original_name = name.name
-                        resolved_name = name.asname or name.name
+                        resolved_name = name.asname if name.asname else name.name
 
                         # Since the code executed successfully, we know this import is valid
                         self._reloader.import_from_tracker.add_import(

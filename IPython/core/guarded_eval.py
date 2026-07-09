@@ -1518,7 +1518,7 @@ BUILTIN_GETITEM: set[InstancesHaveGetItem] = {
 
 def _list_methods(cls, source=None):
     """For use on immutable objects or with methods returning a copy"""
-    return [getattr(cls, k) for k in (source or dir(cls))]
+    return [getattr(cls, k) for k in (source if source else dir(cls))]
 
 
 dict_non_mutating_methods = ("copy", "keys", "values", "items")

@@ -1511,7 +1511,7 @@ def match_dict_keys(
     ``matches`` a dictionary of replacement/completion keys on keys and values
         indicating whether the state.
     """
-    prefix_tuple = extra_prefix or ()
+    prefix_tuple = extra_prefix if extra_prefix else ()
 
     prefix_tuple_size = sum(
         [
