@@ -104,8 +104,6 @@ from collections import deque
 from inspect import signature
 from io import StringIO
 
-from typing import Dict
-
 # Allow pretty-printing of functions with PEP-649 annotations
 if sys.version_info >= (3, 14):
     from annotationlib import Format

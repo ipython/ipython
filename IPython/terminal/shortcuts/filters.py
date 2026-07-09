@@ -9,7 +9,6 @@ import ast
 import re
 import signal
 import sys
-from typing import Optional, Dict, Union
 from collections.abc import Callable
 
 from prompt_toolkit.application.current import get_app

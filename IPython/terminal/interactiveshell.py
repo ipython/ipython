@@ -4,7 +4,6 @@ import os
 import sys
 import inspect
 from warnings import warn
-from typing import Union as UnionType, Optional
 
 from IPython.core.async_helpers import get_asyncio_loop
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
@@ -220,12 +219,10 @@ class TerminalInteractiveShell(InteractiveShell):
         "menus, decrease for short and wide.",
     ).tag(config=True)
 
-    pt_app: UnionType[PromptSession, None] = None
-    auto_suggest: UnionType[
-        AutoSuggestFromHistory,
-        NavigableAutoSuggestFromHistory,
-        None,
-    ] = None
+    pt_app: PromptSession | None = None
+    auto_suggest: (
+        AutoSuggestFromHistory | NavigableAutoSuggestFromHistory | None
+    ) = None
     debugger_history = None
 
     debugger_history_file = Unicode(

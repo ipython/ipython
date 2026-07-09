@@ -192,8 +192,6 @@ from ast import (
 import ast
 import copy
 
-from typing import Dict, Optional, Union
-
 
 mangle_all = lambda name: False if name in ("__ret__", "__code__") else True
 

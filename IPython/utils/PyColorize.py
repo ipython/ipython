@@ -5,7 +5,7 @@ import token
 import tokenize
 import warnings
 from io import StringIO
-from typing import Any, Type, TypeAlias
+from typing import Any, TypeAlias
 
 import pygments
 from pygments.formatters.terminal256 import Terminal256Formatter

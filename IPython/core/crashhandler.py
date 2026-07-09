@@ -32,7 +32,6 @@ from IPython.utils.sysinfo import sys_info
 
 from IPython.core.release import __version__ as version
 
-from typing import Optional, Dict
 import types
 
 #-----------------------------------------------------------------------------

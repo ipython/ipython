@@ -13,8 +13,6 @@ from ..paths import get_ipython_package_dir
 from ..utils.path import expand_path, ensure_dir_exists
 from traitlets import Unicode, Bool, observe
 
-from typing import Optional
-
 #-----------------------------------------------------------------------------
 # Module errors
 #-----------------------------------------------------------------------------

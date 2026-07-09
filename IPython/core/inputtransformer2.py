@@ -15,7 +15,7 @@ from codeop import CommandCompiler, Compile
 import re
 import sys
 import tokenize
-from typing import List, Tuple, Optional, Any
+from typing import Any
 import warnings
 from textwrap import dedent
 

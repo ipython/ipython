@@ -203,7 +203,6 @@ from types import SimpleNamespace
 from typing import (
     Union,
     Any,
-    Optional,
     TYPE_CHECKING,
     TypeVar,
     Literal,

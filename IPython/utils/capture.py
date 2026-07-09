@@ -7,7 +7,7 @@
 import sys
 from io import StringIO
 from types import TracebackType
-from typing import Any, List, Optional, Type
+from typing import Any
 
 #-----------------------------------------------------------------------------
 # Classes and functions

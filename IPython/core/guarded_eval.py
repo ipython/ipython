@@ -6,7 +6,6 @@ from typing import (
     Literal,
     NamedTuple,
     NewType,
-    Optional,
     Protocol,
     TypeGuard,
     Union,

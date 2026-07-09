@@ -13,7 +13,6 @@ from pathlib import Path
 
 from .capture import CapturedIO, capture_output
 from io import StringIO
-from typing import Union
 
 
 class Tee:

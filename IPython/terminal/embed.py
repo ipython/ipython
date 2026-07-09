@@ -18,8 +18,6 @@ from IPython.terminal.ipapp import load_default_config
 from traitlets import Bool, CBool, Unicode
 from IPython.utils.io import ask_yes_no
 
-from typing import Set
-
 
 class _EmbedGlobals(dict):
     """Globals namespace for an embedded shell.

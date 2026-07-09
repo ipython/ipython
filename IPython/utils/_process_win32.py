@@ -13,7 +13,6 @@ from ctypes.wintypes import HLOCAL, LPCWSTR
 from subprocess import STDOUT
 from threading import Thread
 from types import TracebackType
-from typing import List, Optional
 
 from ._process_common import arg_split as py_arg_split
 

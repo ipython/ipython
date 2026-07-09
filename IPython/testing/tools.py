@@ -29,7 +29,6 @@ from IPython.utils.encoding import DEFAULT_ENCODING
 from . import decorators as dec
 from . import skipdoctest
 from types import TracebackType
-from typing import List, Optional, Tuple, Type
 
 
 # The docstring for full_path doctests differently on win32 (different path

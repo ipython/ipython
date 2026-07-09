@@ -9,7 +9,6 @@ from io import BufferedWriter
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import TracebackType
-from typing import Optional, Type
 
 
 class NamedFileInTemporaryDirectory:
