@@ -132,7 +132,7 @@ import warnings
 from contextlib import contextmanager
 from functools import lru_cache
 
-from IPython import get_ipython
+from IPython.core.getipython import get_ipython
 from IPython.core.debugger_backport import PdbClosureBackport
 from IPython.utils import PyColorize
 from IPython.utils.PyColorize import TokenStream

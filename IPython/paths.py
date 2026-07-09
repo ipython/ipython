@@ -6,7 +6,6 @@ import os.path
 import tempfile
 from warnings import warn
 
-import IPython
 from IPython.utils.importstring import import_item
 from IPython.utils.path import (
     get_home_dir,
@@ -90,7 +89,7 @@ def get_ipython_cache_dir() -> str:
 
 def get_ipython_package_dir() -> str:
     """Get the base directory where IPython itself is installed."""
-    ipdir = os.path.dirname(IPython.__file__)
+    ipdir = os.path.dirname(__file__)
     assert isinstance(ipdir, str)
     return ipdir
 

@@ -18,6 +18,8 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import annotations
+
 import sys
 import traceback
 from pprint import pformat
@@ -25,14 +27,19 @@ from pathlib import Path
 
 import builtins as builtin_mod
 
+from typing import TYPE_CHECKING
+
 from IPython.core import ultratb
-from IPython.core.application import Application
 from IPython.core.release import author_email
 from IPython.utils.sysinfo import sys_info
 
 from IPython.core.release import __version__ as version
 
 import types
+
+if TYPE_CHECKING:
+    # avoid a circular import: application imports crashhandler at module load
+    from IPython.core.application import Application
 
 #-----------------------------------------------------------------------------
 # Code

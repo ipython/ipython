@@ -1,7 +1,7 @@
 import sys
 import os
 from IPython.external.qt_for_kernel import QtCore, QtGui, enum_helper
-from IPython import get_ipython
+from IPython.core.getipython import get_ipython
 
 # If we create a QApplication, QEventLoop, or a QTimer, keep a reference to them
 # so that they don't get garbage collected or leak memory when created multiple times.
