@@ -34,7 +34,7 @@ from .error import TryNext
 from ..utils._process_common import arg_split
 
 # FIXME: this should be pulled in with the right call via the component system
-from IPython import get_ipython
+from IPython.core.getipython import get_ipython
 
 #-----------------------------------------------------------------------------
 # Globals and constants

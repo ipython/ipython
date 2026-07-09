@@ -82,7 +82,7 @@ import stack_data
 from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.token import Token
 
-from IPython import get_ipython
+from IPython.core.getipython import get_ipython
 from IPython.utils.PyColorize import Parser, TokenStream, theme_table
 from IPython.utils.terminal import get_terminal_size
 
