@@ -2,7 +2,6 @@
 
 from base64 import b64encode, b64decode
 import sys
-from typing import Union
 
 def _supports_kitty_graphics() -> bool:
     import platform

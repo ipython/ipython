@@ -34,7 +34,7 @@ from io import open as io_open
 from logging import error
 from pathlib import Path
 from collections.abc import Callable
-from typing import List as ListType, Any as AnyType
+from typing import Any as AnyType
 from typing import Literal
 from collections.abc import Sequence
 from warnings import warn
@@ -1661,7 +1661,7 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to object introspection
     #-------------------------------------------------------------------------
     @staticmethod
-    def _find_parts(oname: str) -> tuple[bool, ListType[str]]:
+    def _find_parts(oname: str) -> tuple[bool, list[str]]:
         """
         Given an object name, return a list of parts of this object name.
 
@@ -3619,7 +3619,7 @@ class InteractiveShell(SingletonConfigurable):
 
     async def run_ast_nodes(
         self,
-        nodelist: ListType[stmt],
+        nodelist: list[stmt],
         cell_name: str,
         interactivity="last_expr",
         compiler=compile,

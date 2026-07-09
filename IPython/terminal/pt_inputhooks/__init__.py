@@ -1,6 +1,5 @@
 import importlib
 import os
-from typing import Tuple
 from collections.abc import Callable
 
 aliases = {

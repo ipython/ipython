@@ -18,7 +18,7 @@ from copy import deepcopy
 from os.path import splitext
 from pathlib import Path, PurePath
 
-from typing import Optional, TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, Self
 
 from IPython.testing.skipdoctest import skip_doctest
 from . import display_functions

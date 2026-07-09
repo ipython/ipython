@@ -18,7 +18,7 @@ import os
 import shlex
 import subprocess
 import sys
-from typing import IO, List, TypeVar, Union
+from typing import IO, TypeVar
 from collections.abc import Callable
 
 _T = TypeVar("_T")

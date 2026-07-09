@@ -18,7 +18,7 @@ import shlex
 import sys
 import time
 import timeit
-from typing import Dict, Any
+from typing import Any
 from ast import (
     Module,
 )

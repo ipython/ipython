@@ -195,7 +195,7 @@ import ast
 import warnings
 import shutil
 from io import StringIO
-from typing import Any, Dict, Set
+from typing import Any
 
 # Third-party
 from docutils.parsers.rst import directives

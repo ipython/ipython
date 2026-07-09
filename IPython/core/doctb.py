@@ -3,7 +3,7 @@ import linecache
 import sys
 from collections.abc import Sequence
 from types import TracebackType
-from typing import Any, Optional
+from typing import Any
 from collections.abc import Callable
 
 import stack_data
