@@ -262,6 +262,7 @@ def test_timestamp_type():
 def test_hist_file_config(hmmax3):
     cfg = Config()
     tfile = tempfile.NamedTemporaryFile(delete=False)
+    tfile.close()
     cfg.HistoryManager.hist_file = Path(tfile.name)
     hm = None
     try:
@@ -269,18 +270,15 @@ def test_hist_file_config(hmmax3):
         assert hm.hist_file == cfg.HistoryManager.hist_file
     finally:
         if hm is not None:
-            # Stop the saving thread and close the database, otherwise the
-            # thread can briefly hold a strong reference to the manager,
-            # making the instance-leak check in the fixture teardown flaky
-            # (gh-15161).
-            hm.save_thread.stop()
+            hm.end_session()
+            if hm.save_thread is not None:
+                hm.save_thread.stop()
             hm.db.close()
+        hm = None
+        gc.collect()
         try:
             Path(tfile.name).unlink()
         except OSError:
-            # same catch as in testing.tools.TempFileMixin
-            # On Windows, even though we close the file, we still can't
-            # delete it.  I have no clue why
             pass
 
 

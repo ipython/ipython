@@ -112,7 +112,7 @@ def test_callability_checking():
 
 @pytest.mark.parametrize(
     "obj,expected_output",
-    zip(
+    list(zip(
         [
             set(),
             frozenset(),
@@ -131,7 +131,7 @@ def test_callability_checking():
             "frozenset({1, 2})",
             "{-3, -2, -1}",
         ],
-    ),
+    )),
 )
 def test_sets(obj, expected_output):
     """
