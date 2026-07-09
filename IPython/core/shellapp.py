@@ -6,11 +6,13 @@ launch InteractiveShell instances, load extensions, etc.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from __future__ import annotations
+
 import glob
 from itertools import chain
 import os
 import sys
-import typing as t
+from typing import Any
 
 from traitlets.config.application import boolean_flag
 from traitlets.config.configurable import Configurable
@@ -124,9 +126,9 @@ class MatplotlibBackendCaselessStrEnum(CaselessStrEnum):
     """
 
     def __init__(
-        self: CaselessStrEnum[t.Any],
-        default_value: t.Any = Undefined,
-        **kwargs: t.Any,
+        self: CaselessStrEnum[Any],
+        default_value: Any = Undefined,
+        **kwargs: Any,
     ) -> None:
         super().__init__(None, default_value=default_value, **kwargs)
 

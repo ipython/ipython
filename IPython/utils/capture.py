@@ -3,6 +3,7 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from __future__ import annotations
 
 import sys
 from io import StringIO
@@ -103,7 +104,7 @@ class CapturedIO:
         return self._stderr.getvalue()
 
     @property
-    def outputs(self):
+    def outputs(self) -> list[RichOutput]:
         """A list of the captured rich display outputs, if any.
 
         If you have a CapturedIO object ``c``, these can be displayed in IPython
@@ -168,7 +169,7 @@ class capture_output:
 
         return CapturedIO(stdout, stderr, outputs)
 
-    def __exit__(self, exc_type: type[BaseException] | None, exc_value: BaseException | None, traceback: TracebackType | None):
+    def __exit__(self, exc_type: type[BaseException] | None, exc_value: BaseException | None, traceback: TracebackType | None) -> None:
         sys.stdout = self.sys_stdout
         sys.stderr = self.sys_stderr
         if self.display and self.shell:
