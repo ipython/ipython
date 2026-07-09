@@ -628,3 +628,17 @@ long_function(
         expected = expected.replace("Optional[str]", "str | None")
 
     assert sig == expected
+
+
+def test_pinfo_long_string_form_truncated():
+    """Objects with repr > 200 chars should be truncated with <...> in pinfo (?)."""
+    class LongRepr:
+        def __repr__(self):
+            return "x" * 250
+
+    obj = LongRepr()
+    info = inspector.info(obj, detail_level=0)
+    assert "<...>" in info["string_form"]
+    # detail_level=1 (??) should not truncate
+    info_detail = inspector.info(obj, detail_level=1)
+    assert "<...>" not in info_detail["string_form"]
