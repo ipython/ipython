@@ -63,7 +63,9 @@ def compare_ast(node1: ast.AST | list[ast.AST], node2: ast.AST | list[ast.AST]) 
             compare_ast(n1, n2) for n1, n2 in zip(node1, node2)
         )
     else:
-        return node1 == node2
+        # unreachable in practice: the `type(node1) is not type(node2)` check
+        # above guarantees both are the same (non-AST, non-list) type here
+        return node1 == node2  # type:ignore [comparison-overlap]
 
 
 class DependencyNode(NamedTuple):

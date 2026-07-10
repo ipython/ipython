@@ -124,6 +124,7 @@ disallow_incomplete_defs = true
 disallow_untyped_defs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
+strict_equality = true
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 
 [[tool.mypy.overrides]]

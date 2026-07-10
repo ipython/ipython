@@ -67,7 +67,8 @@ def find_mod(module_name: str) -> str | None | importlib.abc.Loader:
         return None
     module_path = spec.origin
     if module_path is None:
-        if spec.loader is not None and spec.loader in sys.meta_path:
+        # built-in/frozen modules use their own meta_path finder as loader
+        if spec.loader is not None and spec.loader in sys.meta_path:  # type: ignore[comparison-overlap]
             return spec.loader
         return None
     else:
