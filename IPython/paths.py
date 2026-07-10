@@ -109,7 +109,7 @@ def get_ipython_module_path(module_str):
     return the_path
 
 
-def locate_profile(profile='default'):
+def locate_profile(profile: str = "default") -> str:
     """Find the path to the folder associated with a given profile.
 
     I.e. find $IPYTHONDIR/profile_whatever.
