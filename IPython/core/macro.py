@@ -10,8 +10,6 @@ from __future__ import annotations
 
 import re
 
-from IPython.utils.encoding import DEFAULT_ENCODING
-
 coding_declaration = re.compile(r"#\s*coding[:=]\s*([-\w.]+)")
 
 class Macro:
@@ -23,17 +21,8 @@ class Macro:
 
     def __init__(self, code: str):
         """store the macro value, as a single string which can be executed"""
-        lines = []
-        enc = None
-        for line in code.splitlines():
-            coding_match = coding_declaration.match(line)
-            if coding_match:
-                enc = coding_match.group(1)
-            else:
-                lines.append(line)
+        lines = [line for line in code.splitlines() if not coding_declaration.match(line)]
         code = "\n".join(lines)
-        if isinstance(code, bytes):
-            code = code.decode(enc or DEFAULT_ENCODING)
         self.value = code + '\n'
 
     def __str__(self):

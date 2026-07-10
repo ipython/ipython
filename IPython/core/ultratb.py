@@ -175,13 +175,16 @@ class ListTB(TBTools):
         """
         # This is a workaround to get chained_exc_ids in recursive calls
         # etb should not be a tuple if structured_traceback is not recursive
+        # (see the recursive self.structured_traceback() call below), and can
+        # also be a pre-built list of frames per the docstring above; neither
+        # is expressible in the public `TracebackType | None` signature.
         if isinstance(etb, tuple):
-            etb, chained_exc_ids = etb
+            etb, chained_exc_ids = etb  # type: ignore[unreachable]
         else:
             chained_exc_ids = set()
         elist: list[Any]
         if isinstance(etb, list):
-            elist = etb
+            elist = etb  # type: ignore[unreachable]
         elif etb is not None:
             elist = self._extract_tb(etb)  # type: ignore[assignment]
         else:
@@ -1256,11 +1259,14 @@ class AutoFormattedTB(FormattedTB):
         context: int = 5,
     ) -> list[str]:
         # tb: TracebackType or tupleof tb types ?
+        # etype can be None when called as structured_traceback(*sys.exc_info())
+        # with no active exception; etb can be a tuple for a chained exception.
+        # Neither is expressible in the public signature above.
         if etype is None:
-            etype, evalue, etb = sys.exc_info()
+            etype, evalue, etb = sys.exc_info()  # type: ignore[unreachable]
         if isinstance(etb, tuple):
             # tb is a tuple if this is a chained exception.
-            self.tb = etb[0]
+            self.tb = etb[0]  # type: ignore[unreachable]
         else:
             self.tb = etb
         return FormattedTB.structured_traceback(

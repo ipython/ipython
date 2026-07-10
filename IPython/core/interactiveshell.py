@@ -482,7 +482,9 @@ class InteractiveShell(SingletonConfigurable):
         if change['new']:
             warn("`enable_html_pager` is provisional since IPython 5.0 and might change in future versions.", ProvisionalWarning)
 
-    data_pub_class = None
+    # Not a traitlets trait: a plain class-attribute override point for
+    # subclasses that want to set a data_pub class.
+    data_pub_class: type | None = None
 
     exit_now = Bool(False)
     exiter = Instance(ExitAutocall)
@@ -616,7 +618,7 @@ class InteractiveShell(SingletonConfigurable):
     _post_execute = Dict()
 
     # Tracks any GUI loop loaded for pylab
-    pylab_gui_select = None
+    pylab_gui_select: str | None = None
 
     last_execution_succeeded = Bool(True, help='Did last executed command succeeded')
 

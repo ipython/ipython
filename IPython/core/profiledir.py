@@ -160,9 +160,6 @@ class ProfileDir(LoggingConfigurable):
         dst = Path(os.path.join(self.location, config_file))
         if dst.exists() and not overwrite:
             return False
-        if path is None:
-            path = os.path.join(get_ipython_package_dir(), 'core', 'profile', 'default')
-        assert isinstance(path, Path)
         src = path / config_file
         shutil.copy(src, dst)
         return True
