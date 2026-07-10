@@ -74,7 +74,7 @@ def _safe_string(value: Any, what: Any, func: Any = str) -> str:
 
 
 def _format_traceback_lines(
-    lines: list[stack_data.Line],
+    lines: list[stack_data.Line | stack_data.core.LineGap],
     theme: Theme,
     has_colors: bool,
     lvals_toks: list[TokenStream],
@@ -86,13 +86,13 @@ def _format_traceback_lines(
 
     Parameters
     ----------
-    lines : list[Line]
+    lines : list[Line | LineGap]
     """
     numbers_width = INDENT_SIZE - 1
     tokens: TokenStream = []
 
     for stack_line in lines:
-        if stack_line is stack_data.LINE_GAP:
+        if isinstance(stack_line, stack_data.core.LineGap):
             toks = [(Token.LinenoEm, "   (...)")]
             tokens.extend(toks)
             continue
