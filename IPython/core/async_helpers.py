@@ -15,7 +15,7 @@ import asyncio
 import inspect
 from functools import wraps
 
-_asyncio_event_loop = None
+_asyncio_event_loop: asyncio.AbstractEventLoop | None = None
 
 
 def get_asyncio_loop():

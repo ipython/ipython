@@ -435,13 +435,16 @@ class Parser:
 
     @property
     def style(self) -> str:
+        # `style` was renamed `theme_name`; this always raises to catch
+        # leftover callers of the old name. Body kept only to satisfy the -> str
+        # return type.
         assert False
-        return self._theme_name
+        return self._theme_name  # type: ignore[unreachable]
 
     @style.setter
     def style(self, val: str) -> None:
         assert False
-        assert val == val.lower()
+        assert val == val.lower()  # type: ignore[unreachable]
         self._theme_name = val
 
     def format(self, raw: str, out: Any = None) -> str | None:

@@ -58,10 +58,6 @@ def get_line_number_of_frame(frame: types.FrameType) -> int:
         if the file is not available.
     """
     filename = frame.f_code.co_filename
-    if filename is None:
-        print("No file....")
-        lines, first = inspect.getsourcelines(frame)
-        return first + len(lines)
     return count_lines_in_py_file(filename)
 
 
@@ -295,7 +291,7 @@ class FrameInfo:
     # number of context lines to use
     context: int | None
     raw_lines: list[str]
-    _sd: stack_data.core.FrameInfo
+    _sd: stack_data.core.FrameInfo | stack_data.core.RepeatedFrames | None
     frame: Any
 
     @classmethod
@@ -344,8 +340,10 @@ class FrameInfo:
 
     @property
     def variables_in_executing_piece(self) -> list[Any]:
+        # callers only reach here once RepeatedFrames-backed instances have
+        # been filtered out (see doctb.py/ultratb.py format_record)
         if self._sd is not None:
-            return self._sd.variables_in_executing_piece  # type:ignore[misc]
+            return self._sd.variables_in_executing_piece  # type:ignore[misc,union-attr]
         else:
             return []
 
@@ -353,9 +351,11 @@ class FrameInfo:
     def lines(self) -> list[Any]:
         from executing.executing import NotOneValueFound
 
+        # callers only reach here once RepeatedFrames-backed instances have
+        # been filtered out (see doctb.py/ultratb.py format_record)
         assert self._sd is not None
         try:
-            return self._sd.lines  # type: ignore[misc]
+            return self._sd.lines  # type: ignore[misc,union-attr]
         except NotOneValueFound:
 
             class Dummy:
@@ -369,8 +369,10 @@ class FrameInfo:
 
     @property
     def executing(self) -> Any:
+        # callers only reach here once RepeatedFrames-backed instances have
+        # been filtered out (see doctb.py/ultratb.py format_record)
         if self._sd is not None:
-            return self._sd.executing
+            return self._sd.executing  # type: ignore[union-attr]
         else:
             return None
 
