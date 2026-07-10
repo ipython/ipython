@@ -902,7 +902,7 @@ class VerboseTB(TBTools):
         while i < len(tbs):
             tb, frame_len = tbs[i]
             if frame_len > FAST_THRESHOLD:
-                frame = tb.tb_frame  # type: ignore[union-attr]
+                frame = tb.tb_frame
                 lineno = frame.f_lineno
                 code = frame.f_code
                 filename = code.co_filename
@@ -1036,7 +1036,7 @@ class VerboseTB(TBTools):
                     sys.last_value
                     if sys.version_info < (3, 12)
                     else getattr(sys, "last_exc", sys.last_value)
-                )  # type: ignore[attr-defined]
+                )
                 if exc:
                     self.pdb.interaction(None, exc)
                 else:
@@ -1148,7 +1148,7 @@ class FormattedTB(VerboseTB, ListTB):
                 debugger_cls=self.debugger_cls,
             ).structured_traceback(
                 etype, evalue, etb, tb_offset, 1
-            )  # type: ignore[arg-type]
+            )
 
         elif mode == "Minimal":
             return ListTB.get_exception_only(self, etype, evalue)

@@ -671,7 +671,7 @@ class Pdb(OldPdb):
 
     def format_stack_entry(
         self,
-        frame_lineno: tuple[FrameType, int],  # type: ignore[override] # stubs are wrong
+        frame_lineno: tuple[FrameType, int],
         lprefix: str = ": ",
     ) -> str:
         """
@@ -926,7 +926,7 @@ class Pdb(OldPdb):
                 x = eval(arg, {}, {})
                 if type(x) == type(()):
                     first, last = x  # type: ignore[misc]
-                    first = int(first)  # type: ignore[call-overload]
+                    first = int(first)
                     last = int(last)  # type: ignore[call-overload]
                     if last < first:
                         # Assume it's a count

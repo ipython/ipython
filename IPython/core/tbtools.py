@@ -133,7 +133,7 @@ def text_repr(value: Any) -> str:
     """Hopefully pretty robust repr equivalent."""
     # this is pretty horrible but should always return *something*
     try:
-        return pydoc.text.repr(value)  # type: ignore[call-arg]
+        return pydoc.text.repr(value)
     except KeyboardInterrupt:
         raise
     except Exception:
