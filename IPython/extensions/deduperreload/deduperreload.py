@@ -469,7 +469,7 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
                     compiled_code = compile(
                         func_ast, filename, mode="exec", dont_inherit=True
                     )
-                    exec(compiled_code, global_env, local_env)  # type: ignore[arg-type]
+                    exec(compiled_code, global_env, local_env)
                     # local_env contains the function exec'd from  new version of function
                     if is_method:
                         to_patch_from = getattr(local_env["__autoreload_class__"], name)
