@@ -84,16 +84,16 @@ class DummyDB:
     def execute(*args: typing.Any, **kwargs: typing.Any) -> list:
         return []
 
-    def commit(self, *args, **kwargs):  # type: ignore [no-untyped-def]
+    def commit(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         pass
 
-    def __enter__(self, *args, **kwargs):  # type: ignore [no-untyped-def]
+    def __enter__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         pass
 
-    def __exit__(self, *args, **kwargs):  # type: ignore [no-untyped-def]
+    def __exit__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         pass
 
-    def close(self, *args, **kwargs):  # type: ignore [no-untyped-def]
+    def close(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         pass
 
 

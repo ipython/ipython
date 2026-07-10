@@ -21,6 +21,7 @@ https://ipython.org
 
 import sys
 import warnings
+from typing import Any
 
 #-----------------------------------------------------------------------------
 # Setup everything
@@ -91,7 +92,7 @@ def embed_kernel(module=None, local_ns=None, **kwargs):
     from ipykernel.embed import embed_kernel as real_embed_kernel
     real_embed_kernel(module=module, local_ns=local_ns, **kwargs)
 
-def start_ipython(argv=None, **kwargs):
+def start_ipython(argv: list[str] | None = None, **kwargs: Any) -> Any:
     """Launch a normal IPython instance (as opposed to embedded)
 
     `IPython.embed()` puts a shell in a particular calling scope,
