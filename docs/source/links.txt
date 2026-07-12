@@ -2,14 +2,14 @@
    and name substitutions.  It may be included in many files,
    therefore it should only contain link targets and name
    substitutions.  Try grepping for "^\.\. _" to find plausible
-   candidates for this list.  
+   candidates for this list.
 
    NOTE: this file must have an extension *opposite* to that of the main reST
    files in the manuals, so that we can include it with ".. include::"
    directives, but without triggering warnings from Sphinx for not being listed
    in any toctree.  Since IPython uses .txt for the main files, this one will
    use .rst.
-   
+
    NOTE: reST targets are
    __not_case_sensitive__, so only one target definition is needed for
    ipython, IPython, etc.

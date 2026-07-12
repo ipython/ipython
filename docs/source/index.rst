@@ -55,10 +55,10 @@ features:
 * Integrated access to the pdb debugger and the Python profiler.
 
 
-The Command line interface inherits the above functionality and adds 
- 
+The Command line interface inherits the above functionality and adds
+
 * real multi-line editing thanks to `prompt_toolkit <https://python-prompt-toolkit.readthedocs.io/en/stable/>`_.
- 
+
 * syntax highlighting as you type.
 
 * integration with command line editor for a better workflow.
@@ -77,7 +77,7 @@ command line and kernel, as well as describe the internal mechanisms in order
 to improve your Python workflow.
 
 You can find the table of content for this documentation in the left
-sidebar, allowing you to come back to previous sections or skip ahead, if needed. 
+sidebar, allowing you to come back to previous sections or skip ahead, if needed.
 
 
 The latest development version is always available from IPython's `GitHub
