@@ -226,13 +226,12 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None) -> None:
                 finally:
                     retval = pager.close()
             except OSError as msg:  # broken pipe when user quits
+                # msg.args == (32, 'Broken pipe') for that case; other
+                # OSErrors are strange problems, sometimes seen in Win2k/cygwin
                 if msg.args == (32, 'Broken pipe'):
                     retval = None
                 else:
                     retval = 1
-            except OSError:
-                # Other strange problems, sometimes seen in Win2k/cygwin
-                retval = 1
         if retval is not None:
             page_dumb(strng,screen_lines=screen_lines)
 

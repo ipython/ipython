@@ -887,7 +887,7 @@ class Inspector(Configurable):
         out: InfoDict = cast(
             InfoDict,
             {
-                **{field: None for field in _info_fields},
+                **dict.fromkeys(_info_fields),
                 **{
                     "name": oname,
                     "found": True,

@@ -491,7 +491,9 @@ def _list_matplotlib_backends_and_gui_loops() -> list[str]:
             for gui in backend_registry.list_gui_frameworks()
         ]
     else:
-        from IPython.core import pylabtools
+        # Self-import (rather than a bare `backends` reference) is required to
+        # go through the module's PEP 562 __getattr__ deprecation shim below.
+        from IPython.core import pylabtools  # noqa: PLW0406
 
         ret = list(pylabtools.backends.keys())
 

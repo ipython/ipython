@@ -150,10 +150,7 @@ rst_prolog = ""
 
 
 def is_stable(extra):
-    for ext in {"dev", "b", "rc"}:
-        if ext in extra:
-            return False
-    return True
+    return all(ext not in extra for ext in {"dev", "b", "rc"})
 
 
 if is_stable(iprelease["_version_extra"]):

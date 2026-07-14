@@ -350,6 +350,9 @@ def _modified_open(file, *args, **kwargs):
     return io_open(file, *args, **kwargs)
 
 
+_dollar_formatter = DollarFormatter()
+
+
 class InteractiveShell(SingletonConfigurable):
     """An enhanced, interactive shell for Python."""
 
@@ -3938,7 +3941,7 @@ class InteractiveShell(SingletonConfigurable):
     # Utilities
     #-------------------------------------------------------------------------
 
-    def var_expand(self, cmd, depth=0, formatter=DollarFormatter()):
+    def var_expand(self, cmd, depth=0, formatter=_dollar_formatter):
         """Expand python variables in a string.
 
         The depth argument indicates how many frames above the caller should

@@ -402,7 +402,7 @@ class ApiDocWriter:
                 continue
             # write out to file
             outfile = os.path.join(outdir, m + self.rst_extension)
-            with open(outfile, "wt", encoding="utf-8") as fileobj:
+            with open(outfile, 'w', encoding="utf-8") as fileobj:
                 fileobj.write(api_str)
             written_modules.append(m)
         self.written_modules = written_modules
@@ -454,7 +454,7 @@ class ApiDocWriter:
             relpath = outdir.replace(relative_to + os.path.sep, '')
         else:
             relpath = outdir
-        with open(path, "wt", encoding="utf-8") as idx:
+        with open(path, 'w', encoding="utf-8") as idx:
             w = idx.write
             w('.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n')
             w('.. autosummary::\n'

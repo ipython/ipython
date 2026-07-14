@@ -574,7 +574,7 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
             except Exception:
                 return False
             # detect if we are able to use our autoreload algorithm
-            ctx = contextlib.suppress()
+            ctx = contextlib.suppress(Exception)
             with ctx:
                 self._build_dependency_graph(new_module_ast)
                 if (

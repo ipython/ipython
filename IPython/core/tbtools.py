@@ -343,7 +343,7 @@ class FrameInfo:
         # callers only reach here once RepeatedFrames-backed instances have
         # been filtered out (see doctb.py/ultratb.py format_record)
         if self._sd is not None:
-            return self._sd.variables_in_executing_piece  # type:ignore[misc,union-attr]
+            return self._sd.variables_in_executing_piece
         else:
             return []
 
@@ -355,7 +355,7 @@ class FrameInfo:
         # been filtered out (see doctb.py/ultratb.py format_record)
         assert self._sd is not None
         try:
-            return self._sd.lines  # type: ignore[misc,union-attr]
+            return self._sd.lines
         except NotOneValueFound:
 
             class Dummy:
@@ -372,7 +372,7 @@ class FrameInfo:
         # callers only reach here once RepeatedFrames-backed instances have
         # been filtered out (see doctb.py/ultratb.py format_record)
         if self._sd is not None:
-            return self._sd.executing  # type: ignore[union-attr]
+            return self._sd.executing
         else:
             return None
 

@@ -233,11 +233,7 @@ class DisplayFormatter(Configurable):
                 continue
 
             md = None
-            try:
-                data = formatter(obj)
-            except Exception:
-                # FIXME: log the exception
-                raise
+            data = formatter(obj)
 
             # formatters can return raw data or (data, metadata)
             if isinstance(data, tuple) and len(data) == 2:
