@@ -232,7 +232,7 @@ class NamespaceMagics(Magics):
 
         # Build list of namespaces to search from user options
         def_search.extend(opt('s',[]))
-        ns_exclude = ns_exclude=opt('e',[])
+        ns_exclude = opt('e',[])
         ns_search = [nm for nm in def_search if nm not in ns_exclude]
 
         # Call the actual search

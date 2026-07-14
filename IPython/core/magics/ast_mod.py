@@ -193,7 +193,7 @@ import ast
 import copy
 
 
-mangle_all = lambda name: False if name in ("__ret__", "__code__") else True
+mangle_all = lambda name: name not in ("__ret__", "__code__")
 
 
 class Mangler(NodeTransformer):

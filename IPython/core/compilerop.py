@@ -39,7 +39,7 @@ import hashlib
 import linecache
 import operator
 from contextlib import contextmanager
-from typing import Generator
+from collections.abc import Generator
 
 #-----------------------------------------------------------------------------
 # Constants
@@ -60,7 +60,7 @@ def code_name(code: str, number: int = 0) -> str:
 
     This now expects code to be unicode.
     """
-    hash_digest = hashlib.sha1(code.encode("utf-8")).hexdigest()
+    hash_digest = hashlib.sha1(code.encode("utf-8"), usedforsecurity=False).hexdigest()
     # Include the number and 12 characters of the hash in the name.  It's
     # pretty much impossible that in a single session we'll have collisions
     # even with truncated hashes, and the full one makes tracebacks too long

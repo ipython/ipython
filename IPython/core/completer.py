@@ -2956,7 +2956,7 @@ class IPCompleter(Completer):
         # them again
         usedNamedArgs = set()
         par_level = -1
-        for token, next_token in zip(tokens, tokens[1:]):
+        for token, next_token in itertools.pairwise(tokens):
             if token == '(':
                 par_level += 1
             elif token == ')':

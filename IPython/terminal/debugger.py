@@ -118,34 +118,31 @@ class TerminalPdb(Pdb):
         # running, and here we run our prompt-loop.
         self.preloop()
 
-        try:
-            if intro is not None:
-                self.intro = intro
-            if self.intro:
-                print(self.intro, file=self.stdout)
-            stop = None
-            while not stop:
-                if self.cmdqueue:
-                    line = self.cmdqueue.pop(0)
+        if intro is not None:
+            self.intro = intro
+        if self.intro:
+            print(self.intro, file=self.stdout)
+        stop = None
+        while not stop:
+            if self.cmdqueue:
+                line = self.cmdqueue.pop(0)
+            else:
+                self._ptcomp.ipy_completer.namespace = self.curframe_locals
+                self._ptcomp.ipy_completer.global_namespace = self.curframe.f_globals
+
+                # Run the prompt in a different thread.
+                if not _use_simple_prompt:
+                    try:
+                        line = self.thread_executor.submit(self._prompt).result()
+                    except EOFError:
+                        line = "EOF"
                 else:
-                    self._ptcomp.ipy_completer.namespace = self.curframe_locals
-                    self._ptcomp.ipy_completer.global_namespace = self.curframe.f_globals
+                    line = input("ipdb> ")
 
-                    # Run the prompt in a different thread.
-                    if not _use_simple_prompt:
-                        try:
-                            line = self.thread_executor.submit(self._prompt).result()
-                        except EOFError:
-                            line = "EOF"
-                    else:
-                        line = input("ipdb> ")
-
-                line = self.precmd(line)
-                stop = self.onecmd(line)
-                stop = self.postcmd(stop, line)
-            self.postloop()
-        except Exception:
-            raise
+            line = self.precmd(line)
+            stop = self.onecmd(line)
+            stop = self.postcmd(stop, line)
+        self.postloop()
 
     def do_interact(self, arg):
         ipshell = embed.InteractiveShellEmbed(
