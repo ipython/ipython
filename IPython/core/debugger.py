@@ -925,9 +925,9 @@ class Pdb(OldPdb):
             try:
                 x = eval(arg, {}, {})
                 if type(x) == type(()):
-                    first, last = x
+                    first, last = x  # type: ignore[misc]
                     first = int(first)
-                    last = int(last)
+                    last = int(last)  # type: ignore[call-overload]
                     if last < first:
                         # Assume it's a count
                         last = first + last
