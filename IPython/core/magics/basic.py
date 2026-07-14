@@ -668,7 +668,16 @@ Currently the magic system has the following functions:""",
         # Sign the notebook to make it trusted
         notary = NotebookNotary()
         notary.update_config(self.shell.config)
-        notary.sign(nb)
+        try:
+            notary.sign(nb)
+        finally:
+            # Close the signature store's SQLite connection. NotebookNotary
+            # opens it eagerly but never closes it on its own, so leaving it
+            # open lets the connection be garbage collected unclosed, raising a
+            # spurious "ResourceWarning: unclosed database" in whatever code
+            # happens to be running at collection time (a source of flaky test
+            # failures, notably on the Windows / Python 3.14 CI job).
+            notary.store.close()
         with open(outfname, "w", encoding="utf-8") as f:
             write(nb, f, version=4)
 
