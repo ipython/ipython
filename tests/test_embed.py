@@ -131,9 +131,9 @@ def _reap_embedded_shells():
     for hm in set(HistoryManager._instances) - before:
         if hm.save_thread is not None:
             atexit.unregister(hm.save_thread.stop)
-            hm.save_thread.stop()
         if hm.shell is not None:
             atexit.unregister(hm.shell.atexit_operations)
+        hm.close()
         HistoryManager._instances.discard(hm)
     gc.collect()
 

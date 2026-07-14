@@ -12,7 +12,8 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
-from contextlib import closing
+import time
+from contextlib import ExitStack, closing
 from datetime import datetime
 from pathlib import Path
 
@@ -21,7 +22,12 @@ from tempfile import TemporaryDirectory
 # our own packages
 from traitlets.config.loader import Config
 
-from IPython.core.history import HistoryAccessor, HistoryManager, extract_hist_ranges
+from IPython.core.history import (
+    HistoryAccessor,
+    HistoryManager,
+    HistorySavingThread,
+    extract_hist_ranges,
+)
 
 import pytest
 
@@ -180,11 +186,11 @@ def test_history(hmmax2):
             assert sessid < hist[0]
             assert hist[1:] == (lineno, entry)
         finally:
-            # Ensure saving thread is shut down before we try to clean up the files
+            # Ensure saving thread is shut down before we try to clean up the
+            # files, and close the database deterministically rather than
+            # relying on garbage collection.
             ip.history_manager.end_session()
-            # Forcibly close database rather than relying on garbage collection
-            ip.history_manager.save_thread.stop()
-            ip.history_manager.db.close()
+            ip.history_manager.close()
             # swap back
             ip.history_manager = hist_manager_ori
 
@@ -264,17 +270,10 @@ def test_hist_file_config(hmmax3):
     tfile = tempfile.NamedTemporaryFile(delete=False)
     tfile.close()
     cfg.HistoryManager.hist_file = Path(tfile.name)
-    hm = None
     try:
-        hm = HistoryManager(shell=get_ipython(), config=cfg)
-        assert hm.hist_file == cfg.HistoryManager.hist_file
+        with HistoryManager(shell=get_ipython(), config=cfg) as hm:
+            assert hm.hist_file == cfg.HistoryManager.hist_file
     finally:
-        if hm is not None:
-            hm.end_session()
-            if hm.save_thread is not None:
-                hm.save_thread.stop()
-            hm.db.close()
-        hm = None
         gc.collect()
         try:
             Path(tfile.name).unlink()
@@ -285,36 +284,30 @@ def test_hist_file_config(hmmax3):
 def test_histmanager_memory_fallback_reopens_db(hmmax3, tmp_path, caplog):
     hist_file = tmp_path / "history.sqlite"
     ip = get_ipython()
-    hm1 = None
-    hm2 = None
     lock = None
     try:
-        hm1 = HistoryManager(shell=ip, hist_file=hist_file)
-        hm1.end_session()
-        hm1.save_thread.stop()
-        hm1.db.close()
+        # Create the on-disk database, then release it so we can lock it below.
+        with HistoryManager(shell=ip, hist_file=hist_file) as hm1:
+            hm1.end_session()
 
         lock = sqlite3.connect(hist_file)
         lock.execute("BEGIN IMMEDIATE")
 
-        hm2 = HistoryManager(shell=ip, hist_file=hist_file)
-        assert hm2.hist_file == ":memory:"
-        assert hm2.db.execute("PRAGMA database_list").fetchall() == [(0, "main", "")]
+        with HistoryManager(shell=ip, hist_file=hist_file) as hm2:
+            assert hm2.hist_file == ":memory:"
+            assert hm2.db.execute("PRAGMA database_list").fetchall() == [
+                (0, "main", "")
+            ]
 
-        hm2.store_inputs(1, "a = 1")
-        hm2.writeout_cache()
-        assert list(hm2.get_tail(1, include_latest=True)) == [
-            (hm2.session_number, 1, "a = 1")
-        ]
+            hm2.store_inputs(1, "a = 1")
+            hm2.writeout_cache()
+            assert list(hm2.get_tail(1, include_latest=True)) == [
+                (hm2.session_number, 1, "a = 1")
+            ]
     finally:
-        if hm2 is not None:
-            hm2.end_session()
-            hm2.db.close()
         if lock is not None:
             lock.rollback()
             lock.close()
-        hm1 = None
-        hm2 = None
         caplog.clear()
         gc.collect()
 
@@ -327,9 +320,9 @@ def test_histmanager_thread_start_failure_uses_memory(
 
     monkeypatch.setattr("IPython.core.history.HistorySavingThread.start", fail_start)
 
-    hm = None
-    try:
-        hm = HistoryManager(shell=get_ipython(), hist_file=tmp_path / "history.sqlite")
+    with HistoryManager(
+        shell=get_ipython(), hist_file=tmp_path / "history.sqlite"
+    ) as hm:
         assert hm.hist_file == ":memory:"
         assert hm.db.execute("PRAGMA database_list").fetchall() == [(0, "main", "")]
         assert hm.save_thread is None
@@ -339,13 +332,115 @@ def test_histmanager_thread_start_failure_uses_memory(
         assert list(hm.get_tail(1, include_latest=True)) == [
             (hm.session_number, 1, "a = 1")
         ]
+    caplog.clear()
+    gc.collect()
+
+
+def _wait_for_thread_db(thread, timeout=5.0):
+    """Wait until the saving thread has opened its private connection."""
+    deadline = time.monotonic() + timeout
+    while thread.db is None and time.monotonic() < deadline:
+        time.sleep(0.01)
+    assert thread.db is not None, "saving thread never opened its connection"
+    return thread.db
+
+
+def test_saving_thread_closes_db_on_normal_stop(hmmax2, tmp_path):
+    """A stopped saving thread must close its own sqlite connection.
+
+    The thread keeps a separate connection from the HistoryManager; if it is
+    left open the ``sqlite3.Connection`` gets garbage collected unclosed, which
+    raises a spurious ``ResourceWarning`` in whatever code is running at the
+    time (a source of cross-test flakiness).
+    """
+    hm = HistoryManager(shell=get_ipython(), hist_file=tmp_path / "history.sqlite")
+    try:
+        thread = hm.save_thread
+        assert thread is not None
+        conn = _wait_for_thread_db(thread)
+
+        hm.end_session()
+        thread.stop()
+        assert not thread.is_alive()
+        assert thread.db is None
+        with pytest.raises(sqlite3.ProgrammingError):
+            conn.execute("SELECT 1")
     finally:
-        if hm is not None:
-            hm.end_session()
-            hm.db.close()
+        hm.close()
         hm = None
-        caplog.clear()
         gc.collect()
+
+
+def test_saving_thread_closes_db_on_error(hmmax2, tmp_path):
+    """The saving thread must close its connection even when it errors out.
+
+    ``run()`` used to close the connection only on the clean-stop path, so an
+    unexpected error (more likely on Windows, where a cross-thread sqlite or
+    file-locking failure can surface) left the connection open to be collected
+    later and emit a ``ResourceWarning``.
+    """
+    hm = HistoryManager(shell=get_ipython(), hist_file=tmp_path / "history.sqlite")
+    try:
+        thread = hm.save_thread
+        assert thread is not None
+        conn = _wait_for_thread_db(thread)
+
+        # Force the writeout to raise, driving run() into its except branch.
+        def boom(*args, **kwargs):
+            raise RuntimeError("boom")
+
+        hm.writeout_cache = boom
+        thread.save_flag.set()
+        thread.join(timeout=5)
+        assert not thread.is_alive()
+
+        # The connection must have been closed by run()'s finally block.
+        assert thread.db is None
+        with pytest.raises(sqlite3.ProgrammingError):
+            conn.execute("SELECT 1")
+    finally:
+        hm.close()
+        hm = None
+        gc.collect()
+
+
+def test_history_manager_context_manager(hmmax2, tmp_path):
+    """Using a HistoryManager as a context manager stops the saving thread and
+    closes both connections on exit."""
+    with HistoryManager(
+        shell=get_ipython(), hist_file=tmp_path / "history.sqlite"
+    ) as hm:
+        thread = hm.save_thread
+        assert thread is not None
+        thread_conn = _wait_for_thread_db(thread)
+        hm.store_inputs(1, "a = 1")
+
+    # On exit the thread is stopped and both connections are closed.
+    assert hm.save_thread is None
+    assert not thread.is_alive()
+    with pytest.raises(sqlite3.ProgrammingError):
+        thread_conn.execute("SELECT 1")
+    with pytest.raises(sqlite3.ProgrammingError):
+        hm.db.execute("SELECT 1")
+    hm = None
+    gc.collect()
+
+
+def test_history_accessor_context_manager(hmmax2, tmp_path):
+    """HistoryAccessor closes its connection when used as a context manager."""
+    hist_file = tmp_path / "history.sqlite"
+    # Create the database file first.
+    with HistoryManager(shell=get_ipython(), hist_file=hist_file):
+        pass
+
+    with HistoryAccessor(hist_file=hist_file) as ha:
+        assert ha.db.execute("SELECT 1").fetchone() == (1,)
+        db = ha.db
+
+    with pytest.raises(sqlite3.ProgrammingError):
+        db.execute("SELECT 1")
+    ha = None
+    gc.collect()
 
 
 def test_histmanager_disabled(hmmax2):
@@ -358,16 +453,17 @@ def test_histmanager_disabled(hmmax2):
         hist_manager_ori = ip.history_manager
         hist_file = Path(tmpdir) / "history.sqlite"
         cfg.HistoryManager.hist_file = hist_file
-        try:
-            ip.history_manager = HistoryManager(shell=ip, config=cfg)
-            hist = ["a=1", "def f():\n    test = 1\n    return test", "b='€Æ¾÷ß'"]
-            for i, h in enumerate(hist, start=1):
-                ip.history_manager.store_inputs(i, h)
-            assert ip.history_manager.input_hist_raw == [""] + hist
-            ip.history_manager.reset()
-            ip.history_manager.end_session()
-        finally:
-            ip.history_manager = hist_manager_ori
+        with HistoryManager(shell=ip, config=cfg) as hm:
+            ip.history_manager = hm
+            try:
+                hist = ["a=1", "def f():\n    test = 1\n    return test", "b='€Æ¾÷ß'"]
+                for i, h in enumerate(hist, start=1):
+                    ip.history_manager.store_inputs(i, h)
+                assert ip.history_manager.input_hist_raw == [""] + hist
+                ip.history_manager.reset()
+                ip.history_manager.end_session()
+            finally:
+                ip.history_manager = hist_manager_ori
 
     # hist_file should not be created
     assert hist_file.exists() is False
@@ -384,15 +480,12 @@ def test_get_tail_session_awareness(hmmax3):
         tmp_path = Path(tmpdir)
         hist_file = tmp_path / "history.sqlite"
         get_source = lambda x: x[2]
-        hm1 = None
-        hm2 = None
-        ha = None
-        try:
+        with ExitStack() as stack:
             # hm1 creates a new session and adds history entries,
             # ha catches up
-            hm1 = HistoryManager(shell=ip, hist_file=hist_file)
+            hm1 = stack.enter_context(HistoryManager(shell=ip, hist_file=hist_file))
             hm1_last_sid = hm1.get_last_session_id
-            ha = HistoryAccessor(hist_file=hist_file)
+            ha = stack.enter_context(HistoryAccessor(hist_file=hist_file))
             ha_last_sid = ha.get_last_session_id
 
             hist1 = ["a=1", "b=1", "c=1"]
@@ -406,7 +499,7 @@ def test_get_tail_session_awareness(hmmax3):
 
             # hm2 creates a new session and adds entries,
             # ha catches up
-            hm2 = HistoryManager(shell=ip, hist_file=hist_file)
+            hm2 = stack.enter_context(HistoryManager(shell=ip, hist_file=hist_file))
             hm2_last_sid = hm2.get_last_session_id
 
             hist2 = ["a=2", "b=2", "c=2"]
@@ -440,15 +533,6 @@ def test_get_tail_session_awareness(hmmax3):
             assert hm1_last_sid() == sid1
             assert hm2_last_sid() == sid2
             assert ha_last_sid() == sid2
-        finally:
-            if hm1:
-                hm1.save_thread.stop()
-                hm1.db.close()
-            if hm2:
-                hm2.save_thread.stop()
-                hm2.db.close()
-            if ha:
-                ha.db.close()
 
 
 def test_calling_run_cell(hmmax2):
@@ -457,23 +541,19 @@ def test_calling_run_cell(hmmax2):
         tmp_path = Path(tmpdir)
         hist_manager_ori = ip.history_manager
         hist_file = tmp_path / "history_test_history1.sqlite"
-        try:
-            ip.history_manager = HistoryManager(shell=ip, hist_file=hist_file)
-            import time
-    
-            session_number = ip.history_manager.session_number
-            ip.run_cell(raw_cell="get_ipython().run_cell(raw_cell='1', store_history=True)", store_history=True)
-            while ip.history_manager.db_input_cache:
-                time.sleep(0)
-            new_session_number = ip.history_manager.session_number
-        finally:
-            # Ensure saving thread is shut down before we try to clean up the files
-            ip.history_manager.end_session()
-            # Forcibly close database rather than relying on garbage collection
-            ip.history_manager.save_thread.stop()
-            ip.history_manager.db.close()
-
-            ip.history_manager = hist_manager_ori
+        with HistoryManager(shell=ip, hist_file=hist_file) as hm:
+            ip.history_manager = hm
+            try:
+                session_number = ip.history_manager.session_number
+                ip.run_cell(raw_cell="get_ipython().run_cell(raw_cell='1', store_history=True)", store_history=True)
+                while ip.history_manager.db_input_cache:
+                    time.sleep(0)
+                new_session_number = ip.history_manager.session_number
+            finally:
+                # End the session; the with-block closes the connection and stops
+                # the saving thread deterministically on exit.
+                hm.end_session()
+                ip.history_manager = hist_manager_ori
     assert session_number == new_session_number, ValueError(f"{session_number} != {new_session_number}")
 
 
@@ -482,16 +562,15 @@ def hist_magic_shell(hmmax2, tmp_path):
     """Shell with a fresh HistoryManager, for testing history-related magics."""
     ip = get_ipython()
     hist_manager_ori = ip.history_manager
-    ip.history_manager = HistoryManager(
+    with HistoryManager(
         shell=ip, hist_file=tmp_path / "history_magics.sqlite"
-    )
-    try:
-        yield ip
-    finally:
-        ip.history_manager.end_session()
-        ip.history_manager.save_thread.stop()
-        ip.history_manager.db.close()
-        ip.history_manager = hist_manager_ori
+    ) as hm:
+        ip.history_manager = hm
+        try:
+            yield ip
+        finally:
+            hm.end_session()
+            ip.history_manager = hist_manager_ori
 
 
 def test_history_magic_output_and_prompts(hist_magic_shell, capsys):
