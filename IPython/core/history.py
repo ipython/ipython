@@ -46,6 +46,8 @@ from warnings import warn
 from weakref import ref, WeakSet
 
 if TYPE_CHECKING:
+    from types import TracebackType
+
     from IPython.core.interactiveshell import InteractiveShell
     from traitlets.config import Config as Configuration
 
@@ -351,6 +353,34 @@ class HistoryAccessor(HistoryAccessorBase):
             )
         # success! reset corrupt db count
         self._corrupt_db_counter = 0
+
+    def close(self) -> None:
+        """Close the SQLite database connection.
+
+        Prefer calling this to closing ``self.db`` directly: it gives
+        subclasses (notably :class:`HistoryManager`) a single place to hook in
+        the rest of their teardown. Safe to call more than once.
+        """
+        self.db.close()
+
+    def __enter__(self) -> HistoryAccessor:
+        """Support use as a context manager for deterministic cleanup::
+
+        with HistoryAccessor(hist_file=path) as history:
+            ...
+        # connection is closed here
+
+        :class:`HistoryManager` additionally stops its saving thread on exit.
+        """
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        self.close()
 
     def writeout_cache(self) -> None:
         """Overridden by HistoryManager to dump the cache before certain
@@ -728,17 +758,35 @@ class HistoryManager(HistoryAccessor):
         self.init_db()
         self.new_session()
 
-    def __del__(self) -> None:
+    def _stop_save_thread(self) -> None:
+        """Stop the background saving thread, if one is running.
+
+        The thread closes its own database connection as it exits, so this is
+        also what releases that connection.
+        """
         if self.save_thread is not None:
             self.save_thread.stop()
+            self.save_thread = None
+
+    def close(self) -> None:
+        """Stop the saving thread and close the database connection.
+
+        This is the deterministic counterpart to relying on garbage
+        collection: it shuts the saving thread down (which closes its private
+        connection) and then closes the manager's own connection. Safe to call
+        more than once.
+        """
+        self._stop_save_thread()
+        super().close()
+
+    def __del__(self) -> None:
+        self._stop_save_thread()
 
     @classmethod
     def _stop_thread(cls) -> None:
         # Used before forking so the thread isn't running at fork
         for inst in cls._instances:
-            if inst.save_thread is not None:
-                inst.save_thread.stop()
-                inst.save_thread = None
+            inst._stop_save_thread()
 
     def _restart_thread_if_stopped(self) -> None:
         # Start the thread again after it was stopped for forking
@@ -1133,6 +1181,7 @@ class HistorySavingThread(threading.Thread):
     enabled: bool = True
     history_manager: ref[HistoryManager]
     _stopped = False
+    db: sqlite3.Connection | None = None
 
     def __init__(self, history_manager: HistoryManager) -> None:
         super().__init__(name="IPythonHistorySavingThread")
@@ -1144,6 +1193,7 @@ class HistorySavingThread(threading.Thread):
     def run(self) -> None:
         atexit.register(self.stop)
         # We need a separate db connection per thread:
+        self.db = None
         try:
             hm: ReferenceType[HistoryManager]
             with hold(self.history_manager) as hm:
@@ -1158,10 +1208,9 @@ class HistorySavingThread(threading.Thread):
                     if hm() is None:
                         self._stop_now = True
                     if self._stop_now:
-                        self.db.close()
                         return
                     self.save_flag.clear()
-                    if hm() is not None:
+                    if hm() is not None and self.db is not None:
                         hm().writeout_cache(self.db)  # type: ignore [union-attr]
 
         except Exception as e:
@@ -1173,6 +1222,14 @@ class HistorySavingThread(threading.Thread):
                 % repr(e)
             )
         finally:
+            # Always close our per-thread connection, whatever path we exit by
+            # (normal stop, a dropped HistoryManager, or an unexpected error).
+            # Leaving it open lets the sqlite3.Connection be garbage collected
+            # unclosed, which raises a spurious ``ResourceWarning`` in whatever
+            # code happens to be running when the collection occurs.
+            if self.db is not None:
+                self.db.close()
+                self.db = None
             atexit.unregister(self.stop)
 
     def stop(self) -> None:
