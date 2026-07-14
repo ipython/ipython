@@ -330,7 +330,10 @@ class DocTB(TBTools):
         before = context - after
         if self.has_colors:
             base_style = theme_table[self._theme_name].as_pygments_style()
-            style = stack_data.style_with_executing_node(base_style, self.tb_highlight)
+            # stack_data ships without type annotations
+            style = stack_data.style_with_executing_node(  # type: ignore[no-untyped-call]
+                base_style, self.tb_highlight
+            )
             formatter = Terminal256Formatter(style=style)
         else:
             formatter = None

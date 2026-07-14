@@ -627,7 +627,7 @@ class Magics(Configurable):
             )
         if shell is not None:
             if hasattr(shell, "configurables"):
-                shell.configurables.append(self)
+                shell.configurables.append(self)  # type: ignore[arg-type]
             if hasattr(shell, "config"):
                 kwargs.setdefault("parent", shell)
 
