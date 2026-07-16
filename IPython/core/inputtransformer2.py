@@ -36,6 +36,23 @@ def leading_empty_lines(lines):
             return lines[i:]
     return lines
 
+
+def leading_comment_lines(lines):
+    """Remove leading comments before a cell magic.
+
+    Cell magics must be the first meaningful line in a cell. Comments and
+    blank lines preceding a cell magic do not affect its execution, so remove
+    them before detecting the magic.
+    """
+    for i, line in enumerate(lines):
+        if not line.strip() or line.lstrip().startswith('#'):
+            continue
+        if line.startswith('%%'):
+            return lines[i:]
+        break
+    return lines
+
+
 def leading_indent(lines):
     """Remove leading indentation.
 
@@ -668,6 +685,7 @@ class TransformerManager:
         self.cleanup_transforms = [
             leading_empty_lines,
             leading_indent,
+            leading_comment_lines,
             classic_prompt,
             ipython_prompt,
         ]
