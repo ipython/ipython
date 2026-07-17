@@ -70,7 +70,7 @@ import traceback
 import warnings
 from io import StringIO
 
-from decorator import decorator
+from functools import wraps
 
 from traitlets.config.configurable import Configurable
 from .getipython import get_ipython
@@ -270,23 +270,27 @@ def _safe_repr(obj):
 class FormatterWarning(UserWarning):
     """Warning class for errors in formatters"""
 
-@decorator
-def catch_format_error(method, self, *args, **kwargs):
+def catch_format_error(method):
     """show traceback on failed format call"""
-    try:
-        r = method(self, *args, **kwargs)
-    except NotImplementedError:
-        # don't warn on NotImplementedErrors
-        return self._check_return(None, args[0])
-    except Exception:
-        exc_info = sys.exc_info()
-        ip = get_ipython()
-        if ip is not None:
-            ip.showtraceback(exc_info)
-        else:
-            traceback.print_exception(*exc_info)
-        return self._check_return(None, args[0])
-    return self._check_return(r, args[0])
+
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        try:
+            r = method(self, *args, **kwargs)
+        except NotImplementedError:
+            # don't warn on NotImplementedErrors
+            return self._check_return(None, args[0])
+        except Exception:
+            exc_info = sys.exc_info()
+            ip = get_ipython()
+            if ip is not None:
+                ip.showtraceback(exc_info)
+            else:
+                traceback.print_exception(*exc_info)
+            return self._check_return(None, args[0])
+        return self._check_return(r, args[0])
+
+    return wrapper
 
 
 class FormatterABC(metaclass=abc.ABCMeta):
