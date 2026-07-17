@@ -1939,7 +1939,8 @@ def test_terminal_pdb_prompt_eof_quits(monkeypatch):
 
 @skip_win32
 def test_terminal_pdb_do_interact(monkeypatch):
-    import IPython.terminal.debugger as tdebugger
+    # do_interact imports this lazily, so patch the embed module itself
+    from IPython.terminal import embed as tembed
 
     calls = {}
 
@@ -1951,7 +1952,7 @@ def test_terminal_pdb_do_interact(monkeypatch):
             calls["module"] = module
             calls["local_ns"] = local_ns
 
-    monkeypatch.setattr(tdebugger.embed, "InteractiveShellEmbed", FakeEmbeddedShell)
+    monkeypatch.setattr(tembed, "InteractiveShellEmbed", FakeEmbeddedShell)
     exc = _simple_exc()
     p = TerminalPdb(readrc=False)
     try:
