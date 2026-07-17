@@ -484,3 +484,23 @@ def test_link_twice(link_or_copy_src, tmp_path):
     path.link_or_copy(str(link_or_copy_src), dst)
     path.link_or_copy(str(link_or_copy_src), dst)
     assert os.stat(str(link_or_copy_src)).st_ino == os.stat(dst).st_ino
+
+
+@with_environment
+def test_compress_user(tmp_path):
+    """compress_user() only substitutes ~ on a path-component boundary."""
+    home = str(tmp_path / "alice")
+    env["HOME"] = home
+
+    assert path.compress_user(join(home, "proj", "foo.py")) == join(
+        "~", "proj", "foo.py"
+    )
+    assert path.compress_user(home) == "~"
+
+    # A path that merely shares a prefix with home is not under it, so it must
+    # come back untouched: "~-backup/lib" would expanduser to a different
+    # (nonexistent) user's home rather than back to where it started.
+    for sibling in (home + "-backup", home + "s"):
+        p = join(sibling, "lib", "foo.py")
+        assert path.compress_user(p) == p
+        assert os.path.expanduser(path.compress_user(p)) == p

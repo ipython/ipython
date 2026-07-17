@@ -68,8 +68,13 @@ def get_long_path_name(path):
 def compress_user(path: str) -> str:
     """Reverse of :func:`os.path.expanduser`"""
     home = os.path.expanduser("~")
-    if path.startswith(home):
-        path =  "~" + path[len(home):]
+    if path == home:
+        return "~"
+    # Compare against home + separator, so that a path which merely shares a
+    # prefix with home (/home/alice-backup vs /home/alice) is left alone.
+    prefix = os.path.join(home, "")
+    if path.startswith(prefix):
+        path = "~" + os.sep + path[len(prefix) :]
     return path
 
 def get_py_filename(name):
