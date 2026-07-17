@@ -24,7 +24,6 @@ license-files = ["LICENSE", "COPYING.rst"]
 requires-python = ">=3.11"
 dependencies = [
     'colorama>=0.4.4; sys_platform == "win32"',
-    "decorator>=5.1.0",
     "ipython-pygments-lexers>=1.0.0",
     "jedi>=0.18.2",
     "matplotlib-inline>=0.1.6",
@@ -94,7 +93,6 @@ matplotlib = [
 all = [
     "ipython[doc,matplotlib,test,test_extra]",
     "argcomplete>=3.0",
-    "types-decorator"
 ]
 
 
@@ -514,3 +512,7 @@ unfixable = [
 [tool.ruff]
 target-version = "py311"
 extend-exclude = ["tests"]
+
+[tool.black]
+# moved here from setup.cfg, where it had been in (ignored) INI syntax
+exclude = 'timing\.py'

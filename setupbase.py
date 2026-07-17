@@ -111,7 +111,7 @@ def find_data_files():
 
 
 # The two functions below are copied from IPython.utils.path, so we don't need
-# to import IPython during setup, which fails on Python 3.
+# to import IPython (and hence its dependencies) during setup.
 
 def target_outdated(target, deps):
     """Determine whether a target is out of date.

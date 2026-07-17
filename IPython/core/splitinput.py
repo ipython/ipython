@@ -136,7 +136,7 @@ class LineInfo:
         Does cache the results of the call, so can be called multiple times
         without worrying about *further* damaging state.
 
-        .. deprecated:: 9.8
+        .. deprecated:: 9.9
             Use ``shell._ofind(line_info.ifun)`` directly instead.
         """
         warnings.warn(
