@@ -685,9 +685,9 @@ class TransformerManager:
         self.cleanup_transforms = [
             leading_empty_lines,
             leading_indent,
-            leading_comment_lines,
             classic_prompt,
             ipython_prompt,
+            leading_comment_lines,
         ]
         self.line_transforms = [
             cell_magic,

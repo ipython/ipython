@@ -33,6 +33,14 @@ def test_leading_comments_before_cell_magic():
     )
 
 
+def test_leading_prompted_comments_before_cell_magic():
+    cell = "In [1]: # Set up timing\n   ...: %%time\n   ...: pass\n"
+
+    assert ipt2.TransformerManager().transform_cell(cell) == (
+        "get_ipython().run_cell_magic('time', '', 'pass\\n')\n"
+    )
+
+
 CLASSIC_PROMPT = (
     """\
 >>> for a in range(5):
