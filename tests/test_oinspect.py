@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from inspect import signature, Signature, Parameter
+import functools
 import inspect
 import os
 import pytest
@@ -7,8 +8,6 @@ import re
 import sys
 
 from IPython.core import oinspect
-
-from decorator import decorator
 
 from IPython.testing.tools import AssertPrints, AssertNotPrints
 from IPython.utils.path import compress_user
@@ -38,7 +37,7 @@ class SourceModuleMainTest:
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 41  # Put here the actual number of this line
+THIS_LINE_NUMBER = 40  # Put here the actual number of this line
 
 
 def test_find_source_lines():
@@ -80,8 +79,8 @@ def test_find_file():
 
 
 def test_find_file_decorated1():
-    @decorator
     def noop1(f):
+        @functools.wraps(f)
         def wrapper(*a, **kw):
             return f(*a, **kw)
 
@@ -96,9 +95,12 @@ def test_find_file_decorated1():
 
 
 def test_find_file_decorated2():
-    @decorator
-    def noop2(f, *a, **kw):
-        return f(*a, **kw)
+    def noop2(f):
+        @functools.wraps(f)
+        def wrapper(*a, **kw):
+            return f(*a, **kw)
+
+        return wrapper
 
     @noop2
     @noop2
