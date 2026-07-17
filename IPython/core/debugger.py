@@ -130,7 +130,6 @@ import re
 import sys
 import warnings
 from contextlib import contextmanager
-from functools import lru_cache
 
 from IPython.core.getipython import get_ipython
 from IPython.core.debugger_backport import PdbClosureBackport
@@ -330,6 +329,14 @@ class Pdb(OldPdb):
 
         # list of predicates we use to skip frames
         self._predicates = self.default_predicates
+
+        # Per-instance caches for the DEBUGGERSKIP frame checks (see
+        # `_cachable_skip`). Keyed by frame objects, so they must not outlive
+        # the debugger stop they were computed for: they are cleared on every
+        # `interaction` (and size-bounded) to avoid pinning frames — and
+        # transitively their locals and whole back-chains — in memory.
+        self._skip_cache: dict[FrameType, bool] = {}
+        self._parent_skip_cache: dict[FrameType, bool | None] = {}
 
         if CHAIN_EXCEPTIONS:
             self._chained_exceptions = tuple()
@@ -554,6 +561,11 @@ class Pdb(OldPdb):
                 self.message("--KeyboardInterrupt--")
 
     def interaction(self, frame, tb_or_exc):
+        # The DEBUGGERSKIP caches are only valid for a single stop: frame
+        # locals may change while the program runs, and keeping frame keys
+        # alive across stops would leak memory (see `_cachable_skip`).
+        self._skip_cache.clear()
+        self._parent_skip_cache.clear()
         try:
             if CHAIN_EXCEPTIONS:
                 # this context manager is part of interaction in 3.13
@@ -1115,7 +1127,6 @@ class Pdb(OldPdb):
 
         return self._cachable_skip(frame)
 
-    @lru_cache(1024)
     def _cached_one_parent_frame_debuggerskip(self, frame):
         """
         Cache looking up for DEBUGGERSKIP on parent frame.
@@ -1125,23 +1136,42 @@ class Pdb(OldPdb):
 
         This is likely to introduce fake positive though.
         """
-        while getattr(frame, "f_back", None):
-            frame = frame.f_back
-            if self._get_frame_locals(frame).get(DEBUGGERSKIP):
-                return True
-        return None
+        try:
+            return self._parent_skip_cache[frame]
+        except KeyError:
+            pass
+        result = None
+        current = frame
+        while getattr(current, "f_back", None):
+            current = current.f_back
+            if self._get_frame_locals(current).get(DEBUGGERSKIP):
+                result = True
+                break
+        self._parent_skip_cache[frame] = result
+        return result
 
-    @lru_cache(1024)
     def _cachable_skip(self, frame):
+        # These caches used to be class-level ``lru_cache``\ s, which kept
+        # every debugger instance and up to 1024 frames (plus their locals and
+        # back-chains) alive for the lifetime of the process. They are now
+        # per-instance, size-bounded here, and cleared on each `interaction`.
+        if len(self._skip_cache) >= 1024:
+            self._skip_cache.clear()
+            self._parent_skip_cache.clear()
+        try:
+            return self._skip_cache[frame]
+        except KeyError:
+            pass
+
         # if frame is tagged, skip by default.
         if DEBUGGERSKIP in frame.f_code.co_varnames:
-            return True
+            result = True
+        else:
+            # if one of the parent frame value set to True skip as well.
+            result = bool(self._cached_one_parent_frame_debuggerskip(frame))
 
-        # if one of the parent frame value set to True skip as well.
-        if self._cached_one_parent_frame_debuggerskip(frame):
-            return True
-
-        return False
+        self._skip_cache[frame] = result
+        return result
 
     def stop_here(self, frame):
         if self._is_in_decorator_internal_and_should_skip(frame) is True:

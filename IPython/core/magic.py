@@ -56,6 +56,18 @@ magic_kinds: tuple[_MagicKind, ...] = ("line", "cell")
 magic_spec: tuple[_MagicSpec, ...] = ("line", "cell", "line_cell")
 magic_escapes: dict[_MagicKind, str] = dict(line=ESC_MAGIC, cell=ESC_MAGIC2)
 
+# Regexes used by Magics.format_latex, compiled once at import time.
+# Characters that need to be escaped for latex:
+_LATEX_ESCAPE_RE = re.compile(r"(%|_|\$|#|&)", re.MULTILINE)
+# Magic command names as headers:
+_LATEX_CMD_NAME_RE = re.compile(r"^(%s.*?):" % ESC_MAGIC, re.MULTILINE)
+# Magic commands
+_LATEX_CMD_RE = re.compile(r"(?P<cmd>%s.+?\b)(?!\}\}:)" % ESC_MAGIC, re.MULTILINE)
+# Paragraph continue
+_LATEX_PAR_RE = re.compile(r"\\$", re.MULTILINE)
+# The "\n" symbol
+_LATEX_NEWLINE_RE = re.compile(r"\\n")
+
 # -----------------------------------------------------------------------------
 # Utility classes and functions
 # -----------------------------------------------------------------------------
@@ -664,25 +676,13 @@ class Magics(Configurable):
     def format_latex(self, strng: str) -> str:
         """Format a string for latex inclusion."""
 
-        # Characters that need to be escaped for latex:
-        escape_re = re.compile(r"(%|_|\$|#|&)", re.MULTILINE)
-        # Magic command names as headers:
-        cmd_name_re = re.compile(r"^(%s.*?):" % ESC_MAGIC, re.MULTILINE)
-        # Magic commands
-        cmd_re = re.compile(r"(?P<cmd>%s.+?\b)(?!\}\}:)" % ESC_MAGIC, re.MULTILINE)
-        # Paragraph continue
-        par_re = re.compile(r"\\$", re.MULTILINE)
-
-        # The "\n" symbol
-        newline_re = re.compile(r"\\n")
-
         # Now build the string for output:
-        # strng = cmd_name_re.sub(r'\n\\texttt{\\textsl{\\large \1}}:',strng)
-        strng = cmd_name_re.sub(r"\n\\bigskip\n\\texttt{\\textbf{ \1}}:", strng)
-        strng = cmd_re.sub(r"\\texttt{\g<cmd>}", strng)
-        strng = par_re.sub(r"\\\\", strng)
-        strng = escape_re.sub(r"\\\1", strng)
-        strng = newline_re.sub(r"\\textbackslash{}n", strng)
+        # strng = _LATEX_CMD_NAME_RE.sub(r'\n\\texttt{\\textsl{\\large \1}}:',strng)
+        strng = _LATEX_CMD_NAME_RE.sub(r"\n\\bigskip\n\\texttt{\\textbf{ \1}}:", strng)
+        strng = _LATEX_CMD_RE.sub(r"\\texttt{\g<cmd>}", strng)
+        strng = _LATEX_PAR_RE.sub(r"\\\\", strng)
+        strng = _LATEX_ESCAPE_RE.sub(r"\\\1", strng)
+        strng = _LATEX_NEWLINE_RE.sub(r"\\textbackslash{}n", strng)
         return strng
 
     def parse_options(

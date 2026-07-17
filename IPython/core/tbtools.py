@@ -22,7 +22,7 @@ _sentinel = object()
 INDENT_SIZE = 8
 
 
-@functools.lru_cache
+@functools.lru_cache(maxsize=128)
 def count_lines_in_py_file(filename: str) -> int:
     """
     Given a filename, returns the number of lines in the file

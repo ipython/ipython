@@ -181,6 +181,7 @@ from __future__ import annotations
 import builtins as builtin_mod
 import enum
 import glob
+import importlib.util
 import inspect
 import itertools
 import keyword
@@ -198,8 +199,8 @@ from ast import literal_eval
 from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass
-from functools import cached_property, partial
-from types import SimpleNamespace
+from functools import cached_property, lru_cache, partial
+from types import ModuleType, SimpleNamespace
 from typing import (
     Union,
     Any,
@@ -253,14 +254,24 @@ else:
 __skip_doctest__ = True
 
 
-try:
+# jedi is expensive to import (it pulls in parso, which compiles grammars), so
+# only check for its presence here and import it lazily via `_get_jedi()` the
+# first time a completion actually needs it. This keeps `import IPython` fast.
+if TYPE_CHECKING:
     import jedi
-    jedi.settings.case_insensitive_completion = False
-    import jedi.api.helpers
+
+JEDI_INSTALLED = importlib.util.find_spec("jedi") is not None
+
+
+@lru_cache(maxsize=1)
+def _get_jedi() -> "ModuleType":
+    """Import, configure, and return the ``jedi`` module (cached)."""
+    import jedi
     import jedi.api.classes
-    JEDI_INSTALLED = True
-except ImportError:
-    JEDI_INSTALLED = False
+    import jedi.api.helpers
+
+    jedi.settings.case_insensitive_completion = False
+    return jedi
 
 
 # -----------------------------------------------------------------------------
@@ -292,6 +303,12 @@ _UNKNOWN_TYPE = "<unknown>"
 
 # sentinel value to signal lack of a match
 not_found = object()
+
+# Regexes compiled once at import time; some of these are used on every
+# completion request, so recompiling them per call would be wasteful.
+_SNAKE_CASE_RE = re.compile(r"[^_]+(_[^_]+)+?\Z")
+_LEADING_DASHES_RE = re.compile(r"^--", re.MULTILINE)
+_IDENTIFIER_END_RE = re.compile(r"\w+$")
 
 class ProvisionalCompleterWarning(FutureWarning):
     """
@@ -1173,12 +1190,11 @@ class Completer(Configurable):
                 if word[:n] == text and word != "__builtins__":
                     match_append(word)
 
-        snake_case_re = re.compile(r"[^_]+(_[^_]+)+?\Z")
         for lst in [list(self.namespace.keys()), list(self.global_namespace.keys())]:
             shortened = {
                 "_".join([sub[0] for sub in word.split("_")]): word
                 for word in lst
-                if snake_case_re.match(word)
+                if _SNAKE_CASE_RE.match(word)
             }
             for word in shortened.keys():
                 if word[:n] == text and word != "__builtins__":
@@ -2450,7 +2466,7 @@ class IPCompleter(Completer):
                 cls = classes[classnames.index(classname)].__class__
                 help = cls.class_get_help()
                 # strip leading '--' from cl-args:
-                help = re.sub(re.compile(r'^--', re.MULTILINE), '', help)
+                help = _LEADING_DASHES_RE.sub("", help)
                 return [ attr.split('=')[0]
                          for attr in help.strip().splitlines()
                          if attr.startswith(texts[1]) ]
@@ -2538,7 +2554,7 @@ class IPCompleter(Completer):
                 else:
                     raise ValueError(f"Don't understand self.omit__names == {self.omit__names}")
 
-        interpreter = jedi.Interpreter(text[:offset], namespaces)
+        interpreter = _get_jedi().Interpreter(text[:offset], namespaces)
         try_jedi = True
 
         try:
@@ -2939,7 +2955,7 @@ class IPCompleter(Completer):
             return []
         # 2. Concatenate dotted names ("foo.bar" for "foo.bar(x, pa" )
         ids = []
-        isId = re.compile(r'\w+$').match
+        isId = _IDENTIFIER_END_RE.match
 
         while True:
             try:
