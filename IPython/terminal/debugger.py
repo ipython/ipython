@@ -6,7 +6,6 @@ from IPython.core.debugger import Pdb
 from IPython.core.completer import IPCompleter
 from .ptutils import IPythonPTCompleter
 from .shortcuts import create_ipython_shortcuts
-from . import embed
 
 from pathlib import Path
 from pygments.token import Token
@@ -145,6 +144,10 @@ class TerminalPdb(Pdb):
         self.postloop()
 
     def do_interact(self, arg):
+        # Imported here to break the import cycle
+        # debugger -> embed -> interactiveshell -> debugger.
+        from . import embed
+
         ipshell = embed.InteractiveShellEmbed(
             config=self.shell.config,
             banner1="*interactive*",

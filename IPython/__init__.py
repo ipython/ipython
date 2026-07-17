@@ -28,6 +28,12 @@ from typing import Any
 #-----------------------------------------------------------------------------
 
 # Don't forget to also update setup.py when this changes!
+#
+# NOTE: these imports look like they could be made lazy (PEP 562) to speed up
+# `import IPython` considerably, but downstream projects (pyflyby at least)
+# rely on the transitive side effects: they do `import IPython` and then
+# access attribute chains like `IPython.terminal.ipapp.TerminalIPythonApp`,
+# which only resolve because the imports below load those submodules.
 from .core.getipython import get_ipython
 from .core import release
 from .core.application import Application
