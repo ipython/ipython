@@ -486,6 +486,7 @@ def test_link_twice(link_or_copy_src, tmp_path):
     assert os.stat(str(link_or_copy_src)).st_ino == os.stat(dst).st_ino
 
 
+@skip_win32  # setting $HOME doesn't move expanduser("~"), as in test_get_home_dir_3
 @with_environment
 def test_compress_user(tmp_path):
     """compress_user() only substitutes ~ on a path-component boundary."""
