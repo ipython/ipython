@@ -6,16 +6,17 @@
 from io import BytesIO
 from binascii import b2a_base64
 from functools import partial
-import warnings
 
 from IPython.core.display import _pngxy
 from IPython.utils.decorators import flag_calls
 
 
 # Matplotlib backend resolution functionality moved from IPython to Matplotlib
-# in IPython 8.24 and Matplotlib 3.9.0. Need to keep `backends` and `backend2gui`
-# here for earlier Matplotlib and for external backend libraries such as
-# mplcairo that might rely upon it.
+# in IPython 8.24 and Matplotlib 3.9.0. The dicts below are still needed by the
+# find_gui_and_backend fallback path for Matplotlib < 3.9, which can be removed
+# when Python 3.12 (the last version supported by Matplotlib < 3.9) reaches
+# end-of-life in late 2028. The public module-level `backends` and
+# `backend2gui` aliases were deprecated in IPython 8.24 and removed in 9.16.
 _deprecated_backends = {
     "tk": "TkAgg",
     "gtk": "GTKAgg",
@@ -68,18 +69,6 @@ del _deprecated_backend2gui["pdf"]
 del _deprecated_backend2gui["ps"]
 del _deprecated_backend2gui["module://matplotlib_inline.backend_inline"]
 del _deprecated_backend2gui["module://ipympl.backend_nbagg"]
-
-
-# Deprecated attributes backends and backend2gui mostly following PEP 562.
-def __getattr__(name):
-    if name in ("backends", "backend2gui"):
-        warnings.warn(
-            f"{name} is deprecated since IPython 8.24, backends are managed "
-            "in matplotlib and can be externally registered.",
-            DeprecationWarning,
-        )
-        return globals()[f"_deprecated_{name}"]
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 #-----------------------------------------------------------------------------
@@ -491,11 +480,7 @@ def _list_matplotlib_backends_and_gui_loops() -> list[str]:
             for gui in backend_registry.list_gui_frameworks()
         ]
     else:
-        # Self-import (rather than a bare `backends` reference) is required to
-        # go through the module's PEP 562 __getattr__ deprecation shim below.
-        from IPython.core import pylabtools  # noqa: PLW0406
-
-        ret = list(pylabtools.backends.keys())
+        ret = list(_deprecated_backends.keys())
 
     return sorted(["auto"] + ret)
 

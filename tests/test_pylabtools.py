@@ -320,7 +320,7 @@ def test_backend_module_name_case_sensitive(shell_pylab_fixture):
 
 @pytest.mark.parametrize("backend", ["agg", "svg", "pdf", "ps"])
 def test_no_gui_backends(backend):
-    assert backend not in pt.backend2gui
+    assert backend not in pt._deprecated_backend2gui
 
 
 def test_figure_no_canvas():

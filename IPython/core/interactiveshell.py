@@ -3283,12 +3283,21 @@ class InteractiveShell(SingletonConfigurable):
         ----------
         raw_cell : str
             The code to be executed
+        transformed_cell: str
+            cell that was passed through transformers. Required (keyword
+            only); run ``transform_cell`` yourself and pass the result here.
+        preprocessing_exc_tuple:
+            trace if the transformation failed.
 
         Returns
         -------
         result: bool
             Whether the code needs to be run with a coroutine runner or not
         .. versionadded:: 7.0
+
+        .. versionchanged:: 9.16
+            ``transformed_cell`` is now required; the deprecated fallback that
+            called ``transform_cell`` automatically has been removed.
         """
         if not self.autoawait:
             return False
@@ -3296,25 +3305,14 @@ class InteractiveShell(SingletonConfigurable):
             return False
         assert preprocessing_exc_tuple is None
         if transformed_cell is None:
-            warnings.warn(
-                "`should_run_async` will not call `transform_cell`"
-                " automatically in the future. Please pass the result to"
-                " `transformed_cell` argument and any exception that happen"
-                " during the"
-                "transform in `preprocessing_exc_tuple` in"
-                " IPython 7.17 and above.",
-                DeprecationWarning,
-                stacklevel=2,
+            raise TypeError(
+                "`should_run_async` no longer calls `transform_cell` "
+                "automatically (this was deprecated since IPython 7.17). "
+                "Pass the result of `transform_cell` via the "
+                "`transformed_cell` argument, and any exception that "
+                "happened during the transform via `preprocessing_exc_tuple`."
             )
-            try:
-                cell = self.transform_cell(raw_cell)
-            except Exception:
-                # any exception during transform will be raised
-                # prior to execution
-                return False
-        else:
-            cell = transformed_cell
-        return _should_be_async(cell)
+        return _should_be_async(transformed_cell)
 
     async def run_cell_async(
         self,
@@ -3347,7 +3345,8 @@ class InteractiveShell(SingletonConfigurable):
           any __future__ imports in the code will affect the shell. If False,
           __future__ imports are not shared in either direction.
         transformed_cell: str
-          cell that was passed through transformers
+          cell that was passed through transformers. Required (keyword only);
+          run ``transform_cell`` yourself and pass the result here.
         preprocessing_exc_tuple:
           trace if the transformation failed.
 
@@ -3356,7 +3355,19 @@ class InteractiveShell(SingletonConfigurable):
         result : :class:`ExecutionResult`
 
         .. versionadded:: 7.0
+
+        .. versionchanged:: 9.16
+            ``transformed_cell`` is now required; the deprecated fallback that
+            called ``transform_cell`` automatically has been removed.
         """
+        if transformed_cell is None:
+            raise TypeError(
+                "`run_cell_async` no longer calls `transform_cell` "
+                "automatically (this was deprecated since IPython 7.17). "
+                "Pass the result of `transform_cell` via the "
+                "`transformed_cell` argument, and any exception that "
+                "happened during the transform via `preprocessing_exc_tuple`."
+            )
         info = ExecutionInfo(
             raw_cell,
             store_history,
@@ -3397,33 +3408,10 @@ class InteractiveShell(SingletonConfigurable):
         if not silent:
             self.events.trigger('pre_run_cell', info)
 
-        if transformed_cell is None:
-            warnings.warn(
-                "`run_cell_async` will not call `transform_cell`"
-                " automatically in the future. Please pass the result to"
-                " `transformed_cell` argument and any exception that happen"
-                " during the"
-                "transform in `preprocessing_exc_tuple` in"
-                " IPython 7.17 and above.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            # If any of our input transformation (input_transformer_manager or
-            # prefilter_manager) raises an exception, we store it in this variable
-            # so that we can display the error after logging the input and storing
-            # it in the history.
-            try:
-                cell = self.transform_cell(raw_cell)
-            except Exception:
-                preprocessing_exc_tuple = sys.exc_info()
-                cell = raw_cell  # cell has to exist so it can be stored/logged
-            else:
-                preprocessing_exc_tuple = None
+        if preprocessing_exc_tuple is None:
+            cell = transformed_cell
         else:
-            if preprocessing_exc_tuple is None:
-                cell = transformed_cell
-            else:
-                cell = raw_cell
+            cell = raw_cell
 
         # Do NOT store paste/cpaste magic history
         if "get_ipython().run_line_magic(" in cell and "paste" in cell:
