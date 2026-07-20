@@ -522,7 +522,7 @@ def test_pinfo_docstring_dynamic(capsys):
         Docstring for prop
         '''
         return self._prop
-    
+
     @prop.setter
     def prop(self, v):
         self._prop = v

@@ -56,7 +56,7 @@ def strip_encoding_cookie(filelike: Iterable[str]) -> Generator[str]:
             yield second
     except StopIteration:
         return
-    
+
     yield from it
 
 def read_py_file(filename: str | Path, skip_encoding_cookie: bool = True) -> str:
@@ -100,7 +100,7 @@ def read_py_url(url: str, errors: str = 'replace', skip_encoding_cookie: bool = 
     A unicode string containing the contents of the file.
     """
     # Deferred import for faster start
-    from urllib.request import urlopen 
+    from urllib.request import urlopen
     response = urlopen(url)
     buffer = io.BytesIO(response.read())
     return source_to_unicode(buffer, errors, skip_encoding_cookie)

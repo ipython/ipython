@@ -87,7 +87,7 @@ def _restore_term_title_xterm():
         )
         return
 
-    sys.stdout.write('\033[23;0t') 
+    sys.stdout.write('\033[23;0t')
     _xterm_term_title_saved = False
 
 

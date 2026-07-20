@@ -63,8 +63,8 @@ reloaded (with `%reload_ext`). In cases where the user asks the extension to
 be reloaded, the extension will be unloaded (with
 `unload_ipython_extension`), and loaded again.
 
-Useful :class:`InteractiveShell` methods include :meth:`~IPython.core.interactiveshell.InteractiveShell.register_magic_function`, 
-:meth:`~IPython.core.interactiveshell.InteractiveShell.push` (to add variables to the user namespace) and 
+Useful :class:`InteractiveShell` methods include :meth:`~IPython.core.interactiveshell.InteractiveShell.register_magic_function`,
+:meth:`~IPython.core.interactiveshell.InteractiveShell.push` (to add variables to the user namespace) and
 :meth:`~IPython.core.interactiveshell.InteractiveShell.drop_by_id` (to remove variables on unloading).
 
 .. seealso::

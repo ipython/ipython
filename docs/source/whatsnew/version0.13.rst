@@ -114,13 +114,13 @@ can merge it for full production use as soon as possible.
 
 JavaScript refactoring
 ~~~~~~~~~~~~~~~~~~~~~~
-  
+
 All the client-side JavaScript has been decoupled to ease reuse of parts of the
 machinery without having to build a full-blown notebook. This will make it much
 easier to communicate with an IPython kernel from existing web pages and to
 integrate single cells into other sites, without loading the full notebook
 document-like UI. :ghpull:`1711`.
-    
+
 This refactoring also enables the possibility of writing dynamic javascript
 widgets that are returned from Python code and that present an interactive view
 to the user, with callbacks in Javascript executing calls to the Kernel.  This
@@ -131,7 +131,7 @@ An example of this capability has been provided as a proof of concept in
 parallel engines, acting as a mini-console for parallel debugging and
 introspection.
 
-    
+
 Improved tooltips
 ~~~~~~~~~~~~~~~~~
 
@@ -163,16 +163,16 @@ many bug fixes and minor changes to add polish and robustness throughout:
   example: ``ipython notebook path/`` will automatically set ``path/`` as the
   notebook directory, and ``ipython notebook path/foo.ipynb`` will further
   start with the ``foo.ipynb`` notebook opened.  :ghpull:`1686`.
-  
+
 * If a notebook directory is specified with ``--notebook-dir`` (or with the
   corresponding configuration flag ``NotebookManager.notebook_dir``), all
   kernels start in this directory.
 
 * Fix codemirror clearing of cells with ``Ctrl-Z``; :ghpull:`1965`.
-  
+
 * Text (markdown) cells now line wrap correctly in the notebook, making them
   much easier to edit :ghpull:`1330`.
-  
+
 * PNG and JPEG figures returned from plots can be interactively resized in the
   notebook, by dragging them from their lower left corner. :ghpull:`1832`.
 
@@ -189,12 +189,12 @@ many bug fixes and minor changes to add polish and robustness throughout:
 
 * Using ``Ctrl-S`` (or ``Cmd-S`` on a Mac) actually saves the notebook rather
   than providing the fairly useless browser html save dialog.  :ghpull:`1334`.
-  
+
 * Allow accessing local files from the notebook (in urls), by serving any local
   file as the url ``files/<relativepath>``.  This makes it possible to, for
   example, embed local images in a notebook.  :ghpull:`1211`.
 
-      
+
 Cell magics
 -----------
 
@@ -209,19 +209,19 @@ simple functions without the need for object orientation.  Please see the
 All builtin magics now exist in a few subclasses that group together related
 functionality, and the new :mod:`IPython.core.magics` package has been created
 to organize this into smaller files.
-    
+
 This cleanup was the last major piece of deep refactoring needed from the
 original 2001 codebase.
-    
+
 We have also introduced a new type of magic function, prefixed with `%%`
 instead of `%`, which operates at the whole-cell level.  A cell magic receives
 two arguments: the line it is called on (like a line magic) and the body of the
 cell below it.
-    
+
 Cell magics are most natural in the notebook, but they also work in the
 terminal and qt console, with the usual approach of using a blank line to
 signal cell termination.
-    
+
 For example, to time the execution of several statements::
 
     %%timeit x = 0   # setup
@@ -242,32 +242,32 @@ interpreter installed:
 
 * ``%%!``: run cell body with the underlying OS shell; this is similar to
   prefixing every line in the cell with ``!``.
-  
+
 * ``%%bash``: run cell body under bash.
-  
+
 * ``%%capture``: capture the output of the code in the cell (and stderr as
   well).  Useful to run codes that produce too much output that you don't even
   want scrolled.
-  
+
 * ``%%file``: save cell body as a file.
-  
+
 * ``%%perl``: run cell body using Perl.
-  
+
 * ``%%prun``: run cell body with profiler (cell extension of ``%prun``).
-  
+
 * ``%%python3``: run cell body using Python 3.
-  
+
 * ``%%ruby``: run cell body using Ruby.
-  
+
 * ``%%script``: run cell body with the script specified in the first line.
-  
+
 * ``%%sh``: run cell body using sh.
-  
+
 * ``%%sx``: run cell with system shell and capture process output (cell
   extension of ``%sx``).
-  
+
 * ``%%system``: run cell with system shell (``%%!`` is an alias to this).
-  
+
 * ``%%timeit``: time the execution of the cell (extension of ``%timeit``).
 
 This is what some of the script-related magics look like in action:
@@ -277,7 +277,7 @@ This is what some of the script-related magics look like in action:
     :alt: Cluster management from the notebook dashboard
     :align: center
     :target: ../_images/ipy_013_notebook_script_cells.png
-  
+
 In addition, we have also a number of :ref:`extensions <extensions_overview>`
 that provide specialized magics.  These typically require additional software
 to run and must be manually loaded via ``%load_ext <extension name>``, but are
@@ -359,7 +359,7 @@ or select a completion with the arrow keys (:ghpull:`1851`).
 
 In the notebook, completions are now sourced both from object introspection and
 analysis of surrounding code, so limited completions can be offered for
-variables defined in the current cell, or while the kernel is busy 
+variables defined in the current cell, or while the kernel is busy
 (:ghpull:`1711`).
 
 
@@ -390,13 +390,13 @@ polish has gone into it, here are a few highlights:
 
 * Allow for restarting kernels without clearing the qtconsole, while leaving a
   visible indication that the kernel has restarted. :ghpull:`1681`.
-  
+
 * Allow the native display of jpeg images in the qtconsole. :ghpull:`1643`.
 
 .. _spyder: https://code.google.com/p/spyderlib
 
 
-  
+
 Parallel
 --------
 
@@ -433,25 +433,25 @@ modes, and in cell mode finer control has been added about how to collate
 output from multiple engines. :ghpull:`1768`.
 
 There have also been incremental improvements to the SSH launchers:
-    
+
 * add to_send/fetch steps for moving connection files around.
-  
+
 * add SSHProxyEngineSetLauncher, for invoking to `ipcluster engines` on a
   remote host. This can be used to start a set of engines via PBS/SGE/MPI
   *remotely*.
-    
+
 This makes the SSHLauncher usable on machines without shared filesystems.
 
 A number of 'sugar' methods/properties were added to AsyncResult that are
 quite useful (:ghpull:`1548`) for everday work:
-    
+
     * ``ar.wall_time`` = received - submitted
     * ``ar.serial_time`` = sum of serial computation time
     * ``ar.elapsed`` = time since submission (wall_time if done)
     * ``ar.progress`` = (int) number of sub-tasks that have completed
     * ``len(ar)`` = # of tasks
     * ``ar.wait_interactive()``: prints progress
-    
+
 Added :meth:`.Client.spin_thread` / :meth:`~.Client.stop_spin_thread` for
 running spin in a background thread, to keep zmq queue clear.  This can be used
 to ensure that timing information is as accurate as possible (at the cost of
@@ -494,7 +494,7 @@ consequences:
     %%px
     %%R
     ... R code goes here
-  
+
 * It is possible to embed not only an interactive shell with the
   :func:`IPython.embed` call as always, but now you can also embed a *kernel*
   with :func:`IPython.embed_kernel()`.  Embedding an IPython kernel in an
@@ -509,7 +509,7 @@ In addition, having a single core object through our entire architecture also
 makes the project conceptually cleaner, easier to maintain and more robust.
 This took a lot of work to get in place, but we are thrilled to have this major
 piece of architecture finally where we'd always wanted it to be.
-  
+
 
 Official Public API
 -------------------
@@ -532,28 +532,28 @@ instructions to install them on Mac OSX.  This is a first draft of our icons,
 and we encourage contributions from users with graphic talent to improve them
 in the future.
 
-	  
+
 New top-level `locate` command
 ------------------------------
 
 Add `locate` entry points; these would be useful for quickly locating IPython
 directories and profiles from other (non-Python) applications. :ghpull:`1762`.
-    
+
 Examples::
-    
+
     $> ipython locate
     /Users/me/.ipython
-  
+
     $> ipython locate profile foo
     /Users/me/.ipython/profile_foo
-  
+
     $> ipython locate profile
     /Users/me/.ipython/profile_default
-  
+
     $> ipython locate profile dne
     [ProfileLocate] Profile u'dne' not found.
 
-	
+
 Other new features and improvements
 -----------------------------------
 
@@ -617,13 +617,13 @@ Other new features and improvements
 
 * ``clear_output`` improvements, which allow things like progress bars and other
   simple animations to work well in the notebook (:ghpull:`1563`):
-    
+
     * `clear_output()` clears the line, even in terminal IPython, the QtConsole
       and plain Python as well, by printing `\r` to streams.
-    
+
     * `clear_output()` avoids the flicker in the notebook by adding a delay,
       and firing immediately upon the next actual display message.
-    
+
     * `display_javascript` hides its `output_area` element, so using display to
       run a bunch of javascript doesn't result in ever-growing vertical space.
 
@@ -631,7 +631,7 @@ Other new features and improvements
   supplant proper installation (as users should do), it helps ad-hoc calling of
   IPython from inside a virtualenv. :ghpull:`1388`.
 
-  
+
 Major Bugs fixed
 ----------------
 

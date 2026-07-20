@@ -110,7 +110,7 @@ but fires for *all* executions, not just interactive ones.
    Module :mod:`IPython.core.hooks`
      The older 'hooks' system allows end users to customise some parts of
      IPython's behaviour.
-   
+
    :doc:`inputtransforms`
      By registering input transformers that don't change code, you can monitor
      what is being executed.

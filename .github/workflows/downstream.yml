@@ -67,7 +67,7 @@ jobs:
         pytest
     - name: Install sagemath-repl
       run: |
-        # Sept 2024, sage has been failing for a while, 
+        # Sept 2024, sage has been failing for a while,
         # Skipping.
         # cd ..
         # git clone --depth 1 https://github.com/sagemath/sage

@@ -101,7 +101,7 @@ series which is Python 3 only. It backports most of the new exposed API
 additions made in IPython 6.0 and 6.1 and avoid having to write conditional
 logics depending of the version of IPython.
 
-Please upgrade to pip 9 or greater before upgrading IPython. 
+Please upgrade to pip 9 or greater before upgrading IPython.
 Failing to do so on Python 2 may lead to a broken IPython install.
 
 Configurable TerminalInteractiveShell
@@ -160,10 +160,10 @@ Miscs
 * ``_mp_main_`` is not reloaded which fixes issues with multiprocessing.
   :ghpull:`10523`
 * Use user colorscheme in Pdb as well :ghpull:`10479`
-* Faster shutdown. :ghpull:`10408` 
+* Faster shutdown. :ghpull:`10408`
 * Fix a crash in reverse search. :ghpull:`10371`
 * added ``Completer.backslash_combining_completions`` boolean option to
-  deactivate backslash-tab completion that may conflict with windows path. 
+  deactivate backslash-tab completion that may conflict with windows path.
 
 IPython 5.3
 ===========

@@ -604,7 +604,7 @@ async def test_llm_autosuggestion_cancellation_and_error_handling():
     # Use patch.dict to mock the modules during this test
     with patch.dict(sys.modules, modules_to_patch):
         provider = NavigableAutoSuggestFromHistory()
-        
+
         # Test default prefixer is empty string
         assert provider._llm_prefixer(None) == ""
 

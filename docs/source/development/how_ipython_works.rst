@@ -59,6 +59,5 @@ likely to be better maintained by the community using them, like
 .. seealso::
 
    :ref:`jupyterclient:kernels`
-   
-   :doc:`wrapperkernels`
 
+   :doc:`wrapperkernels`

@@ -14,7 +14,7 @@ Fernando Perez began IPython in 2001 based on code from Janko Hauser
 the project lead.
 
 The IPython Development Team is the set of all contributors to the IPython
-project.  This includes all of the IPython subprojects. 
+project.  This includes all of the IPython subprojects.
 
 The core team that coordinates development on GitHub can be found here:
 https://github.com/ipython/.
@@ -32,7 +32,7 @@ changes/contributions they have specific copyright on, they should indicate
 their copyright in the commit message of the change, when they commit the
 change to one of the IPython repositories.
 
-With this in mind, the following banner should be used in any source code file 
+With this in mind, the following banner should be used in any source code file
 to indicate the copyright and license terms:
 
 ::

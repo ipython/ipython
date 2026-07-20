@@ -9,4 +9,3 @@ About IPython
 
    history
    license_and_copyright
-

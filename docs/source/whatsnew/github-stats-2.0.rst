@@ -26,7 +26,7 @@ The following 7 authors contributed 35 commits.
 * Thomas Kluyver
 
 We closed 10 issues and merged 6 pull requests;
-this is the full list (generated with the script 
+this is the full list (generated with the script
 :file:`tools/github_stats.py`):
 
 Pull Requests (10):
@@ -45,7 +45,7 @@ Pull Requests (10):
 Issues (6):
 
 * :ghissue:`7272`: qtconsole problems with pygments
-* :ghissue:`7049`: Cause TypeError: 'NoneType' object is not callable in qtconsole 
+* :ghissue:`7049`: Cause TypeError: 'NoneType' object is not callable in qtconsole
 * :ghissue:`6877`: Qt console doesn't work with pygments 2.0rc1
 * :ghissue:`6689`: Problem with string containing two or more question marks
 * :ghissue:`6702`: Cell numbering after ``ClearOutput`` preprocessor
@@ -83,7 +83,7 @@ The following 6 authors contributed 31 commits.
 * Thomas Kluyver
 
 We closed 16 issues and merged 9 pull requests;
-this is the full list (generated with the script 
+this is the full list (generated with the script
 :file:`tools/github_stats.py`):
 
 Pull Requests (16):
@@ -141,7 +141,7 @@ The following 13 authors contributed 36 commits.
 * Zahari
 
 We closed 23 issues and merged 11 pull requests;
-this is the full list (generated with the script 
+this is the full list (generated with the script
 :file:`tools/github_stats.py`):
 
 Pull Requests (23):
@@ -230,7 +230,7 @@ The following 35 authors contributed 145 commits.
 * zah
 
 We closed a total of 129 issues, 92 pull requests and 37 regular issues;
-this is the full list (generated with the script 
+this is the full list (generated with the script
 :file:`tools/github_stats.py --milestone 2.1`):
 
 Pull Requests (92):
@@ -355,12 +355,12 @@ Issues (37):
 * :ghissue:`5566`: Function name printing should use ``__qualname__`` instead of ``__name__`` (Python 3)
 * :ghissue:`5676`: "bookmark -l" not working in ipython 2.0
 * :ghissue:`5555`: Differentiate more clearly between Notebooks and Folders in new UI
-* :ghissue:`5590`: Marked double escape 
+* :ghissue:`5590`: Marked double escape
 * :ghissue:`5514`: import tab-complete fail with ipython 2.0 shell
 * :ghissue:`4012`: Notebook: link to markdown formatting reference
 * :ghissue:`5611`: Typo in 'storemagic' documentation
 * :ghissue:`5589`: Kernel start fails when using --browser argument
-* :ghissue:`5491`: Bug in Windows ipconfig ip address regular expression  
+* :ghissue:`5491`: Bug in Windows ipconfig ip address regular expression
 * :ghissue:`5579`: rmagic extension throws 'Error while parsing the string.' when last line is comment
 * :ghissue:`5518`: Ipython2 will not open ipynb in example directory
 * :ghissue:`5561`: New widget documentation has missing notebook link
@@ -476,7 +476,7 @@ The following 94 authors contributed 3949 commits.
 
 
 We closed a total of 1121 issues, 687 pull requests and 434 regular issues;
-this is the full list (generated with the script 
+this is the full list (generated with the script
 :file:`tools/github_stats.py`):
 
 Pull Requests (687):
@@ -1020,7 +1020,7 @@ Pull Requests (687):
 * :ghpull:`4318`: fix initial sys.path
 * :ghpull:`4315`: Explicitly state what version of Pandoc is supported in docs/install
 * :ghpull:`4316`: underscore missing on notebook_p4
-* :ghpull:`4295`: Implement boundary option for load magic (#1093) 
+* :ghpull:`4295`: Implement boundary option for load magic (#1093)
 * :ghpull:`4300`: traits defauts are strings not object
 * :ghpull:`4297`: Remove an unreachable return statement.
 * :ghpull:`4260`: Use subprocess for system_raw
@@ -1285,7 +1285,7 @@ Issues (434):
 * :ghissue:`5160`: TemporaryWorkingDirectory incompatible with python3.4
 * :ghissue:`5140`: WIP: %kernels magic
 * :ghissue:`4987`: Widget lifecycle problems
-* :ghissue:`5129`: UCS package break latex export on non-ascii 
+* :ghissue:`5129`: UCS package break latex export on non-ascii
 * :ghissue:`4986`: Cell horizontal scrollbar is missing in FF but not in Chrome
 * :ghissue:`4685`: nbconvert ignores image size metadata
 * :ghissue:`5155`: Notebook logout button does not work (source typo)
@@ -1356,7 +1356,7 @@ Issues (434):
 * :ghissue:`4972`: Work around problem in doctest discovery in Python 3.4 with PyQt
 * :ghissue:`4892`: IPython.qt test failure with python3.4
 * :ghissue:`4863`: BUG: cannot create an OBJECT array from memory buffer
-* :ghissue:`4704`: Subcommand `profile` ignores --ipython-dir 
+* :ghissue:`4704`: Subcommand `profile` ignores --ipython-dir
 * :ghissue:`4845`: Add Origin Checking.
 * :ghissue:`4870`: ipython_directive, report except/warn in block and add :okexcept: :okwarning: options to suppress
 * :ghissue:`4956`: Shift-Enter does not move to next cell
@@ -1390,7 +1390,7 @@ Issues (434):
 * :ghissue:`4907`: Test for traceback depth fails on Windows
 * :ghissue:`4906`: Test for IPython.embed() fails on Windows
 * :ghissue:`4912`: Skip some Windows io failures
-* :ghissue:`3700`: stdout/stderr should be flushed printing exception output... 
+* :ghissue:`3700`: stdout/stderr should be flushed printing exception output...
 * :ghissue:`1181`: greedy completer bug in terminal console
 * :ghissue:`2032`: check for a few places we should be using DEFAULT_ENCODING
 * :ghissue:`4882`: Too many files open when starting and stopping kernel repeatedly
@@ -1440,7 +1440,7 @@ Issues (434):
 * :ghissue:`4732`: Accents in notebook names and in command-line (nbconvert)
 * :ghissue:`4752`: link broken in docs/examples
 * :ghissue:`4835`: running ipython on python files adds an extra traceback frame
-* :ghissue:`4792`: repr_html exception warning on qtconsole with pandas  #4745 
+* :ghissue:`4792`: repr_html exception warning on qtconsole with pandas  #4745
 * :ghissue:`4834`: function tooltip issues
 * :ghissue:`4808`: Docstrings in Notebook not displayed properly and introspection
 * :ghissue:`4846`: Remove some leftover traces of irunner
@@ -1466,7 +1466,7 @@ Issues (434):
 * :ghissue:`4717`: hang in parallel.Client when using SSHAgent
 * :ghissue:`4544`: Clarify the requirement for pyreadline on Windows
 * :ghissue:`3451`: revisit REST /new handler to avoid systematic crawling.
-* :ghissue:`2922`: File => Save as '.py' saves magic as code 
+* :ghissue:`2922`: File => Save as '.py' saves magic as code
 * :ghissue:`4728`: Copy/Paste stripping broken in version > 0.13.x in QTConsole
 * :ghissue:`4539`: Nbconvert: Latex to PDF conversion fails on notebooks with accented letters
 * :ghissue:`4721`: purge_results with jobid crashing - looking for insight
@@ -1476,7 +1476,7 @@ Issues (434):
 * :ghissue:`1680`: qtconsole should support --no-banner and custom banner
 * :ghissue:`4689`: IOStream IP address configurable
 * :ghissue:`4698`: Missing "if __name__ == '__main__':" check in /usr/bin/ipython
-* :ghissue:`4191`: NBConvert: markdown inline and locally referenced files have incorrect file location for latex 
+* :ghissue:`4191`: NBConvert: markdown inline and locally referenced files have incorrect file location for latex
 * :ghissue:`2865`: %%!? does not display the shell execute docstring
 * :ghissue:`1551`: Notebook should be saved before printing
 * :ghissue:`4612`: remove `Configurable.created` ?
@@ -1501,13 +1501,13 @@ Issues (434):
 * :ghissue:`3043`: can't restart pdb session in ipython
 * :ghissue:`4524`: Fix bug with non ascii passwords in notebook login
 * :ghissue:`1866`: problems rendering an SVG?
-* :ghissue:`4520`: unicode error when trying Audio('data/Bach Cello Suite #3.wav') 
+* :ghissue:`4520`: unicode error when trying Audio('data/Bach Cello Suite #3.wav')
 * :ghissue:`4493`: Qtconsole cannot print an ISO8601 date at nanosecond precision
-* :ghissue:`4502`: intermittent parallel test failure test_purge_everything 
+* :ghissue:`4502`: intermittent parallel test failure test_purge_everything
 * :ghissue:`4495`: firefox 25.0: notebooks report "Notebook save failed", .py script save fails, but .ipynb save succeeds
 * :ghissue:`4245`: nbconvert latex: code highlighting causes error
 * :ghissue:`4486`: Test for whether inside virtualenv does not work if directory is symlinked
-* :ghissue:`4485`: Incorrect info in "Messaging in IPython" documentation. 
+* :ghissue:`4485`: Incorrect info in "Messaging in IPython" documentation.
 * :ghissue:`4447`: Ipcontroller broken in current HEAD on windows
 * :ghissue:`4241`: Audio display object
 * :ghissue:`4463`: Error on empty c.Session.key
@@ -1521,7 +1521,7 @@ Issues (434):
 * :ghissue:`4388`: Make writing configurable magics easier
 * :ghissue:`852`: Notebook should be saved before downloading
 * :ghissue:`3708`: ipython profile locate should also work
-* :ghissue:`1349`: `?` may generate hundreds of cell 
+* :ghissue:`1349`: `?` may generate hundreds of cell
 * :ghissue:`4381`: Using hasattr for trait_names instead of just looking for it directly/using __dir__?
 * :ghissue:`4361`: Crash Ultratraceback/ session history
 * :ghissue:`3044`: IPython notebook autocomplete for filename string converts multiple spaces to a single space
@@ -1552,13 +1552,13 @@ Issues (434):
 * :ghissue:`3866`: Vertical offsets in LaTeX output for nbconvert
 * :ghissue:`3631`: xkcd mode for the IPython notebook
 * :ghissue:`4243`: Test exclusions not working on Windows
-* :ghissue:`4256`: IPython no longer handles unicode file names 
+* :ghissue:`4256`: IPython no longer handles unicode file names
 * :ghissue:`3656`: Audio displayobject
 * :ghissue:`4223`: Double output on Ctrl-enter-enter
-* :ghissue:`4184`: nbconvert: use r pygmentize backend when highlighting "%%R" cells 
+* :ghissue:`4184`: nbconvert: use r pygmentize backend when highlighting "%%R" cells
 * :ghissue:`3851`: Adds an explicit newline for pretty-printing.
 * :ghissue:`3622`: Drop fakemodule
-* :ghissue:`4122`: Nbconvert [windows]: Inconsistent line endings in markdown cells exported to latex 
+* :ghissue:`4122`: Nbconvert [windows]: Inconsistent line endings in markdown cells exported to latex
 * :ghissue:`3819`: nbconvert add extra blank line to code block on Windows.
 * :ghissue:`4203`: remove spurious print statement from parallel annoted functions
 * :ghissue:`4200`: Notebook: merging a heading cell and markdown cell cannot be undone
@@ -1566,10 +1566,10 @@ Issues (434):
 * :ghissue:`4024`: nbconvert markdown issues
 * :ghissue:`3903`: on Windows, 'ipython3 nbconvert "C:/blabla/first_try.ipynb" --to slides' gives an unexpected result, and '--post serve' fails
 * :ghissue:`4095`: Catch js error in append html in stream/pyerr
-* :ghissue:`1880`: Add parallelism to test_pr 
+* :ghissue:`1880`: Add parallelism to test_pr
 * :ghissue:`4085`: nbconvert: Fix sphinx preprocessor date format string for Windows
 * :ghissue:`4156`: Specifying --gui=tk at the command line
-* :ghissue:`4146`: Having to prepend 'files/' to markdown image paths is confusing 
+* :ghissue:`4146`: Having to prepend 'files/' to markdown image paths is confusing
 * :ghissue:`3818`: nbconvert can't handle Heading with Chinese characters on Japanese Windows OS.
 * :ghissue:`4134`: multi-line parser fails on ''' in comment, qtconsole and notebook.
 * :ghissue:`3998`: sample custom.js needs to be updated
@@ -1597,7 +1597,7 @@ Issues (434):
 * :ghissue:`3937`: make tab visible in codemirror and light red background
 * :ghissue:`3935`: No feedback for mixed tabs and spaces
 * :ghissue:`3933`: nbconvert: Post-processor tests
-* :ghissue:`3977`: unable to complete remote connections for two-process 
+* :ghissue:`3977`: unable to complete remote connections for two-process
 * :ghissue:`3939`: minor checkpoint cleanup
 * :ghissue:`3955`: complete on % for magic in notebook
 * :ghissue:`3954`: all magics should be listed when completing on %

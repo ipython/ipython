@@ -22,7 +22,7 @@ IPython 6.4.0
 Everything new in :ref:`IPython 5.7 <whatsnew570>`
 
 * Fix display object not emitting metadata :ghpull:`11106`
-* Comments failing Jedi test :ghpull:`11110` 
+* Comments failing Jedi test :ghpull:`11110`
 
 
 .. _whatsnew631:
@@ -199,7 +199,7 @@ You should be able to update by using:
 .. note::
 
     If your pip version is greater than or equal to pip 9.0.1 you will automatically get
-    the most recent version of IPython compatible with your system: on Python 2 you 
+    the most recent version of IPython compatible with your system: on Python 2 you
     will get the latest IPython 5.x bugfix, while in Python 3
     you will get the latest 6.x stable version.
 
@@ -244,7 +244,7 @@ Extra patches and updates will be needed to the :mod:`ipykernel` package for
 this feature to be available to other clients like Jupyter Notebook, Lab,
 Nteract, Hydrogen...
 
-The use of Jedi should be barely noticeable on recent machines, but 
+The use of Jedi should be barely noticeable on recent machines, but
 can be slower on older ones.  To tweak the performance, the amount
 of time given to Jedi to compute type inference can be adjusted with
 ``c.IPCompleter.jedi_compute_type_timeout``. The objects whose type were not
@@ -280,7 +280,7 @@ of advantages. Most of the newly written code make use of `optional function typ
 annotation <https://peps.python.org/pep-0484/>`_ leading to clearer code
 and better documentation.
 
-The total size of the repository has also decreased by about 1500 lines (for the 
+The total size of the repository has also decreased by about 1500 lines (for the
 first time excluding the big split for 4.0). The decrease is potentially
 a bit more for the sour as some documents like this one are append only and
 are about 300 lines long.

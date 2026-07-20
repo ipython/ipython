@@ -38,19 +38,19 @@ amongst others:
    tries to be a very efficient environment both for Python code development
    and for exploration of problems using Python objects (in situations like
    data analysis).
-  
+
 2. Serve as an embeddable, ready to use interpreter for your own
    programs. An interactive IPython shell can be started with a single call
    from inside another program, providing access to the current namespace.
    This can be very useful both for debugging purposes and for situations
    where a blend of batch-processing and interactive exploration are needed.
-  
+
 3. Offer a flexible framework which can be used as the base
    environment for working with other systems, with Python as the underlying
    bridge language. Specifically scientific environments like Mathematica,
    IDL and Matlab inspired its design, but similar ideas can be
    useful in many fields.
-  
+
 4. Allow interactive testing of threaded graphical toolkits. IPython
    has support for interactive, non-blocking control of GTK, Qt, WX, GLUT, and
    OS X applications via special threading flags. The normal Python
@@ -63,7 +63,7 @@ Main features of the interactive shell
   definition prototypes, source code, source files and other details
   of any object accessible to the interpreter with a single
   keystroke (:samp:`?`, and using :samp:`??` provides additional detail).
-  
+
 * Searching through modules and namespaces with :samp:`*` wildcards, both
   when using the :samp:`?` system and via the :samp:`%psearch` command.
 
@@ -85,7 +85,7 @@ Main features of the interactive shell
 * Alias facility for defining your own system aliases.
 
 * Complete system shell access. Lines starting with :samp:`!` are passed
-  directly to the system shell, and using :samp:`!!` or :samp:`var = !cmd` 
+  directly to the system shell, and using :samp:`!!` or :samp:`var = !cmd`
   captures shell output into python variables for further use.
 
 * The ability to expand python variables when calling the system shell. In a
@@ -167,7 +167,7 @@ Main features of the interactive shell
 * Simple timing information. You can use the :samp:`%timeit` command to get
   the execution time of a Python statement or expression. This machinery is
   intelligent enough to do more repetitions for commands that finish very
-  quickly in order to get a better estimate of their running time. 
+  quickly in order to get a better estimate of their running time.
 
   .. sourcecode:: ipython
 
@@ -177,7 +177,7 @@ Main features of the interactive shell
     In [2]: %timeit [math.sin(x) for x in range(5000)]
     608 µs ± 5.57 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
 
-  .. 
+  ..
 
   To get the timing information for more than one expression, use the
   :samp:`%%timeit` cell magic command.

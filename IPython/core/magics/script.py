@@ -75,7 +75,7 @@ class RaiseAfterInterrupt(Exception):
 @magics_class
 class ScriptMagics(Magics):
     """Magics for talking to scripts
-    
+
     This defines a base `%%script` cell magic for running a cell
     with a program in a subprocess, and registers a few top-level
     magics that call %%script with common interpreters.
@@ -93,9 +93,9 @@ class ScriptMagics(Magics):
 
     script_magics: List = List(
         help="""Extra script cell magics to define
-        
+
         This generates simple wrappers of `%%script foo` as `%%foo`.
-        
+
         If you want to add script magics that aren't on your path,
         specify them in script_paths
         """,
@@ -104,7 +104,7 @@ class ScriptMagics(Magics):
     @default('script_magics')
     def _script_magics_default(self):
         """default to a common list of programs"""
-        
+
         defaults = [
             'sh',
             'bash',
@@ -119,17 +119,17 @@ class ScriptMagics(Magics):
             defaults.extend([
                 'cmd',
             ])
-        
+
         return defaults
-    
+
     script_paths = Dict(
         help="""Dict mapping short 'ruby' names to full paths, such as '/opt/secret/bin/ruby'
-        
+
         Only necessary for items in script_magics where the default path will not
         find the right interpreter.
         """
     ).tag(config=True)
-    
+
     def __init__(self, shell=None):
         super().__init__(shell=shell)
         self._generate_script_magics()
@@ -138,17 +138,17 @@ class ScriptMagics(Magics):
 
     def __del__(self):
         self.kill_bg_processes()
-    
+
     def _generate_script_magics(self):
         cell_magics = self.magics['cell']
         for name in self.script_magics:
             cell_magics[name] = self._make_script_magic(name)
-    
+
     def _make_script_magic(self, name):
         """make a named magic, that calls %%script with a particular program"""
         # expand to explicit path if necessary:
         script = self.script_paths.get(name, name)
-        
+
         @magic_arguments.magic_arguments()
         @script_args
         def named_script_magic(line, cell):
@@ -158,18 +158,18 @@ class ScriptMagics(Magics):
             else:
                 line = script
             return self.shebang(line, cell)
-        
+
         # write a basic docstring:
         named_script_magic.__doc__ = \
         f"""%%{name} script magic
-        
+
         Run cells with {script} in a subprocess.
-        
+
         This is a shortcut for `%%script {script}`
         """
-        
+
         return named_script_magic
-    
+
     @magic_arguments.magic_arguments()
     @script_args
     @cell_magic("script")

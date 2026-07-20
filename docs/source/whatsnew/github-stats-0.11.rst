@@ -282,7 +282,7 @@ Regular issues (285):
 * `371 <https://github.com/ipython/ipython/issues/371>`_: segfault in qtconsole when kernel quits
 * `377 <https://github.com/ipython/ipython/issues/377>`_: Failure: error (nothing to repeat)
 * `544 <https://github.com/ipython/ipython/issues/544>`_: Ipython qtconsole pylab config issue.
-* `543 <https://github.com/ipython/ipython/issues/543>`_: RuntimeError in completer 
+* `543 <https://github.com/ipython/ipython/issues/543>`_: RuntimeError in completer
 * `440 <https://github.com/ipython/ipython/issues/440>`_: %run filename autocompletion "The kernel heartbeat has been inactive ... " error
 * `541 <https://github.com/ipython/ipython/issues/541>`_: log_level is broken in the  ipython Application
 * `369 <https://github.com/ipython/ipython/issues/369>`_: windows source install doesn't create scripts correctly
@@ -384,7 +384,7 @@ Regular issues (285):
 * `326 <https://github.com/ipython/ipython/issues/326>`_: Update docs and examples for parallel stuff to reflect movement away from Twisted
 * `341 <https://github.com/ipython/ipython/issues/341>`_: FIx Parallel Magics for newparallel
 * `338 <https://github.com/ipython/ipython/issues/338>`_: Usability improvements to Qt console
-* `142 <https://github.com/ipython/ipython/issues/142>`_: unexpected auto-indenting when variables names that start with 'pass' 
+* `142 <https://github.com/ipython/ipython/issues/142>`_: unexpected auto-indenting when variables names that start with 'pass'
 * `296 <https://github.com/ipython/ipython/issues/296>`_: Automatic PDB via %pdb doesn't work
 * `337 <https://github.com/ipython/ipython/issues/337>`_: exit( and quit( in Qt console produces phantom signature/docstring popup, even though quit() or exit() raises NameError
 * `318 <https://github.com/ipython/ipython/issues/318>`_: %debug broken in master: invokes missing save_history() method
@@ -399,7 +399,7 @@ Regular issues (285):
 * `328 <https://github.com/ipython/ipython/issues/328>`_: %run script.ipy raises "ERROR! Session/line number was not unique in database."
 * `7 <https://github.com/ipython/ipython/issues/7>`_: Update the changes doc to reflect the kernel config work
 * `303 <https://github.com/ipython/ipython/issues/303>`_: Users should be able to scroll a notebook w/o moving the menu/buttons
-* `322 <https://github.com/ipython/ipython/issues/322>`_: Embedding an interactive IPython shell 
+* `322 <https://github.com/ipython/ipython/issues/322>`_: Embedding an interactive IPython shell
 * `321 <https://github.com/ipython/ipython/issues/321>`_: %debug broken in master
 * `287 <https://github.com/ipython/ipython/issues/287>`_: Crash when using %macros in sqlite-history branch
 * `55 <https://github.com/ipython/ipython/issues/55>`_: Can't edit files whose names begin with numbers
@@ -470,7 +470,7 @@ Regular issues (285):
 * `140 <https://github.com/ipython/ipython/issues/140>`_: malloc error during tab completion of numpy array member functions starting with 'c'
 * `153 <https://github.com/ipython/ipython/issues/153>`_: ipy_vimserver traceback on Windows
 * `154 <https://github.com/ipython/ipython/issues/154>`_: using ipython in Slicer3 show how os.environ['HOME'] is not defined
-* `185 <https://github.com/ipython/ipython/issues/185>`_: show() blocks in pylab mode with ipython 0.10.1 
+* `185 <https://github.com/ipython/ipython/issues/185>`_: show() blocks in pylab mode with ipython 0.10.1
 * `189 <https://github.com/ipython/ipython/issues/189>`_: Crash on tab completion
 * `274 <https://github.com/ipython/ipython/issues/274>`_: bashism in sshx.sh
 * `276 <https://github.com/ipython/ipython/issues/276>`_: Calling `sip.setapi` does not work if app has already imported from PyQt4
@@ -492,8 +492,8 @@ Regular issues (285):
 * `45 <https://github.com/ipython/ipython/issues/45>`_: Autosave history for robustness
 * `162 <https://github.com/ipython/ipython/issues/162>`_: make command history persist in ipythonqt
 * `161 <https://github.com/ipython/ipython/issues/161>`_: make ipythonqt exit without dialog when exit() is called
-* `263 <https://github.com/ipython/ipython/issues/263>`_: [ipython + numpy] Some test errors 
-* `256 <https://github.com/ipython/ipython/issues/256>`_: reset docstring ipython 0.10 
+* `263 <https://github.com/ipython/ipython/issues/263>`_: [ipython + numpy] Some test errors
+* `256 <https://github.com/ipython/ipython/issues/256>`_: reset docstring ipython 0.10
 * `258 <https://github.com/ipython/ipython/issues/258>`_: allow caching to avoid matplotlib object references
 * `248 <https://github.com/ipython/ipython/issues/248>`_: Can't open and read files after upgrade from 0.10 to 0.10.0
 * `247 <https://github.com/ipython/ipython/issues/247>`_: ipython + Stackless

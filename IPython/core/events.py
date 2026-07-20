@@ -28,10 +28,10 @@ if TYPE_CHECKING:
 
 class EventManager:
     """Manage a collection of events and a sequence of callbacks for each.
-    
+
     This is attached to :class:`~IPython.core.interactiveshell.InteractiveShell`
     instances as an ``events`` attribute.
-    
+
     .. note::
 
        This API is experimental in IPython 2.0, and may be revised in future versions.
@@ -59,7 +59,7 @@ class EventManager:
             n: [] for n in available_events
         }
         self.print_on_error = print_on_error
-    
+
     def register(self, event: str, function: Callable[..., Any]) -> None:
         """Register a new event callback.
 
@@ -82,7 +82,7 @@ class EventManager:
             raise TypeError('Need a callable, got %r' % function)
         if function not in self.callbacks[event]:
             self.callbacks[event].append(function)
-    
+
     def unregister(self, event: str, function: Callable[..., Any]) -> None:
         """Remove a callback from the given event."""
         if function in self.callbacks[event]:

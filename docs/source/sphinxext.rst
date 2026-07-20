@@ -519,4 +519,3 @@ Automatically generated documentation
 =====================================
 
 .. automodule:: IPython.sphinxext.ipython_directive
-
