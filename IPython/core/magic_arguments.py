@@ -169,7 +169,7 @@ class MagicArgumentParser(argparse.ArgumentParser):
     def parse_argstring(self, argstring, *, partial=False):
         """ Split a string into an argument list and parse that argument list.
         """
-        replacements = {}
+        replacements: dict[str, str] = {}
 
         def replace_quoted_value(match):
             action = self._option_string_actions.get(match.group("option"))
