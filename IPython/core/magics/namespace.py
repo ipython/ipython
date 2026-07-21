@@ -216,7 +216,7 @@ class NamespaceMagics(Magics):
         opt = opts.get
         shell = self.shell
         psearch = shell.inspector.psearch
-        
+
         # select list object types
         list_types = False
         if 'l' in opts:

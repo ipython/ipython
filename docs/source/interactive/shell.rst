@@ -211,4 +211,3 @@ provide a convenient ways to use contained text in different formats:
 
    You went too far scroll back up. You most likely want to use
    `Xonsh <https://xon.sh/>`__ instead of this.
-

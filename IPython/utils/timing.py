@@ -76,7 +76,7 @@ else:
         This just returns process_time() and zero."""
         return time.process_time(), 0.0
 
-    
+
 def timings_out(
     reps: int,
     func: Callable[..., Any],
@@ -133,4 +133,3 @@ def timing(func: Callable[..., Any], *args: Any, **kw: Any) -> float:
     seconds. This is just the first value in timings_out()."""
 
     return timings_out(1,func,*args,**kw)[0]
-

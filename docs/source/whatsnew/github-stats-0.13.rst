@@ -78,7 +78,7 @@ The following 62 authors contributed 1760 commits.
 
 
 We closed a total of 1115 issues, 373 pull requests and 742 regular issues;
-this is the full list (generated with the script 
+this is the full list (generated with the script
 :file:`tools/github_stats.py`):
 
 Pull Requests (373):
@@ -149,7 +149,7 @@ Pull Requests (373):
 * :ghpull:`1937`: add %save -f
 * :ghpull:`1935`: add version checking to pyreadline import test
 * :ghpull:`1849`: Octave magics
-* :ghpull:`1759`: github, merge PR(s) just by number(s) 
+* :ghpull:`1759`: github, merge PR(s) just by number(s)
 * :ghpull:`1931`: Win py3fixes
 * :ghpull:`1933`: oinspect.find_file: Additional safety if file cannot be found.
 * :ghpull:`1932`: Fix adding functions to CommandChainDispatcher with equal priority on Py 3
@@ -294,7 +294,7 @@ Pull Requests (373):
 * :ghpull:`1643`: handle jpg/jpeg in the qtconsole
 * :ghpull:`1652`: add patch_pyzmq() for backporting a few changes from newer pyzmq
 * :ghpull:`1650`: DOC: moving files with SSH launchers
-* :ghpull:`1357`: add IPython.embed_kernel() 
+* :ghpull:`1357`: add IPython.embed_kernel()
 * :ghpull:`1640`: Finish up embed_kernel
 * :ghpull:`1651`: Remove bundled Itpl module
 * :ghpull:`1634`: incremental improvements to SSH launchers
@@ -492,7 +492,7 @@ Issues (742):
 * :ghissue:`2033`: ipython parallel pushing and pulling recarrays
 * :ghissue:`2034`: fix&test push/pull recarrays
 * :ghissue:`2028`: Reduce unhelpful information shown by pinfo
-* :ghissue:`1992`: Tab completion fails with many spaces in filename 
+* :ghissue:`1992`: Tab completion fails with many spaces in filename
 * :ghissue:`1885`: handle too old wx
 * :ghissue:`2030`: check wxPython version in inputhook
 * :ghissue:`2024`: Make interactive_usage a bit more rst friendly
@@ -588,7 +588,7 @@ Issues (742):
 * :ghissue:`1572`: pyreadline version dependency not correctly checked
 * :ghissue:`1935`: add version checking to pyreadline import test
 * :ghissue:`1849`: Octave magics
-* :ghissue:`1759`: github, merge PR(s) just by number(s) 
+* :ghissue:`1759`: github, merge PR(s) just by number(s)
 * :ghissue:`1931`: Win py3fixes
 * :ghissue:`1646`: Meaning of restart parameter in client.shutdown() unclear
 * :ghissue:`1933`: oinspect.find_file: Additional safety if file cannot be found.
@@ -729,7 +729,7 @@ Issues (742):
 * :ghissue:`1062`: warning message in IPython.extensions test
 * :ghissue:`1807`: add missing cython exclusion in iptest
 * :ghissue:`1805`: Fixed a vcvarsall.bat error on win32/Py2.7 when trying to compile with m...
-* :ghissue:`1803`: MPI parallel %px bug 
+* :ghissue:`1803`: MPI parallel %px bug
 * :ghissue:`1804`: Fixed a vcvarsall.bat error on win32/Py2.7 when trying to compile with mingw.
 * :ghissue:`1492`: Drag target very small if IPython Dashboard has no notebooks
 * :ghissue:`1562`: Offer a method other than drag-n-drop to upload notebooks
@@ -862,7 +862,7 @@ Issues (742):
 * :ghissue:`1520`: kernel crash when showing tooltip (?)
 * :ghissue:`1652`: add patch_pyzmq() for backporting a few changes from newer pyzmq
 * :ghissue:`1650`: DOC: moving files with SSH launchers
-* :ghissue:`1357`: add IPython.embed_kernel() 
+* :ghissue:`1357`: add IPython.embed_kernel()
 * :ghissue:`1640`: Finish up embed_kernel
 * :ghissue:`1651`: Remove bundled Itpl module
 * :ghissue:`1634`: incremental improvements to SSH launchers
@@ -953,7 +953,7 @@ Issues (742):
 * :ghissue:`1237`: Kernel status and logout button overlap
 * :ghissue:`1319`: Running a cell with ctrl+Enter selects text in cell
 * :ghissue:`1571`: module member autocomplete should respect __all__
-* :ghissue:`1566`: ipython3 doesn't run in Win7 with Python 3.2 
+* :ghissue:`1566`: ipython3 doesn't run in Win7 with Python 3.2
 * :ghissue:`1568`: fix PR #1567
 * :ghissue:`1567`: Fix: openssh_tunnel did not parse port in `server`
 * :ghissue:`1565`: fix AsyncResult.abort
@@ -1091,7 +1091,7 @@ Issues (742):
 * :ghissue:`1362`: Don't log complete contents of history replies, even in debug
 * :ghissue:`888`: ReST support in notebooks
 * :ghissue:`1205`: notebook stores HTML escaped text in the file
-* :ghissue:`1351`: add IPython.embed_kernel() 
+* :ghissue:`1351`: add IPython.embed_kernel()
 * :ghissue:`1243`: magic commands without % are not completed properly in htmlnotebook
 * :ghissue:`1347`: fix weird magic completion in notebook
 * :ghissue:`1355`: notebook.html extends layout.html now

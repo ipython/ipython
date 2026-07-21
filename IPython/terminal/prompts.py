@@ -144,4 +144,3 @@ class RichPromptDisplayHook(DisplayHook):
                     return
 
         super().write_format_data(format_dict, md_dict)
-

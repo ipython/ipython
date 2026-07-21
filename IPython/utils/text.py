@@ -456,13 +456,13 @@ class EvalFormatter(Formatter):
 
 class FullEvalFormatter(Formatter):
     """A String Formatter that allows evaluation of simple expressions.
-    
+
     Any time a format key is not found in the kwargs,
     it will be tried as an expression in the kwargs namespace.
-    
+
     Note that this version allows slicing using [1:2], so you cannot specify
     a format string. Use :class:`EvalFormatter` to permit format strings.
-    
+
     Examples
     --------
     ::
@@ -554,7 +554,7 @@ class DollarFormatter(FullEvalFormatter):
                     yield (txt + new_txt, new_field, "", None)
                     txt = ""
                 continue_from = m.end()
-            
+
             # Re-yield the {foo} style pattern
             yield (txt + literal_txt[continue_from:], field_name, format_spec, conversion)
 

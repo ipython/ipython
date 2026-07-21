@@ -310,7 +310,7 @@ Of particular interest are the following Pull-requests:
 Pastebin magic expiry days option
 ---------------------------------
 
-The Pastebin magic now has ``-e`` option to determine 
+The Pastebin magic now has ``-e`` option to determine
 the number of days for paste expiration. For example
 the paste that created with ``%pastebin -e 20 1`` magic will
 be available for next 20 days.
@@ -548,7 +548,7 @@ information in ipdb using "context" command. :ghpull:`12826`
 Other notable changes in IPython 7.21
 -------------------------------------
 
-- Fix some issues on new osx-arm64 :ghpull:`12804`, :ghpull:`12807`. 
+- Fix some issues on new osx-arm64 :ghpull:`12804`, :ghpull:`12807`.
 - Compatibility with Xeus-Python for debugger protocol, :ghpull:`12809`
 - Misc docs fixes for compatibility and uniformity with Numpydoc.
   :ghpull:`12824`
@@ -872,7 +872,7 @@ In terminal IPython it is possible to increase the height of the tab-completion
 menu. To do so set the value of
 :configtrait:`TerminalInteractiveShell.space_for_menu`, this will reserve more
 space at the bottom of the screen for various kind of menus in IPython including
-tab completion and searching in history. 
+tab completion and searching in history.
 
 Autoformat Code in the terminal
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -889,7 +889,7 @@ IPython 7.14
 ============
 
 IPython  7.14 is a minor release that fix a couple of bugs and prepare
-compatibility with new or future versions of some libraries. 
+compatibility with new or future versions of some libraries.
 
 Important changes:
 ------------------
@@ -925,10 +925,10 @@ and should  already been imported from ``IPython.display`` by users and external
 libraries. Trying to import those from ``IPython.core.display`` is still possible
 but will trigger a
 deprecation warning in later versions of IPython and will become errors in the
-future. 
+future.
 
 This will simplify compatibility with other Python kernels (like Xeus-Python),
-and simplify code base. 
+and simplify code base.
 
 
 
@@ -1381,7 +1381,7 @@ into remote environment. Installing using pip/conda from the command line is
 still the prefer method.
 
 The ``%pip`` magic was already present, but was only printing a warning; now it
-will actually forward commands to pip. 
+will actually forward commands to pip.
 
 Misc bug fixes and improvements:
 
@@ -1394,7 +1394,7 @@ Misc bug fixes and improvements:
  - Allow the IPython command line to run ``*.ipynb`` files :ghpull:`11529`
 
 .. _whatsnew720:
-   
+
 IPython 7.2.0
 =============
 
@@ -1605,10 +1605,10 @@ Make sure you have pip > 9.0 before upgrading. You should be able to update by r
       pip install ipython --upgrade --pre
 
 
-Or, if you have conda installed: 
+Or, if you have conda installed:
 
 .. code::
-   
+
    conda install ipython
 
 
@@ -1726,7 +1726,7 @@ Autoreload Improvement
 
 The magic :magic:`%autoreload 2 <autoreload>` now captures new methods added to
 classes. Earlier, only methods existing as of the initial import were being
-tracked and updated.  
+tracked and updated.
 
 This new feature helps dual environment development - Jupyter+IDE - where the
 code gradually moves from notebook cells to package files as it gets
@@ -1789,7 +1789,7 @@ in future versions:
   - ``IPython.utils.io.raw_print_err``
   - ``IPython.utils.io.raw_print``
 
-  
+
 Backwards incompatible changes
 ------------------------------
 

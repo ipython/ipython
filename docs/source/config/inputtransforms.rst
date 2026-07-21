@@ -40,7 +40,7 @@ Each group is a list of transformation functions.
   points.
 * ``input_transformers_post`` run as the last step, to do things like converting
   float literals into decimal objects. These may attempt to parse the input as
-  Python code.  
+  Python code.
 
 These transformers may raise :exc:`SyntaxError` if the input code is invalid, but
 in most cases it is clearer to pass unrecognised code through unmodified and let
@@ -66,7 +66,7 @@ To start using this::
 
     input_transformers can now have an attribute ``has_side_effects`` set to
     `True`, which will prevent the transformers from being ran when IPython is
-    trying to guess whether the user input is complete. 
+    trying to guess whether the user input is complete.
 
 
 

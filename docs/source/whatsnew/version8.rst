@@ -84,7 +84,7 @@ autosuggestion using a large language model. This is not yet ready for
 production use, has only partial documentation and can change without warning,
 but should allow you to hook in a Jupyter-ai LLM provider to suggest code in the
 CLI (currently only via a keyboard shortcut). See :ghpull:`14623` for more details
-until further documentation is available in 9.0. 
+until further documentation is available in 9.0.
 
 
 As usual you can find the full list of PRs on GitHub under `the 8.32

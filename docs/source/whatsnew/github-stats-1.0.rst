@@ -91,12 +91,12 @@ Pull Requests (38):
 * :ghissue:`4721`: purge_results with jobid crashing - looking for insight
 * :ghissue:`4602`: "ipcluster stop" fails after "ipcluster start --daemonize" using python3.3
 * :ghissue:`3386`: Magic %paste not working in Python 3.3.2. TypeError: Type str doesn't support the buffer API
-* :ghissue:`4485`: Incorrect info in "Messaging in IPython" documentation. 
+* :ghissue:`4485`: Incorrect info in "Messaging in IPython" documentation.
 * :ghissue:`4351`: /parallel/apps/launcher.py error
 * :ghissue:`4334`: NotebookApp.webapp_settings static_url_prefix causes crash
 * :ghissue:`4039`: Celltoolbar example issue
-* :ghissue:`4256`: IPython no longer handles unicode file names 
-* :ghissue:`4122`: Nbconvert [windows]: Inconsistent line endings in markdown cells exported to latex 
+* :ghissue:`4256`: IPython no longer handles unicode file names
+* :ghissue:`4122`: Nbconvert [windows]: Inconsistent line endings in markdown cells exported to latex
 * :ghissue:`3819`: nbconvert add extra blank line to code block on Windows.
 * :ghissue:`4203`: remove spurious print statement from parallel annoted functions
 * :ghissue:`4200`: Notebook: merging a heading cell and markdown cell cannot be undone
@@ -219,7 +219,7 @@ Issues (18):
 * :ghissue:`4005`: IPython.start_kernel doesn't work.
 * :ghissue:`4020`: IPython parallel map fails on numpy arrays
 * :ghissue:`3945`: nbconvert: commandline tests fail Win7x64 Py3.3
-* :ghissue:`3977`: unable to complete remote connections for two-process 
+* :ghissue:`3977`: unable to complete remote connections for two-process
 * :ghissue:`3980`: nbconvert rst output lacks needed blank lines
 * :ghissue:`3968`: TypeError: super() argument 1 must be type, not classobj (Python 2.6.6)
 
@@ -389,7 +389,7 @@ The following 155 authors contributed 4258 commits.
 
 
 We closed a total of 1484 issues, 793 pull requests and 691 regular issues;
-this is the full list (generated with the script 
+this is the full list (generated with the script
 :file:`tools/github_stats.py`):
 
 Pull Requests (793):
@@ -540,7 +540,7 @@ Pull Requests (793):
 * :ghpull:`3585`: don't blacklist builtin names
 * :ghpull:`3647`: Fix `frontend` deprecation warnings in several examples
 * :ghpull:`3649`: fix AsyncResult.get_dict for single result
-* :ghpull:`3648`: Fix store magic test 
+* :ghpull:`3648`: Fix store magic test
 * :ghpull:`3650`: Fix, config_file_name was ignored
 * :ghpull:`3640`: Gcf.get_active() can return None
 * :ghpull:`3571`: Added shortcuts to split cell, merge cell above and merge cell below.
@@ -752,7 +752,7 @@ Pull Requests (793):
 * :ghpull:`2979`: CM configurable Take 2
 * :ghpull:`3215`: Updates storemagic extension to allow for specifying variable name to load
 * :ghpull:`3181`: backport If-Modified-Since fix from tornado
-* :ghpull:`3200`: IFrame (VimeoVideo, ScribdDocument, ...) 
+* :ghpull:`3200`: IFrame (VimeoVideo, ScribdDocument, ...)
 * :ghpull:`3186`: Fix small inconsistency in nbconvert: etype -> ename
 * :ghpull:`3212`: Fix issue #2563, "core.profiledir.check_startup_dir() doesn't work inside py2exe'd installation"
 * :ghpull:`3211`: Fix inheritance_diagram Sphinx extension for Sphinx 1.2
@@ -928,7 +928,7 @@ Pull Requests (793):
 * :ghpull:`2396`: create a ipynbv3 json schema and a validator
 * :ghpull:`2757`: check for complete pyside presence before trying to import
 * :ghpull:`2782`: Allow the %run magic with '-b' to specify a file.
-* :ghpull:`2778`: P3K: fix DeprecationWarning under Python 3.x 
+* :ghpull:`2778`: P3K: fix DeprecationWarning under Python 3.x
 * :ghpull:`2776`: remove non-functional View.kill method
 * :ghpull:`2755`: can interactively defined classes
 * :ghpull:`2774`: Removing unused code in the notebook MappingKernelManager.
@@ -984,7 +984,7 @@ Pull Requests (793):
 * :ghpull:`2572`: Make 'Paste Above' the default paste behavior.
 * :ghpull:`2574`: Fix #2244
 * :ghpull:`2582`: Fix displaying history when output cache is disabled.
-* :ghpull:`2591`: Fix for Issue #2584 
+* :ghpull:`2591`: Fix for Issue #2584
 * :ghpull:`2526`: Don't kill paramiko tunnels when receiving ^C
 * :ghpull:`2559`: Add psource, pfile, pinfo2 commands to ipdb.
 * :ghpull:`2546`: use 4 Pythons to build 4 Windows installers
@@ -1025,7 +1025,7 @@ Pull Requests (793):
 * :ghpull:`2468`: Tell git to ignore __pycache__ directories.
 * :ghpull:`2421`: Some notebook tweaks.
 * :ghpull:`2291`: Remove old plugin system
-* :ghpull:`2127`: Ability to build toolbar in JS 
+* :ghpull:`2127`: Ability to build toolbar in JS
 * :ghpull:`2445`: changes for ironpython
 * :ghpull:`2420`: Pass ipython_dir to __init__() method of TerminalInteractiveShell's superclass.
 * :ghpull:`2432`: Revert #1831, the `__file__` injection in safe_execfile / safe_execfile_ipy.
@@ -1190,8 +1190,8 @@ Pull Requests (793):
 
 Issues (691):
 
-* :ghissue:`3940`: Install process documentation overhaul 
-* :ghissue:`3946`: The PDF option for `--post` should work with lowercase 
+* :ghissue:`3940`: Install process documentation overhaul
+* :ghissue:`3946`: The PDF option for `--post` should work with lowercase
 * :ghissue:`3957`: Notebook help page broken in Firefox
 * :ghissue:`3894`: nbconvert test failure
 * :ghissue:`3887`: 1.0.0a1 shows blank screen in both firefox and chrome (windows 7)
@@ -1222,7 +1222,7 @@ Issues (691):
 * :ghissue:`3874`: Up/Down keys don't work to "Search previous command history" (besides Ctrl-p/Ctrl-n)
 * :ghissue:`3853`: CodeMirror locks up in the notebook
 * :ghissue:`3862`: can only connect to an ipcluster started with v1.0.0-dev (master branch) using an older ipython (v0.13.2), but cannot connect using ipython (v1.0.0-dev)
-* :ghissue:`3869`: custom css not working. 
+* :ghissue:`3869`: custom css not working.
 * :ghissue:`2960`: Keyboard shortcuts
 * :ghissue:`3795`: ipcontroller process goes to 100% CPU, ignores connection requests
 * :ghissue:`3553`: Ipython and pylab crashes in windows and canopy
@@ -1244,7 +1244,7 @@ Issues (691):
 * :ghissue:`3810`: Printing the contents of an image file messes up shell text
 * :ghissue:`3702`: `nbconvert`: Default help message should be that of --help
 * :ghissue:`3735`: Nbconvert 1.0.0a1 does not take into account the pdf extensions in graphs
-* :ghissue:`3719`: Bad strftime format, for windows, in nbconvert exporter 
+* :ghissue:`3719`: Bad strftime format, for windows, in nbconvert exporter
 * :ghissue:`3786`: Zmq errors appearing with `Ctrl-C` in console/qtconsole
 * :ghissue:`3019`: disappearing scrollbar on tooltip in Chrome 24 on Ubuntu 12.04
 * :ghissue:`3785`: ipdb completely broken in Qt console
@@ -1256,7 +1256,7 @@ Issues (691):
 * :ghissue:`3724`: ipcluster only running on one cpu
 * :ghissue:`1592`: better message for unsupported nbformat
 * :ghissue:`2049`: Can not stop "ipython kernel" on windows
-* :ghissue:`3757`: Need direct entry point to given notebook 
+* :ghissue:`3757`: Need direct entry point to given notebook
 * :ghissue:`3745`: ImportError: cannot import name check_linecache_ipython
 * :ghissue:`3701`: `nbconvert`: Final output file should be in same directory as input file
 * :ghissue:`3738`: history -o works but history with -n produces identical results
@@ -1274,7 +1274,7 @@ Issues (691):
 * :ghissue:`3542`: note new dependencies in docs / setup.py
 * :ghissue:`2556`: [pagedown] do not target_blank anchor link
 * :ghissue:`3684`: bad message when %pylab fails due import *other* than matplotlib
-* :ghissue:`3682`: ipython notebook pylab inline  import_all=False 
+* :ghissue:`3682`: ipython notebook pylab inline  import_all=False
 * :ghissue:`3596`: MathjaxUtils race condition?
 * :ghissue:`1540`: Comment/uncomment selection in notebook
 * :ghissue:`2702`: frozen setup: permission denied for default ipython_dir
@@ -1283,7 +1283,7 @@ Issues (691):
 * :ghissue:`481`: IPython terminal issue with Qt4Agg on XP SP3
 * :ghissue:`2664`: How to preserve user variables from import clashing?
 * :ghissue:`3436`: enable_pylab(import_all=False) still imports np
-* :ghissue:`2630`: lib.pylabtools.figsize : NameError when using Qt4Agg backend and %pylab magic. 
+* :ghissue:`2630`: lib.pylabtools.figsize : NameError when using Qt4Agg backend and %pylab magic.
 * :ghissue:`3154`: Notebook: no event triggered when a Cell is created
 * :ghissue:`3579`: Nbconvert: SVG are not transformed to PDF anymore
 * :ghissue:`3604`: MathJax rendering problem in `%%latex` cell
@@ -1291,10 +1291,10 @@ Issues (691):
 * :ghissue:`3245`: SyntaxError: encoding declaration in Unicode string
 * :ghissue:`3639`: %pylab inline in IPYTHON notebook throws "RuntimeError: Cannot activate multiple GUI eventloops"
 * :ghissue:`3663`: frontend deprecation warnings
-* :ghissue:`3661`: run -m not behaving like python -m 
+* :ghissue:`3661`: run -m not behaving like python -m
 * :ghissue:`3597`: re-do PR #3531 - allow markdown in Header cell
 * :ghissue:`3053`: Markdown in header cells is not rendered
-* :ghissue:`3655`: IPython finding its way into pasted strings. 
+* :ghissue:`3655`: IPython finding its way into pasted strings.
 * :ghissue:`3620`: uncaught errors in HTML output
 * :ghissue:`3646`: get_dict() error
 * :ghissue:`3004`: `%load_ext rmagic` fails when legacy ipy_user_conf.py is installed (in ipython 0.13.1 / OSX 10.8)
@@ -1329,11 +1329,11 @@ Issues (691):
 * :ghissue:`3544`: IPython.lib test failure on Windows
 * :ghissue:`3352`: Install Sphinx extensions
 * :ghissue:`2971`: [notebook]user needs to press ctrl-c twice to stop notebook server should be put into terminal window
-* :ghissue:`2413`: ipython3 qtconsole fails to install: ipython 0.13 has no such extra feature 'qtconsole' 
+* :ghissue:`2413`: ipython3 qtconsole fails to install: ipython 0.13 has no such extra feature 'qtconsole'
 * :ghissue:`2618`: documentation is incorrect for install process
 * :ghissue:`2595`: mac 10.8 qtconsole export history
 * :ghissue:`2586`: cannot store aliases
-* :ghissue:`2714`: ipython qtconsole print unittest messages in console instead his own window. 
+* :ghissue:`2714`: ipython qtconsole print unittest messages in console instead his own window.
 * :ghissue:`2669`: cython magic failing to work with openmp.
 * :ghissue:`3256`: Vagrant pandas instance of IPython Notebook does not respect additional plotting arguments
 * :ghissue:`3010`: cython magic fail if cache dir is deleted while in session
@@ -1404,7 +1404,7 @@ Issues (691):
 * :ghissue:`3448`: Please include MathJax fonts with IPython Notebook
 * :ghissue:`3519`: IPython Parallel map mysteriously turns pandas Series into numpy ndarray
 * :ghissue:`3345`: IPython embedded shells ask if I want to exit, but I set confirm_exit = False
-* :ghissue:`3509`: IPython won't close without asking "Are you sure?" in Firefox 
+* :ghissue:`3509`: IPython won't close without asking "Are you sure?" in Firefox
 * :ghissue:`3471`: Notebook jinja2/markupsafe dependencies in manual
 * :ghissue:`3502`: Notebook broken in master
 * :ghissue:`3302`: autoreload does not work in ipython 0.13.x, python 3.3
@@ -1425,7 +1425,7 @@ Issues (691):
 * :ghissue:`2790`: %paste and %cpaste not removing "..." lines
 * :ghissue:`3480`: Testing fails because iptest.py cannot be found
 * :ghissue:`2580`: will not run within PIL build directory
-* :ghissue:`2797`: RMagic, Dataframe Conversion Problem 
+* :ghissue:`2797`: RMagic, Dataframe Conversion Problem
 * :ghissue:`2838`: Empty lines disappear from triple-quoted literals.
 * :ghissue:`3050`: Broken link on IPython.core.display page
 * :ghissue:`3473`: Config not passed down to subcommands
@@ -1446,11 +1446,11 @@ Issues (691):
 * :ghissue:`3156`: update pretty to use Python 3 style for sets
 * :ghissue:`3197`: Can't escape multiple dollar signs in a markdown cell
 * :ghissue:`3309`: `Image()` signature/doc improvements
-* :ghissue:`3415`: Bug in IPython/external/path/__init__.py 
+* :ghissue:`3415`: Bug in IPython/external/path/__init__.py
 * :ghissue:`3446`: Feature suggestion: Download matplotlib figure to client browser
 * :ghissue:`3295`: autoexported notebooks: only export explicitly marked cells
 * :ghissue:`3442`: Notebook: Summary table extracted from markdown headers
-* :ghissue:`3438`: Zooming notebook in chrome is broken in master 
+* :ghissue:`3438`: Zooming notebook in chrome is broken in master
 * :ghissue:`1378`: Implement autosave in notebook
 * :ghissue:`3437`: Highlighting matching parentheses
 * :ghissue:`3435`: module search segfault
@@ -1505,7 +1505,7 @@ Issues (691):
 * :ghissue:`3260`: Js error in savewidget
 * :ghissue:`3247`: scrollbar in notebook when not needed?
 * :ghissue:`3243`: notebook: option to view json source from browser
-* :ghissue:`3265`: 404 errors when running IPython 1.0dev 
+* :ghissue:`3265`: 404 errors when running IPython 1.0dev
 * :ghissue:`3257`: setup.py not finding submodules
 * :ghissue:`3253`: Incorrect Qt and PySide version comparison
 * :ghissue:`3248`: Cell magics broken in Qt console
@@ -1534,7 +1534,7 @@ Issues (691):
 * :ghissue:`3176`: Particular equation not rendering  (notebook)
 * :ghissue:`1133`: [notebook] readonly and upload files/UI
 * :ghissue:`2975`: [notebook] python file and cell toolbar
-* :ghissue:`3017`: SciPy.weave broken in IPython notebook/ qtconsole 
+* :ghissue:`3017`: SciPy.weave broken in IPython notebook/ qtconsole
 * :ghissue:`3161`: paste macro not reading spaces correctly
 * :ghissue:`2835`: %paste not working on WinXpSP3/ipython-0.13.1.py2-win32-PROPER.exe/python27
 * :ghissue:`2628`: Make transformers work for lines following decorators
@@ -1567,7 +1567,7 @@ Issues (691):
 * :ghissue:`2834`: url regexp only finds one link
 * :ghissue:`3091`: qtconsole breaks doctest.testmod() in Python 3.3
 * :ghissue:`3074`: SIGUSR1 not available on Windows
-* :ghissue:`2996`: registration::purging stalled registration high occurrence in small clusters 
+* :ghissue:`2996`: registration::purging stalled registration high occurrence in small clusters
 * :ghissue:`3065`: diff-ability of notebooks
 * :ghissue:`3067`: Crash with pygit2
 * :ghissue:`3061`: Bug handling Ellipsis
@@ -1634,7 +1634,7 @@ Issues (691):
 * :ghissue:`2722`: IPC transport option not taking effect ?
 * :ghissue:`2473`: Better error messages in ipengine/ipcontroller
 * :ghissue:`2836`: Cannot send builtin module definitions to IP engines
-* :ghissue:`2833`: Any reason not to use super() ? 
+* :ghissue:`2833`: Any reason not to use super() ?
 * :ghissue:`2781`: Cannot interrupt infinite loops in the notebook
 * :ghissue:`2150`: clippath_demo.py in matplotlib example does not work with inline backend
 * :ghissue:`2634`: Numbered list in notebook markdown cell renders with Roman numerals instead of numbers
@@ -1655,10 +1655,10 @@ Issues (691):
 * :ghissue:`2297`: ipdb with separate kernel/client pushing stdout to kernel process only
 * :ghissue:`2180`: Have [kernel busy] overridden only by [kernel idle]
 * :ghissue:`1188`: Pylab with OSX backend keyboard focus issue and hang
-* :ghissue:`2107`: test_octavemagic.py[everything] fails 
+* :ghissue:`2107`: test_octavemagic.py[everything] fails
 * :ghissue:`1212`: Better understand/document browser compatibility
 * :ghissue:`1585`: Refactor notebook templates to use Jinja2 and make each page a separate directory
-* :ghissue:`1443`: xticks scaling factor partially obscured with qtconsole and inline plotting 
+* :ghissue:`1443`: xticks scaling factor partially obscured with qtconsole and inline plotting
 * :ghissue:`1209`: can't make %result work as in doc.
 * :ghissue:`1200`: IPython 0.12 Windows install fails on Vista
 * :ghissue:`1127`: Interactive test scripts for Qt/nb issues
@@ -1798,7 +1798,7 @@ Issues (691):
 * :ghissue:`2361`: client doesn't use connection file's 'location' in disambiguating 'interface'
 * :ghissue:`2357`: failing traceback in terminal ipython for first exception
 * :ghissue:`2343`: Installing in a python 3.3b2 or python 3.3rc1 virtual environment.
-* :ghissue:`2315`: Failure in test: "Test we're not loading modules on startup that we shouldn't." 
+* :ghissue:`2315`: Failure in test: "Test we're not loading modules on startup that we shouldn't."
 * :ghissue:`2351`: Multiple Notebook Apps: cookies not port specific, clash with each other
 * :ghissue:`2350`: running unittest from qtconsole prints output to terminal
 * :ghissue:`2303`:  remote tracebacks broken since 952d0d6 (PR #2223)
@@ -1831,9 +1831,9 @@ Issues (691):
 * :ghissue:`1456`: ERROR: Internal Python error in the inspect module.
 * :ghissue:`2221`: Avoid importing from IPython.parallel in core
 * :ghissue:`2213`: Can't trigger startup code in Engines
-* :ghissue:`1464`: Strange behavior for backspace with lines ending with more than 4 spaces in notebook 
+* :ghissue:`1464`: Strange behavior for backspace with lines ending with more than 4 spaces in notebook
 * :ghissue:`2187`: NaN in object_info_reply JSON causes parse error
-* :ghissue:`214`: system command requiring administrative privileges  
+* :ghissue:`214`: system command requiring administrative privileges
 * :ghissue:`2195`: Unknown option `no-edit` in git-mpr
 * :ghissue:`2201`: Add documentation build to tools/test_pr.py
 * :ghissue:`2205`: Command-line option for default Notebook output collapsing behavior
@@ -1852,7 +1852,7 @@ Issues (691):
 * :ghissue:`2139`: 00_notebook_tour Image example broken on master
 * :ghissue:`2143`: Add a %%cython_annotate magic
 * :ghissue:`2135`: Running IPython from terminal
-* :ghissue:`2093`: Makefile for building Sphinx documentation on Windows 
+* :ghissue:`2093`: Makefile for building Sphinx documentation on Windows
 * :ghissue:`2122`: Bug in pretty printing
 * :ghissue:`2120`: Notebook "Make a Copy..." keeps opening duplicates in the same tab
 * :ghissue:`1997`: password cannot be used with url prefix
@@ -1860,7 +1860,7 @@ Issues (691):
 * :ghissue:`2121`: ipdb does not support input history in qtconsole
 * :ghissue:`2114`: %logstart doesn't log
 * :ghissue:`2085`: %ed magic fails in qtconsole
-* :ghissue:`2119`: IPython fails to run on MacOS Lion 
+* :ghissue:`2119`: IPython fails to run on MacOS Lion
 * :ghissue:`2052`: %pylab inline magic does not work on windows
 * :ghissue:`2111`: Ipython won't start on W7
 * :ghissue:`2112`: Strange internal traceback

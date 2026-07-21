@@ -662,7 +662,7 @@ class AutoreloadMagics(Magics):
 
              '3' or 'complete' - Same as 2/all, but also adds any new
              objects in the module.
-             
+
              By default, a newer autoreload algorithm that diffs the module's source code
              with the previous version and only reloads changed parts is applied for modes
              2 and below. To use the original algorithm, add the `-` suffix to the mode,

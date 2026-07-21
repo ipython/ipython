@@ -3,14 +3,14 @@
 # details:
 # https://git-scm.com/docs/git-config#Documentation/git-config.txt-blameignoreRevsFile
 #
-# 
+#
 # You should be able to execute either
 # ./tools/configure-git-blame-ignore-revs.bat or
 # ./tools/configure-git-blame-ignore-revs.sh
 #
 # Example entries:
 #
-# <full commit hash>  # initial black-format 
+# <full commit hash>  # initial black-format
 # <full commit hash>  # rename something internal
 6e748726282d1acb9a4f9f264ee679c474c4b8f5  # Apply pygrade --36plus on IPython/core/tests/test_inputtransformer.py.
 0233e65d8086d0ec34acb8685b7a5411633f0899 # apply pyupgrade to IPython/extensions/tests/test_autoreload.py

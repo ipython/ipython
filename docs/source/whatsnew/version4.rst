@@ -81,4 +81,3 @@ IPython highlights:
   `reload` into the interactive namespace have been deprecated, and will be
   removed in future versions. You should now explicitly import `reload` from
   `IPython.lib.deepreload` to use it.
-

@@ -85,7 +85,7 @@ New features
   friends have been completely refactored.  Now we are checking for
   dependencies using the approach that matplotlib uses.
 
-* The documentation has been completely reorganized to accept the 
+* The documentation has been completely reorganized to accept the
   documentation from `ipython1-dev`.
 
 * We have switched to using Foolscap for all of our network protocols in
@@ -114,7 +114,7 @@ New features
   Last part of dir name is checked first. If no matches for that are found,
   look at the whole path.
 
-  
+
 Bug fixes
 ---------
 
@@ -135,7 +135,7 @@ Bug fixes
 
 * Greedy ``cd`` completion has been disabled again (it was enabled in 0.8.4) as
   it caused problems on certain platforms.
-          
+
 
 Backwards incompatible changes
 ------------------------------
@@ -163,14 +163,14 @@ Backwards incompatible changes
 * IPython has a larger set of dependencies if you want all of its capabilities.
   See the ``setup.py`` script for details.
 
-* The constructors for :class:`IPython.kernel.client.MultiEngineClient` and 
+* The constructors for :class:`IPython.kernel.client.MultiEngineClient` and
   :class:`IPython.kernel.client.TaskClient` no longer take the (ip,port) tuple.
   Instead they take the filename of a file that contains the FURL for that
   client.  If the FURL file is in your IPYTHONDIR, it will be found automatically
   and the constructor can be left empty.
 
-* The asynchronous clients in :mod:`IPython.kernel.asyncclient` are now created 
-  using the factory functions :func:`get_multiengine_client` and 
+* The asynchronous clients in :mod:`IPython.kernel.asyncclient` are now created
+  using the factory functions :func:`get_multiengine_client` and
   :func:`get_task_client`.  These return a `Deferred` to the actual client.
 
 * The command line options to `ipcontroller` and `ipengine` have changed to
@@ -197,20 +197,20 @@ New features
 
 * Initial draft of a process daemon in :mod:`ipython1.daemon`.  This has not
   been merged into IPython and is still in `ipython1-dev`.
-  
+
 * The ``TaskController`` now has methods for getting the queue status.
 
 * The ``TaskResult`` objects not have information about how long the task
   took to run.
-  
-* We are attaching additional attributes to exceptions ``(_ipython_*)`` that 
+
+* We are attaching additional attributes to exceptions ``(_ipython_*)`` that
   we use to carry additional info around.
-  
+
 * New top-level module :mod:`asyncclient` that has asynchronous versions (that
   return deferreds) of the client classes.  This is designed to users who want
   to run their own Twisted reactor.
-  
-* All the clients in :mod:`client` are now based on Twisted.  This is done by 
+
+* All the clients in :mod:`client` are now based on Twisted.  This is done by
   running the Twisted reactor in a separate thread and using the
   :func:`blockingCallFromThread` function that is in recent versions of Twisted.
 
@@ -223,10 +223,10 @@ New features
 
 * Complete rewrite of the IPython documentation.  All of the documentation
   from the IPython website has been moved into docs/source as restructured
-  text documents.  PDF and HTML documentation are being generated using 
+  text documents.  PDF and HTML documentation are being generated using
   Sphinx.
 
-* New developer oriented documentation: development guidelines and roadmap. 
+* New developer oriented documentation: development guidelines and roadmap.
 
 * Traditional ``ChangeLog`` has been changed to a more useful ``changes.txt``
   file that is organized by release and is meant to provide something more
@@ -237,14 +237,14 @@ Bug fixes
 
 * Created a proper ``MANIFEST.in`` file to create source distributions.
 
-* Fixed a bug in the ``MultiEngine`` interface.  Previously, multi-engine 
-  actions were being collected with a :class:`DeferredList` with 
-  ``fireononeerrback=1``.  This meant that methods were returning 
-  before all engines had given their results.  This was causing extremely odd 
-  bugs in certain cases. To fix this problem, we have 1) set 
-  ``fireononeerrback=0`` to make sure all results (or exceptions) are in 
-  before returning and 2) introduced a :exc:`CompositeError` exception 
-  that wraps all of the engine exceptions.  This is a huge change as it means 
+* Fixed a bug in the ``MultiEngine`` interface.  Previously, multi-engine
+  actions were being collected with a :class:`DeferredList` with
+  ``fireononeerrback=1``.  This meant that methods were returning
+  before all engines had given their results.  This was causing extremely odd
+  bugs in certain cases. To fix this problem, we have 1) set
+  ``fireononeerrback=0`` to make sure all results (or exceptions) are in
+  before returning and 2) introduced a :exc:`CompositeError` exception
+  that wraps all of the engine exceptions.  This is a huge change as it means
   that users will have to catch :exc:`CompositeError` rather than the actual
   exception.
 
@@ -264,12 +264,12 @@ Backwards incompatible changes
   argument that defaults to ``'all'``.
 
 * The :attr:`MultiEngineClient.magicTargets` has been renamed to
-  :attr:`MultiEngineClient.targets`. 
+  :attr:`MultiEngineClient.targets`.
 
 * All methods in the MultiEngine interface now accept the optional keyword
   argument ``block``.
 
-* Renamed :class:`RemoteController` to :class:`MultiEngineClient` and 
+* Renamed :class:`RemoteController` to :class:`MultiEngineClient` and
   :class:`TaskController` to :class:`TaskClient`.
 
 * Renamed the top-level module from :mod:`api` to :mod:`client`.
@@ -278,6 +278,5 @@ Backwards incompatible changes
   exception that wraps the user's exceptions, rather than just raising the raw
   user's exception.
 
-* Changed the ``setupNS`` and ``resultNames`` in the ``Task`` class to ``push`` 
+* Changed the ``setupNS`` and ``resultNames`` in the ``Task`` class to ``push``
   and ``pull``.
-

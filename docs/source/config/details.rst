@@ -213,7 +213,7 @@ as **themes**. A Theme can do a bit more than purely colors, as it can handle
 bold, italic and basically any style that ``pygments`` support.  Themes also
 support a number of ``Symbols``, which allows you to – for example – change the
 shape of the arrow that mark the current frame and line numbers in the debugger
-and the tracebacks. 
+and the tracebacks.
 
 Most of the various IPython options that were used pre 9.0 have been renamed,
 with a exceptions a few, and most classes  that deal with themes can, now take a
@@ -221,23 +221,23 @@ with a exceptions a few, and most classes  that deal with themes can, now take a
 
 To reflect this, the  ``--colors`` flag now is also aliased to ``--theme``.
 
-The default themes included are the same, except lowercase, for ease of typing. 
+The default themes included are the same, except lowercase, for ease of typing.
 
 ``'nocolor', 'neutral', 'linux', 'lightbg', 'gruvbox-dark'``, with the addition of ``'pride'``
 to celebrate the inclusively of this project (I welcome update to the pride
-theme as I'm not a designer myself). 
+theme as I'm not a designer myself).
 
 In addition, the ``--theme=pride`` theme, is the first to make use of unicode
-symbols for the traceback separation line, and the debugger and traceback arrow, 
+symbols for the traceback separation line, and the debugger and traceback arrow,
 as well as making some use of ``bold``, and ``italic`` formatting, and not limit
 itself to the 16 base ANSI colors.
 
 Theme details
 -------------
 
-We encourage you to contribute themes, and to distribute them, 
+We encourage you to contribute themes, and to distribute them,
 while currently you need to modify source code to add a theme, it should be
-possible to load theme from Json, Yaml, or any other declarative file type. 
+possible to load theme from Json, Yaml, or any other declarative file type.
 
 Since IPython 9.0, most of IPython internal code emit a sequence of `(Token
 Type, string)`, which is fed through pygments, and a theme is mapping from those
@@ -449,7 +449,7 @@ IPython configuration::
                 if document.line_count > 1: text = text[:document.cursor_position]
                 indent = shell.check_complete(text)[1]
                 buffer.insert_text('\n' + indent)
-            
+
                 # if you just wanted a plain newline without any indentation, you
                 # could use `buffer.insert_text('\n')` instead of the lines above
 

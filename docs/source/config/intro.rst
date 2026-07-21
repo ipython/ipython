@@ -35,7 +35,7 @@ You can then configure class attributes like this::
     c.InteractiveShell.automagic = False
 
 Be careful with spelling--incorrect names will simply be ignored, with
-no error. 
+no error.
 
 To add to a collection which may have already been defined elsewhere or have
 default values, you can use methods like those found on lists, dicts and
@@ -84,7 +84,7 @@ JSON Configuration files
 
 In case where executability of configuration can be problematic, or
 configurations need to be modified programmatically, IPython also support a
-limited set of functionalities via ``.json`` configuration files. 
+limited set of functionalities via ``.json`` configuration files.
 
 You can define most of the configuration options via a JSON object whose
 hierarchy represents the value you would normally set on the ``c`` object of
@@ -150,9 +150,9 @@ IPython starts, so they can't be changed like this.
 Running IPython from Python
 ----------------------------
 
-If you are using :ref:`embedding` to start IPython from a normal 
-python file, you can set configuration options the same way as in a 
-config file by creating a traitlets :class:`Config` object and passing it to 
+If you are using :ref:`embedding` to start IPython from a normal
+python file, you can set configuration options the same way as in a
+config file by creating a traitlets :class:`Config` object and passing it to
 start_ipython like in the example below.
 
 .. literalinclude:: ../../../examples/Embedding/start_ipython_config.py
@@ -230,5 +230,5 @@ by starting ipython in debug mode::
 
 Identically with ipykernel though the command is currently blocking until
 this process is killed with ``Ctrl-\``::
- 
+
     $ python -m ipykernel --debug

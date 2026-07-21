@@ -118,7 +118,7 @@ class ConfigMagics(Magics):
         elif '=' not in line:
             msg = "Invalid config statement: %r, "\
                   "should be `Class.trait = value`."
-            
+
             ll = line.lower()
             for classname in classnames:
                 if ll == classname.lower():
