@@ -11,7 +11,7 @@ Upgrading Notebooks
    "Widget" suffix was removed from the end of the class name. i.e.
    ``ButtonWidget`` is now ``Button``.
 3. ``ContainerWidget`` was renamed to ``Box``.
-4. ``PopupWidget`` was removed from IPython, because bootstrapjs was 
+4. ``PopupWidget`` was removed from IPython, because bootstrapjs was
    problematic (creates global variables, etc.). If you use the
    ``PopupWidget``, try using a ``Box`` widget instead. If your notebook
    can't live without the popup functionality, subclass the ``Box``

@@ -29,7 +29,7 @@ be different. At the time of this writing you can use::
     @meeseeksdev[bot] backport [to] <branchname>
 
 The bot will attempt to backport the current pull-request and issue a PR if
-possible. 
+possible.
 
 .. note::
 
@@ -59,7 +59,7 @@ During the release process, you might need the extra following dependencies:
 
 Make sure you have all the required dependencies to run the tests as well.
 
-You can try to ``source tools/release_helper.sh`` when releasing via bash, it 
+You can try to ``source tools/release_helper.sh`` when releasing via bash, it
 should guide you through most of the process.
 
 
@@ -175,7 +175,7 @@ the build procedure runs OK, and tests other steps in the release process.
 The ``build_release`` script will in particular verify that the version number
 match PEP 440, in order to avoid surprise at the time of build upload.
 
-We encourage creating a test build of the docs as well. 
+We encourage creating a test build of the docs as well.
 
 6. Create and push the new tag
 ------------------------------

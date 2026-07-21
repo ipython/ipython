@@ -46,7 +46,7 @@ You can also create magics of all three kinds by inheriting from the
 :class:`IPython.core.magic.Magics` class.  This lets you create magics that can
 potentially hold state in between calls, and that have full access to the main
 IPython object:
-    
+
 .. sourcecode:: python
 
     # This code can be put in any Python module, it does not require IPython
@@ -109,7 +109,7 @@ instantiate the class yourself before registration:
             # You must call the parent constructor
             super(StatefulMagics, self).__init__(shell)
             self.data = data
-        
+
         # etc...
 
     def load_ipython_extension(ipython):
@@ -166,9 +166,9 @@ execute the registration inside the `load_ipython_extension` as demonstrated in
 the example below, instead of directly in the module (as in the initial example
 with the ``@register_*`` decorators). This means a user will need to explicitly
 choose to load your magic with ``%load_ext``. instead implicitly getting it when
-importing the module. This is particularly relevant if loading your magic has 
+importing the module. This is particularly relevant if loading your magic has
 side effects, if it is slow to load, or if it might override another magic with
-the same name. 
+the same name.
 
 .. sourcecode:: bash
 
@@ -183,9 +183,9 @@ the same name.
    $ cat example_magic/__init__.py
    """An example magic"""
    __version__ = '0.0.1'
-   
+
    from .abracadabra import Abracadabra
-   
+
    def load_ipython_extension(ipython):
        ipython.register_magics(Abracadabra)
 
@@ -204,4 +204,3 @@ the same name.
         @cell_magic
         def cadabra(self, line, cell):
             return line, cell
-

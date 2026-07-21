@@ -4,7 +4,7 @@
 from traitlets.config import Config
 c = Config()
 
-# Now we can set options as we would in a config file: 
+# Now we can set options as we would in a config file:
 #   c.Class.config_value = value
 # For example, we can set the exec_lines option of the InteractiveShellApp
 # class to run some code when the IPython REPL starts

@@ -128,7 +128,7 @@ Effects on IPython.embed()
 IPython core being asynchronous, the use of ``IPython.embed()`` will now require
 a loop to run. By default IPython will use a fake coroutine runner which should
 allow ``IPython.embed()`` to be nested. Though this will prevent usage of the
-:magic:`%autoawait` feature when using IPython embed. 
+:magic:`%autoawait` feature when using IPython embed.
 
 You can set a coroutine runner explicitly for ``embed()`` if you want to run
 asynchronous code, though the exact behavior is undefined.

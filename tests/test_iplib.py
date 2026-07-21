@@ -219,7 +219,7 @@ def test_run_cell():
         print "hello"
         if 1:
             print "world"
-        
+
     if 2:
         print "foo"
 
@@ -228,12 +228,12 @@ def test_run_cell():
 
     if 4:
         print "bar"
-    
+
     """
     )
     # Simply verifies that this kind of input is run
     ip.run_cell(complex)
-    
+
 
 def test_db():
     """Test the internal database used for variable persistence."""

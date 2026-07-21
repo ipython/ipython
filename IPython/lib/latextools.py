@@ -252,5 +252,3 @@ def latex_to_html(s, alt='image'):
     base64_data = latex_to_png(s, encode=True).decode('ascii')
     if base64_data:
         return _data_uri_template_png  % (base64_data, alt)
-
-

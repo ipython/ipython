@@ -97,4 +97,3 @@ Continuing with the example above, this should illustrate this idea::
 
 This section was written after a contribution by Alexander Belchenko on
 the IPython user list.
-

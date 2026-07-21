@@ -84,7 +84,7 @@ A quick summary of the major changes (see below for details):
   demonstration`__ of the features it provides.
 
 .. __: http://pirsquared.org/blog/2011/07/28/vim-ipython/
-  
+
 * **Integration into Microsoft Visual Studio**. Thanks to the work of the
   Microsoft `Python Tools for Visual Studio`__ team, this version of IPython
   has been integrated into Microsoft Visual Studio's Python tools open source
@@ -114,7 +114,7 @@ A quick summary of the major changes (see below for details):
 * **Pasting of code with prompts**. IPython now intelligently strips out input
   prompts , be they plain Python ones (``>>>`` and ``...``) or IPython ones
   (``In [N]:`` and ``...:``).  More details :ref:`here <pasting_with_prompts>`.
-  
+
 
 Authors and support
 -------------------
@@ -154,7 +154,7 @@ cycle from several institutions:
 
 .. __: http://modular.math.washington.edu/grants/compmath09
 
-- Microsoft's team working on `Python Tools for Visual Studio`__ developed the 
+- Microsoft's team working on `Python Tools for Visual Studio`__ developed the
   integratron of IPython into the Python plugin for Visual Studio 2010.
 
 .. __: http://pytools.codeplex.com
@@ -207,7 +207,7 @@ shared ownership of the project, and we are making enthusiastic use of it.
    way of collecting statistics on the number of issues closed in the old
    Launchpad bug tracker prior to that.
 
-   
+
 .. _qtconsole_011:
 
 Qt Console
@@ -414,7 +414,7 @@ Additional new features
 
 * The embedded shell has been refactored into a truly standalone subclass of
   :class:`InteractiveShell` called :class:`InteractiveShellEmbed`.  All
-  embedding logic has been taken out of the base class and put into the 
+  embedding logic has been taken out of the base class and put into the
   embedded subclass.
 
 * Added methods of :class:`~IPython.core.interactiveshell.InteractiveShell` to
@@ -476,7 +476,7 @@ Additional new features
   resolution is done at a single point, when the parent
   :class:`~traitlets.HasTraitlets` is instantiated.
 
-* :mod:`IPython.utils.ipstruct` has been refactored to be a subclass of 
+* :mod:`IPython.utils.ipstruct` has been refactored to be a subclass of
   dict.  It also now has full docstrings and doctests.
 
 * Created a Traits like implementation in :mod:`traitlets`.  This
@@ -563,7 +563,7 @@ Backwards incompatible changes
   longer needed because of the new capabilities in
   :mod:`IPython.lib.inputhook`.
 
-* New top-level sub-packages have been created: :mod:`IPython.core`, 
+* New top-level sub-packages have been created: :mod:`IPython.core`,
   :mod:`IPython.lib`, :mod:`IPython.utils`, :mod:`IPython.deathrow`,
   :mod:`IPython.quarantine`.  All existing top-level modules have been
   moved to appropriate sub-packages.  All internal import statements

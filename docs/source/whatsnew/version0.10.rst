@@ -25,14 +25,14 @@ Highlights of this release:
   hence plots were blocking with GTK.  Since this is the default matplotlib
   backend on Unix systems, this was a major annoyance for many users.  Many
   thanks to Paul Ivanov for helping resolve this issue.
-  
+
 - Fix IOError bug on Windows when used with -gthread.
 - Work robustly if $HOME is missing from environment.
 - Better POSIX support in ssh scripts (remove bash-specific idioms).
 - Improved support for non-ascii characters in log files.
 - Work correctly in environments where GTK can be imported but not started
   (such as a linux text console without X11).
-  
+
 For this release we merged 24 commits, contributed by the following people
 (please let us know if we omitted your name and we'll gladly fix this in the
 notes for the future):
@@ -250,7 +250,7 @@ New features
 
 * The developer guidelines in the documentation have been updated to explain
   our workflow using :command:`bzr` and Launchpad.
-  
+
 * Fully refactored :command:`ipcluster` command line program for starting
   IPython clusters.  This new version is a complete rewrite and 1) is fully
   cross platform (we now use Twisted's process management), 2) has much
@@ -268,7 +268,7 @@ New features
 
 * sh profile: easy way to give 'title' to prompt: assign to variable
   '_prompt_title'. It looks like this::
-      
+
         [~]|1> _prompt_title = 'sudo!'
         sudo![~]|2>
 
@@ -284,7 +284,7 @@ Bug fixes
 
 * Fix #368719, removed top-level debian/ directory to make the job of Debian
   packagers easier.
-  
+
 * Fix #291143 by including man pages contributed by Stephan Peijnik from the
   Debian project.
 
@@ -333,7 +333,7 @@ Bug fixes
 
 * Many other small bug fixes not listed here by number (see the bzr log for
   more info).
-  
+
 Backwards incompatible changes
 ------------------------------
 
@@ -357,4 +357,3 @@ Backwards incompatible changes
 
 * Remove ipy_leo.py. You can use :command:`easy_install ipython-extension` to
   get it.  (done to decouple it from ipython release cycle)
-

@@ -60,5 +60,3 @@ last node, if it is an expression) are compiled in 'single' mode so that
 cell to see computed values.  Other accepted values for
 ``ast_node_interactivity`` are ``all``, ``last``, ``none`` and
 ``last_expr_or_assign``.
-
-

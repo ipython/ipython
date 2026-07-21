@@ -178,7 +178,7 @@ Pull requests (257):
 * `956 <https://github.com/ipython/ipython/issues/956>`_: Generate "All magics..." menu live
 * `1038 <https://github.com/ipython/ipython/issues/1038>`_: Notebook: don't change cell when selecting code using shift+up/down.
 * `987 <https://github.com/ipython/ipython/issues/987>`_: Add Tooltip to notebook.
-* `1028 <https://github.com/ipython/ipython/issues/1028>`_: Cleaner minimum version comparison 
+* `1028 <https://github.com/ipython/ipython/issues/1028>`_: Cleaner minimum version comparison
 * `998 <https://github.com/ipython/ipython/issues/998>`_: defer to stdlib for path.get_home_dir()
 * `1033 <https://github.com/ipython/ipython/issues/1033>`_: update copyright to 2011/20xx-2011
 * `1032 <https://github.com/ipython/ipython/issues/1032>`_: Intercept <esc> avoid closing websocket on Firefox
@@ -298,7 +298,7 @@ Pull requests (257):
 * `784 <https://github.com/ipython/ipython/issues/784>`_: Parse user code to AST using compiler flags.
 * `783 <https://github.com/ipython/ipython/issues/783>`_: always use StringIO, never cStringIO
 * `782 <https://github.com/ipython/ipython/issues/782>`_: flush stdout/stderr on displayhook call
-* `622 <https://github.com/ipython/ipython/issues/622>`_: Make pylab import all configurable 
+* `622 <https://github.com/ipython/ipython/issues/622>`_: Make pylab import all configurable
 * `745 <https://github.com/ipython/ipython/issues/745>`_: Don't assume history requests succeed in qtconsole
 * `725 <https://github.com/ipython/ipython/issues/725>`_: don't assume cursor.selectedText() is a string
 * `778 <https://github.com/ipython/ipython/issues/778>`_: don't override execfile on Python 2
@@ -431,7 +431,7 @@ Regular issues (258):
 * `1017 <https://github.com/ipython/ipython/issues/1017>`_: Add small example about ipcluster/ssh startup
 * `1041 <https://github.com/ipython/ipython/issues/1041>`_: Proxy Issues
 * `967 <https://github.com/ipython/ipython/issues/967>`_: KernelManagers don't use zmq eventloop properly
-* `1055 <https://github.com/ipython/ipython/issues/1055>`_: "All Magics" display on Ubuntu 
+* `1055 <https://github.com/ipython/ipython/issues/1055>`_: "All Magics" display on Ubuntu
 * `1054 <https://github.com/ipython/ipython/issues/1054>`_: ipython explodes on syntax error
 * `1051 <https://github.com/ipython/ipython/issues/1051>`_: ipython3 set_next_input() failure
 * `693 <https://github.com/ipython/ipython/issues/693>`_: "run -i" no longer works after %reset in terminal
@@ -456,7 +456,7 @@ Regular issues (258):
 * `684 <https://github.com/ipython/ipython/issues/684>`_: %Store eliminated in configuration and magic commands in 0.11
 * `1026 <https://github.com/ipython/ipython/issues/1026>`_: BUG: wrong default parameter in ask_yes_no
 * `880 <https://github.com/ipython/ipython/issues/880>`_: Better error message if %paste fails
-* `1024 <https://github.com/ipython/ipython/issues/1024>`_: autopx magic broken 
+* `1024 <https://github.com/ipython/ipython/issues/1024>`_: autopx magic broken
 * `822 <https://github.com/ipython/ipython/issues/822>`_: Unicode bug in Itpl when expanding shell variables in syscalls with !
 * `1009 <https://github.com/ipython/ipython/issues/1009>`_: Windows: regression in cd magic handling of paths
 * `833 <https://github.com/ipython/ipython/issues/833>`_: Crash python with matplotlib and unequal length arrays

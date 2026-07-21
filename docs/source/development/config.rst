@@ -55,8 +55,8 @@ under :file:`profile_default`.
 
     IPython configuration options are case sensitive, and IPython cannot
     catch misnamed keys or invalid values.
-    
-    By default IPython will also ignore any invalid configuration files. 
+
+    By default IPython will also ignore any invalid configuration files.
 
 .. versionadded:: 5.0
 
@@ -76,7 +76,7 @@ profile with:
 
     $ ipython locate
     /home/you/.ipython
-    
+
     $ ipython locate profile foo
     /home/you/.ipython/profile_foo
 

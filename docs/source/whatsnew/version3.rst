@@ -281,7 +281,7 @@ Backwards incompatible changes
 * The notebook format has been updated from version 3 to version 4.
   Read-only support for v4 notebooks has been backported to IPython 2.4.
   Notable changes:
-  
+
   * heading cells are removed in favor or markdown headings
   * notebook outputs and output messages are more consistent with each other
   * use :func:`IPython.nbformat.read` and :func:`~IPython.nbformat.write`
@@ -289,9 +289,9 @@ Backwards incompatible changes
     instead of the deprecated :mod:`IPython.nbformat.current` APIs.
 
   You can downgrade a notebook to v3 via ``nbconvert``::
-  
+
       ipython nbconvert --to notebook --nbformat 3 <notebook>
-  
+
   which will create :file:`notebook.v3.ipynb`, a copy of the notebook in v3 format.
 
 * :func:`IPython.core.oinspect.getsource` call specification has changed:
