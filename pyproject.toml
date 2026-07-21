@@ -473,7 +473,6 @@ extend-select = [
     "S324",        # hashlib-insecure-hash-function          (0 violations, locked in)
     "SIM110",      # reimplemented-builtin                  (0 violations, locked in)
     "SIM211",      # if-expr-with-false-true                (0 violations, locked in)
-    "TRY203",      # useless-try-except                      (0 violations, locked in)
     #  "EXE",         # flake8-executable   (file-mode/shebang churn across examples)
     #  "PYI",         # flake8-pyi          (stub-oriented; little value on source)
     #  "ICN",         # flake8-import-conventions (codebase uses plain `matplotlib`, not `mpl`)
