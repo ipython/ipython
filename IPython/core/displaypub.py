@@ -11,6 +11,7 @@ This module defines the logic display publishing. The display publisher uses
 the ``display_data`` message type that is defined in the IPython messaging
 spec.
 """
+
 from __future__ import annotations
 
 # Copyright (c) IPython Development Team.

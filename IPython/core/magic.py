@@ -405,9 +405,7 @@ class MagicsManager(Configurable):
         user_magics: Magics | None = None,
         **traits: Any,
     ) -> None:
-        super().__init__(
-            shell=shell, config=config, user_magics=user_magics, **traits
-        )
+        super().__init__(shell=shell, config=config, user_magics=user_magics, **traits)
         self.magics = dict(line={}, cell={})
         # Let's add the user_magics to the registry for uniformity, so *all*
         # registered magic containers can be found there.
@@ -617,9 +615,7 @@ class Magics(Configurable):
     # Instance of IPython shell
     shell: None | InteractiveShell = None
 
-    def __init__(
-        self, shell: InteractiveShell | None = None, **kwargs: Any
-    ) -> None:
+    def __init__(self, shell: InteractiveShell | None = None, **kwargs: Any) -> None:
         if not (self.__class__.registered):
             raise ValueError(
                 "Magics subclass without registration - "
@@ -778,6 +774,7 @@ class Magics(Configurable):
 
         return opts, args
 
+
 class MagicAlias:
     """An alias to another magic function.
 
@@ -801,7 +798,9 @@ class MagicAlias:
         self.magic_params = magic_params
         self.magic_kind = magic_kind
 
-        self.pretty_target = "{}{}".format(magic_escapes[self.magic_kind], self.magic_name)
+        self.pretty_target = "{}{}".format(
+            magic_escapes[self.magic_kind], self.magic_name
+        )
         self.__doc__ = "Alias for `%s`." % self.pretty_target
 
         self._in_call = False

@@ -5,8 +5,6 @@ IO related utilities.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-
-
 import sys
 import tempfile
 from pathlib import Path
@@ -23,10 +21,13 @@ class Tee:
     When the object is closed or deleted, it closes the original file given to
     it for duplication.
     """
+
     # Inspired by:
     # http://mail.python.org/pipermail/python-list/2007-May/442737.html
 
-    def __init__(self, file_or_name: str | StringIO, mode: str="w", channel: str='stdout'):
+    def __init__(
+        self, file_or_name: str | StringIO, mode: str = "w", channel: str = "stdout"
+    ):
         """Construct a new Tee object.
 
         Parameters
@@ -38,10 +39,10 @@ class Tee:
         channel : str, one of ['stdout', 'stderr']
         """
         self._closed = True
-        if channel not in ['stdout', 'stderr']:
-            raise ValueError('Invalid channel spec %s' % channel)
+        if channel not in ["stdout", "stderr"]:
+            raise ValueError("Invalid channel spec %s" % channel)
 
-        if hasattr(file_or_name, 'write') and hasattr(file_or_name, 'seek'):
+        if hasattr(file_or_name, "write") and hasattr(file_or_name, "seek"):
             self.file = file_or_name
         else:
             encoding = None if "b" in mode else "utf-8"
@@ -76,6 +77,7 @@ class Tee:
     def isatty(self):
         return False
 
+
 def ask_yes_no(prompt, default=None, interrupt=None):
     """Asks a question and returns a boolean (y/n) answer.
 
@@ -89,11 +91,11 @@ def ask_yes_no(prompt, default=None, interrupt=None):
 
     Valid answers are: y/yes/n/no (match is not case sensitive)."""
 
-    answers = {'y':True,'n':False,'yes':True,'no':False}
+    answers = {"y": True, "n": False, "yes": True, "no": False}
     ans = None
     while ans not in answers.keys():
         try:
-            ans = input(prompt+' ').lower()
+            ans = input(prompt + " ").lower()
             if not ans:  # response was an empty string
                 ans = default
         except KeyboardInterrupt:
@@ -110,7 +112,7 @@ def ask_yes_no(prompt, default=None, interrupt=None):
     return answers[ans]
 
 
-def temp_pyfile(src: str, ext: str='.py') -> str:
+def temp_pyfile(src: str, ext: str = ".py") -> str:
     """Make a temporary python file, return filename and filehandle.
 
     Parameters

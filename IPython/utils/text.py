@@ -49,7 +49,7 @@ class LSString(str):
         try:
             return self.__list
         except AttributeError:
-            self.__list = self.split('\n')
+            self.__list = self.split("\n")
             return self.__list
 
     l = list = property(get_list)
@@ -58,7 +58,7 @@ class LSString(str):
         try:
             return self.__spstr
         except AttributeError:
-            self.__spstr = self.replace('\n',' ')
+            self.__spstr = self.replace("\n", " ")
             return self.__spstr
 
     s = spstr = property(get_spstr)
@@ -72,10 +72,11 @@ class LSString(str):
         try:
             return self.__paths
         except AttributeError:
-            self.__paths = [Path(p) for p in self.split('\n') if os.path.exists(p)]
+            self.__paths = [Path(p) for p in self.split("\n") if os.path.exists(p)]
             return self.__paths
 
     p = paths = property(get_paths)
+
 
 # FIXME: We need to reimplement type specific displayhook and then add this
 # back as a custom printer. This should also be moved outside utils into the
@@ -116,7 +117,7 @@ class SList(list[Any]):
         try:
             return self.__spstr
         except AttributeError:
-            self.__spstr = ' '.join(self)
+            self.__spstr = " ".join(self)
             return self.__spstr
 
     s = spstr = property(get_spstr)
@@ -125,7 +126,7 @@ class SList(list[Any]):
         try:
             return self.__nlstr
         except AttributeError:
-            self.__nlstr = '\n'.join(self)
+            self.__nlstr = "\n".join(self)
             return self.__nlstr
 
     n = nlstr = property(get_nlstr)
@@ -171,7 +172,7 @@ class SList(list[Any]):
                 return ""
 
         if isinstance(pattern, str):
-            pred = lambda x : re.search(pattern, x, re.IGNORECASE)
+            pred = lambda x: re.search(pattern, x, re.IGNORECASE)
         else:
             pred = pattern
         if not prune:
@@ -230,11 +231,11 @@ class SList(list[Any]):
 
         """
 
-        #decorate, sort, undecorate
+        # decorate, sort, undecorate
         if field is not None:
-            dsu = [[SList([line]).fields(field),  line] for line in self]
+            dsu = [[SList([line]).fields(field), line] for line in self]
         else:
-            dsu = [[line,  line] for line in self]
+            dsu = [[line, line] for line in self]
         if nums:
             for i in range(len(dsu)):
                 numstr = "".join([ch for ch in dsu[i][0] if ch.isdigit()])
@@ -243,7 +244,6 @@ class SList(list[Any]):
                 except ValueError:
                     n = 0
                 dsu[i][0] = n
-
 
         dsu.sort()
         return type(self)([t[1] for t in dsu])
@@ -274,12 +274,12 @@ def indent(instr: str, nspaces: int = 4, ntabs: int = 0, flatten: bool = False) 
     """
     ind = "\t" * ntabs + " " * nspaces
     if flatten:
-        pat = re.compile(r'^\s*', re.MULTILINE)
+        pat = re.compile(r"^\s*", re.MULTILINE)
     else:
-        pat = re.compile(r'^', re.MULTILINE)
+        pat = re.compile(r"^", re.MULTILINE)
     outstr = re.sub(pat, ind, instr)
-    if outstr.endswith(os.linesep+ind):
-        return outstr[:-len(ind)]
+    if outstr.endswith(os.linesep + ind):
+        return outstr[: -len(ind)]
     else:
         return outstr
 
@@ -326,11 +326,12 @@ def marquee(txt: str = "", width: int = 78, mark: str = "*") -> str:
 
     """
     if not txt:
-        return (mark*width)[:width]
-    nmark = (width-len(txt)-2)//len(mark)//2
-    if nmark < 0: nmark =0
-    marks = mark*nmark
-    return '%s %s %s' % (marks,txt,marks)
+        return (mark * width)[:width]
+    nmark = (width - len(txt) - 2) // len(mark) // 2
+    if nmark < 0:
+        nmark = 0
+    marks = mark * nmark
+    return "%s %s %s" % (marks, txt, marks)
 
 
 def format_screen(strng: str) -> str:
@@ -338,8 +339,8 @@ def format_screen(strng: str) -> str:
 
     This removes some latex-type format codes."""
     # Paragraph continue
-    par_re = re.compile(r'\\$',re.MULTILINE)
-    strng = par_re.sub('',strng)
+    par_re = re.compile(r"\\$", re.MULTILINE)
+    strng = par_re.sub("", strng)
     return strng
 
 
@@ -354,12 +355,12 @@ def dedent(text: str) -> str:
     For use in wrap_paragraphs.
     """
 
-    if text.startswith('\n'):
+    if text.startswith("\n"):
         # text starts with blank line, don't ignore the first line
         return textwrap.dedent(text)
 
     # split first line
-    splits = text.split('\n',1)
+    splits = text.split("\n", 1)
     if len(splits) == 1:
         # only one line
         return textwrap.dedent(text)
@@ -367,7 +368,7 @@ def dedent(text: str) -> str:
     first, rest = splits
     # dedent everything but the first line
     rest = textwrap.dedent(rest)
-    return '\n'.join([first, rest])
+    return "\n".join([first, rest])
 
 
 def strip_email_quotes(text: str) -> str:
@@ -450,9 +451,11 @@ class EvalFormatter(Formatter):
         v = eval(name, kwargs, kwargs)
         return v, name
 
-#XXX: As of Python 3.4, the format string parsing no longer splits on a colon
+
+# XXX: As of Python 3.4, the format string parsing no longer splits on a colon
 # inside [], so EvalFormatter can handle slicing. Once we only support 3.4 and
 # above, it should be possible to remove FullEvalFormatter.
+
 
 class FullEvalFormatter(Formatter):
     """A String Formatter that allows evaluation of simple expressions.
@@ -477,6 +480,7 @@ class FullEvalFormatter(Formatter):
         In [4]: f.format('{3*2}')
         Out[4]: '6'
     """
+
     # copied from Formatter._vformat with minor changes to allow eval
     # and replace the format_spec code with slicing
     def vformat(
@@ -498,7 +502,7 @@ class FullEvalFormatter(Formatter):
 
                 if format_spec:
                     # override format spec, to allow slicing:
-                    field_name = ':'.join([field_name, format_spec])
+                    field_name = ":".join([field_name, format_spec])
 
                 # eval the contents of the field for the object
                 # to be formatted
@@ -509,9 +513,9 @@ class FullEvalFormatter(Formatter):
                 obj = self.convert_field(obj, conversion)
 
                 # format the object and append to the result
-                result.append(self.format_field(obj, ''))
+                result.append(self.format_field(obj, ""))
 
-        return ''.join(result)
+        return "".join(result)
 
 
 class DollarFormatter(FullEvalFormatter):
@@ -546,7 +550,7 @@ class DollarFormatter(FullEvalFormatter):
             continue_from = 0
             txt = ""
             for m in self._dollar_pattern_ignore_single_quote.finditer(literal_txt):
-                new_txt, new_field = m.group(1,2)
+                new_txt, new_field = m.group(1, 2)
                 # $$foo --> $foo
                 if new_field.startswith("$"):
                     txt += new_txt + new_field
@@ -556,7 +560,12 @@ class DollarFormatter(FullEvalFormatter):
                 continue_from = m.end()
 
             # Re-yield the {foo} style pattern
-            yield (txt + literal_txt[continue_from:], field_name, format_spec, conversion)
+            yield (
+                txt + literal_txt[continue_from:],
+                field_name,
+                format_spec,
+                conversion,
+            )
 
     def __repr__(self) -> str:
         return "<DollarFormatter>"
@@ -586,12 +595,9 @@ def get_text_list(
     'a + b + c = d'
     """
     if len(list_) == 0:
-        return ''
+        return ""
     if wrap_item_with:
-        list_ = ['%s%s%s' % (wrap_item_with, item, wrap_item_with) for
-                 item in list_]
+        list_ = ["%s%s%s" % (wrap_item_with, item, wrap_item_with) for item in list_]
     if len(list_) == 1:
         return list_[0]
-    return '%s%s%s' % (
-        sep.join(i for i in list_[:-1]),
-        last_sep, list_[-1])
+    return "%s%s%s" % (sep.join(i for i in list_[:-1]), last_sep, list_[-1])

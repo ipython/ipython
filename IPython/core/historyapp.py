@@ -55,23 +55,41 @@ class HistoryTrim(BaseIPythonApplication):
         # that still has open handles.
         with closing(sqlite3.connect(hist_file)) as con:
             # Grab the recent history from the current database.
-            inputs = list(con.execute('SELECT session, line, source, source_raw FROM '
-                                    'history ORDER BY session DESC, line DESC LIMIT ?', (self.keep+1,)))
+            inputs = list(
+                con.execute(
+                    "SELECT session, line, source, source_raw FROM "
+                    "history ORDER BY session DESC, line DESC LIMIT ?",
+                    (self.keep + 1,),
+                )
+            )
             if len(inputs) <= self.keep:
-                print("There are already at most %d entries in the history database." % self.keep)
+                print(
+                    "There are already at most %d entries in the history database."
+                    % self.keep
+                )
                 print("Not doing anything. Use --keep= argument to keep fewer entries")
                 return
 
             print("Trimming history to the most recent %d entries." % self.keep)
 
-            inputs.pop() # Remove the extra element we got to check the length.
+            inputs.pop()  # Remove the extra element we got to check the length.
             inputs.reverse()
             if inputs:
                 first_session = inputs[0][0]
-                outputs = list(con.execute('SELECT session, line, output FROM '
-                                        'output_history WHERE session >= ?', (first_session,)))
-                sessions = list(con.execute('SELECT session, start, end, num_cmds, remark FROM '
-                                            'sessions WHERE session >= ?', (first_session,)))
+                outputs = list(
+                    con.execute(
+                        "SELECT session, line, output FROM "
+                        "output_history WHERE session >= ?",
+                        (first_session,),
+                    )
+                )
+                sessions = list(
+                    con.execute(
+                        "SELECT session, start, end, num_cmds, remark FROM "
+                        "sessions WHERE session >= ?",
+                        (first_session,),
+                    )
+                )
 
         # Create the new history database.
         new_hist_file = profile_dir / "history.sqlite.new"
@@ -92,13 +110,16 @@ class HistoryTrim(BaseIPythonApplication):
                             PRIMARY KEY (session, line))""")
             new_db.commit()
 
-
             if inputs:
                 with new_db:
                     # Add the recent history into the new database.
-                    new_db.executemany('insert into sessions values (?,?,?,?,?)', sessions)
-                    new_db.executemany('insert into history values (?,?,?,?)', inputs)
-                    new_db.executemany('insert into output_history values (?,?,?)', outputs)
+                    new_db.executemany(
+                        "insert into sessions values (?,?,?,?,?)", sessions
+                    )
+                    new_db.executemany("insert into history values (?,?,?,?)", inputs)
+                    new_db.executemany(
+                        "insert into output_history values (?,?,?)", outputs
+                    )
 
         if self.backup:
             i = 1
@@ -139,10 +160,12 @@ class HistoryApp(Application):
     name = "ipython-history"
     description = "Manage the IPython history database."
 
-    subcommands = Dict(dict(
-        trim = (HistoryTrim, HistoryTrim.description.splitlines()[0]),
-        clear = (HistoryClear, HistoryClear.description.splitlines()[0]),
-    ))
+    subcommands = Dict(
+        dict(
+            trim=(HistoryTrim, HistoryTrim.description.splitlines()[0]),
+            clear=(HistoryClear, HistoryClear.description.splitlines()[0]),
+        )
+    )
 
     def start(self):
         if self.subapp is None:

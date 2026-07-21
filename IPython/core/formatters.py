@@ -78,17 +78,24 @@ from ..utils.sentinel import Sentinel
 from ..utils.dir2 import get_real_method
 from ..lib import pretty
 from traitlets import (
-    Bool, Dict, Integer, Unicode, CUnicode, ObjectName, List,
+    Bool,
+    Dict,
+    Integer,
+    Unicode,
+    CUnicode,
+    ObjectName,
+    List,
     ForwardDeclaredInstance,
-    default, observe,
+    default,
+    observe,
 )
 
 from typing import Any
 
 
 class DisplayFormatter(Configurable):
-
-    active_types = List(Unicode(),
+    active_types = List(
+        Unicode(),
         help="""List of currently active mime-types to display.
         You can use this to set a white-list for formats to display.
 
@@ -96,14 +103,14 @@ class DisplayFormatter(Configurable):
         """,
     ).tag(config=True)
 
-    @default('active_types')
+    @default("active_types")
     def _active_types_default(self):
         return self.format_types
 
-    @observe('active_types')
+    @observe("active_types")
     def _active_types_changed(self, change):
         for key, formatter in self.formatters.items():
-            if key in change['new']:
+            if key in change["new"]:
                 formatter.enabled = True
             else:
                 formatter.enabled = False
@@ -137,7 +144,7 @@ class DisplayFormatter(Configurable):
             JPEGFormatter,
             LatexFormatter,
             JSONFormatter,
-            JavascriptFormatter
+            JavascriptFormatter,
         ]
         d = {}
         for cls in formatter_classes:
@@ -204,15 +211,17 @@ class DisplayFormatter(Configurable):
             # object handled itself, don't proceed
             return {}, {}
 
-        format_dict, md_dict = self.mimebundle_formatter(obj, include=include, exclude=exclude)
+        format_dict, md_dict = self.mimebundle_formatter(
+            obj, include=include, exclude=exclude
+        )
 
         if format_dict or md_dict:
             if include:
-                format_dict = {k:v for k,v in format_dict.items() if k in include}
-                md_dict = {k:v for k,v in md_dict.items() if k in include}
+                format_dict = {k: v for k, v in format_dict.items() if k in include}
+                md_dict = {k: v for k, v in md_dict.items() if k in include}
             if exclude:
-                format_dict = {k:v for k,v in format_dict.items() if k not in exclude}
-                md_dict = {k:v for k,v in md_dict.items() if k not in exclude}
+                format_dict = {k: v for k, v in format_dict.items() if k not in exclude}
+                md_dict = {k: v for k, v in md_dict.items() if k not in exclude}
 
         for format_type, formatter in self.formatters.items():
             if format_type in format_dict:
@@ -251,9 +260,9 @@ class DisplayFormatter(Configurable):
         return list(self.formatters.keys())
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Formatters for specific format types (text, html, svg, etc.)
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 def _safe_repr(obj):
@@ -269,6 +278,7 @@ def _safe_repr(obj):
 
 class FormatterWarning(UserWarning):
     """Warning class for errors in formatters"""
+
 
 @decorator
 def catch_format_error(method, self, *args, **kwargs):
@@ -290,7 +300,7 @@ def catch_format_error(method, self, *args, **kwargs):
 
 
 class FormatterABC(metaclass=abc.ABCMeta):
-    """ Abstract base class for Formatters.
+    """Abstract base class for Formatters.
 
     A formatter is a callable class that is responsible for computing the
     raw format data for a particular format type (MIME type). For example,
@@ -299,7 +309,7 @@ class FormatterABC(metaclass=abc.ABCMeta):
     """
 
     # The format type of the data returned, usually a MIME type.
-    format_type = 'text/plain'
+    format_type = "text/plain"
 
     # Is the formatter enabled...
     enabled = True
@@ -319,14 +329,14 @@ def _mod_name_key(typ):
 
     Used as key in Formatter.deferred_printers.
     """
-    module = getattr(typ, '__module__', None)
-    name = getattr(typ, '__name__', None)
+    module = getattr(typ, "__module__", None)
+    name = getattr(typ, "__name__", None)
     return (module, name)
 
 
 def _get_type(obj):
     """Return the type of an instance (old and new-style)"""
-    return getattr(obj, '__class__', None) or type(obj)
+    return getattr(obj, "__class__", None) or type(obj)
 
 
 _raise_key_error = Sentinel(
@@ -370,7 +380,7 @@ class BaseFormatter(Configurable):
 
     enabled = Bool(True).tag(config=True)
 
-    print_method = ObjectName('__repr__')
+    print_method = ObjectName("__repr__")
 
     # The singleton printers.
     # Maps the IDs of the builtin singleton objects to the format functions.
@@ -417,14 +427,17 @@ class BaseFormatter(Configurable):
 
         Return the value if so, None otherwise, warning if invalid.
         """
-        if r is None or isinstance(r, self._return_type) or \
-            (isinstance(r, tuple) and r and isinstance(r[0], self._return_type)):
+        if (
+            r is None
+            or isinstance(r, self._return_type)
+            or (isinstance(r, tuple) and r and isinstance(r[0], self._return_type))
+        ):
             return r
         else:
             warnings.warn(
-                "%s formatter returned invalid type %s (expected %s) for object: %s" % \
-                (self.format_type, type(r), self._return_type, _safe_repr(obj)),
-                FormatterWarning
+                "%s formatter returned invalid type %s (expected %s) for object: %s"
+                % (self.format_type, type(r), self._return_type, _safe_repr(obj)),
+                FormatterWarning,
             )
 
     def lookup(self, obj):
@@ -467,7 +480,7 @@ class BaseFormatter(Configurable):
         KeyError if the type has not been registered.
         """
         if isinstance(typ, str):
-            typ_key = tuple(typ.rsplit('.',1))
+            typ_key = tuple(typ.rsplit(".", 1))
             if typ_key not in self.deferred_printers:
                 # We may have it cached in the type map. We will have to
                 # iterate over all of the types to check.
@@ -511,7 +524,7 @@ class BaseFormatter(Configurable):
         """
         # if string given, interpret as 'pkg.module.class_name'
         if isinstance(typ, str):
-            type_module, type_name = typ.rsplit('.', 1)
+            type_module, type_name = typ.rsplit(".", 1)
             return self.for_type_by_name(type_module, type_name, func)
 
         try:
@@ -585,7 +598,7 @@ class BaseFormatter(Configurable):
         """
 
         if isinstance(typ, str):
-            typ_key = tuple(typ.rsplit('.',1))
+            typ_key = tuple(typ.rsplit(".", 1))
             if typ_key not in self.deferred_printers:
                 # We may have it cached in the type map. We will have to
                 # iterate over all of the types to check.
@@ -612,8 +625,8 @@ class BaseFormatter(Configurable):
 
         Successful matches will be moved to the regular type registry for future use.
         """
-        mod = getattr(cls, '__module__', None)
-        name = getattr(cls, '__name__', None)
+        mod = getattr(cls, "__module__", None)
+        name = getattr(cls, "__name__", None)
         key = (mod, name)
         if key in self.deferred_printers:
             # Move the printer over to the regular registry.
@@ -648,13 +661,14 @@ class PlainTextFormatter(BaseFormatter):
     """
 
     # The format type of data returned.
-    format_type = Unicode('text/plain')
+    format_type = Unicode("text/plain")
 
     # This subclass ignores this attribute as it always need to return
     # something.
     enabled = Bool(True).tag(config=False)
 
-    max_seq_length = Integer(pretty.MAX_SEQ_LENGTH,
+    max_seq_length = Integer(
+        pretty.MAX_SEQ_LENGTH,
         help="""Truncate large collections (lists, dicts, tuples, sets) to this size.
 
         Set to 0 to disable truncation.
@@ -662,7 +676,7 @@ class PlainTextFormatter(BaseFormatter):
     ).tag(config=True)
 
     # Look for a _repr_pretty_ methods to use for pretty printing.
-    print_method = ObjectName('_repr_pretty_')
+    print_method = ObjectName("_repr_pretty_")
 
     # Whether to pretty-print or not.
     pprint = Bool(True).tag(config=True)
@@ -674,14 +688,14 @@ class PlainTextFormatter(BaseFormatter):
     max_width = Integer(79).tag(config=True)
 
     # The newline character.
-    newline = Unicode('\n').tag(config=True)
+    newline = Unicode("\n").tag(config=True)
 
     # format-string for pprinting floats
-    float_format = Unicode('%r')
+    float_format = Unicode("%r")
     # setter for float precision, either int or direct format-string
-    float_precision = CUnicode('').tag(config=True)
+    float_precision = CUnicode("").tag(config=True)
 
-    @observe('float_precision')
+    @observe("float_precision")
     def _float_precision_changed(self, change):
         """float_precision changed, set float_format accordingly.
 
@@ -695,47 +709,55 @@ class PlainTextFormatter(BaseFormatter):
 
         This parameter can be set via the '%precision' magic.
         """
-        new = change['new']
-        if '%' in new:
+        new = change["new"]
+        if "%" in new:
             # got explicit format string
             fmt = new
             try:
-                fmt%3.14159
+                fmt % 3.14159
             except Exception as e:
-                raise ValueError("Precision must be int or format string, not %r"%new) from e
+                raise ValueError(
+                    "Precision must be int or format string, not %r" % new
+                ) from e
         elif new:
             # otherwise, should be an int
             try:
                 i = int(new)
                 assert i >= 0
             except ValueError as e:
-                raise ValueError("Precision must be int or format string, not %r"%new) from e
+                raise ValueError(
+                    "Precision must be int or format string, not %r" % new
+                ) from e
             except AssertionError as e:
-                raise ValueError("int precision must be non-negative, not %r"%i) from e
+                raise ValueError(
+                    "int precision must be non-negative, not %r" % i
+                ) from e
 
-            fmt = '%%.%if'%i
-            if 'numpy' in sys.modules:
+            fmt = "%%.%if" % i
+            if "numpy" in sys.modules:
                 # set numpy precision if it has been imported
                 import numpy
+
                 numpy.set_printoptions(precision=i)
         else:
             # default back to repr
-            fmt = '%r'
-            if 'numpy' in sys.modules:
+            fmt = "%r"
+            if "numpy" in sys.modules:
                 import numpy
+
                 # numpy default is 8
                 numpy.set_printoptions(precision=8)
         self.float_format = fmt
 
     # Use the default pretty printers from IPython.lib.pretty.
-    @default('singleton_printers')
+    @default("singleton_printers")
     def _singleton_printers_default(self):
         return pretty._singleton_pprinters.copy()
 
-    @default('type_printers')
+    @default("type_printers")
     def _type_printers_default(self):
         d = pretty._type_pprinters.copy()
-        d[float] = lambda obj,p,cycle: p.text(self.float_format%obj)
+        d[float] = lambda obj, p, cycle: p.text(self.float_format % obj)
         # if NumPy is used, set precision for its float64 type
         if "numpy" in sys.modules:
             import numpy
@@ -743,7 +765,7 @@ class PlainTextFormatter(BaseFormatter):
             d[numpy.float64] = lambda obj, p, cycle: p.text(self.float_format % obj)
         return d
 
-    @default('deferred_printers')
+    @default("deferred_printers")
     def _deferred_printers_default(self):
         return pretty._deferred_type_pprinters.copy()
 
@@ -756,12 +778,16 @@ class PlainTextFormatter(BaseFormatter):
             return repr(obj)
         else:
             stream = StringIO()
-            printer = pretty.RepresentationPrinter(stream, self.verbose,
-                self.max_width, self.newline,
+            printer = pretty.RepresentationPrinter(
+                stream,
+                self.verbose,
+                self.max_width,
+                self.newline,
                 max_seq_length=self.max_seq_length,
                 singleton_pprinters=self.singleton_printers,
                 type_pprinters=self.type_printers,
-                deferred_pprinters=self.deferred_printers)
+                deferred_pprinters=self.deferred_printers,
+            )
             printer.pretty(obj)
             printer.flush()
             return stream.getvalue()
@@ -779,9 +805,10 @@ class HTMLFormatter(BaseFormatter):
     could be injected into an existing DOM. It should *not* include the
     ```<html>`` or ```<body>`` tags.
     """
-    format_type = Unicode('text/html')
 
-    print_method = ObjectName('_repr_html_')
+    format_type = Unicode("text/html")
+
+    print_method = ObjectName("_repr_html_")
 
 
 class MarkdownFormatter(BaseFormatter):
@@ -794,9 +821,11 @@ class MarkdownFormatter(BaseFormatter):
 
     The return value of this formatter should be a valid Markdown.
     """
-    format_type = Unicode('text/markdown')
 
-    print_method = ObjectName('_repr_markdown_')
+    format_type = Unicode("text/markdown")
+
+    print_method = ObjectName("_repr_markdown_")
+
 
 class SVGFormatter(BaseFormatter):
     """An SVG formatter.
@@ -810,9 +839,10 @@ class SVGFormatter(BaseFormatter):
     ```<svg>``` tags, that could be injected into an existing DOM. It should
     *not* include the ```<html>`` or ```<body>`` tags.
     """
-    format_type = Unicode('image/svg+xml')
 
-    print_method = ObjectName('_repr_svg_')
+    format_type = Unicode("image/svg+xml")
+
+    print_method = ObjectName("_repr_svg_")
 
 
 class PNGFormatter(BaseFormatter):
@@ -826,9 +856,10 @@ class PNGFormatter(BaseFormatter):
     The return value of this formatter should be raw PNG data, *not*
     base64 encoded.
     """
-    format_type = Unicode('image/png')
 
-    print_method = ObjectName('_repr_png_')
+    format_type = Unicode("image/png")
+
+    print_method = ObjectName("_repr_png_")
 
     _return_type = (bytes, str)
 
@@ -844,9 +875,10 @@ class JPEGFormatter(BaseFormatter):
     The return value of this formatter should be raw JPEG data, *not*
     base64 encoded.
     """
-    format_type = Unicode('image/jpeg')
 
-    print_method = ObjectName('_repr_jpeg_')
+    format_type = Unicode("image/jpeg")
+
+    print_method = ObjectName("_repr_jpeg_")
 
     _return_type = (bytes, str)
 
@@ -863,9 +895,10 @@ class LatexFormatter(BaseFormatter):
     enclosed in either ```$```, ```$$``` or another LaTeX equation
     environment.
     """
-    format_type = Unicode('text/latex')
 
-    print_method = ObjectName('_repr_latex_')
+    format_type = Unicode("text/latex")
+
+    print_method = ObjectName("_repr_latex_")
 
 
 class JSONFormatter(BaseFormatter):
@@ -879,10 +912,11 @@ class JSONFormatter(BaseFormatter):
     The return value of this formatter should be a JSONable list or dict.
     JSON scalars (None, number, string) are not allowed, only dict or list containers.
     """
-    format_type = Unicode('application/json')
+
+    format_type = Unicode("application/json")
     _return_type = (list, dict)
 
-    print_method = ObjectName('_repr_json_')
+    print_method = ObjectName("_repr_json_")
 
     def _check_return(self, r, obj):
         """Check that a return value is appropriate
@@ -896,9 +930,9 @@ class JSONFormatter(BaseFormatter):
             # unpack data, metadata tuple for type checking on first element
             r, md = r
 
-        assert not isinstance(
-            r, str
-        ), "JSON-as-string has been deprecated since IPython < 3"
+        assert not isinstance(r, str), (
+            "JSON-as-string has been deprecated since IPython < 3"
+        )
 
         if md is not None:
             # put the tuple back together
@@ -917,9 +951,10 @@ class JavascriptFormatter(BaseFormatter):
     The return value of this formatter should be valid Javascript code and
     should *not* be enclosed in ```<script>``` tags.
     """
-    format_type = Unicode('application/javascript')
 
-    print_method = ObjectName('_repr_javascript_')
+    format_type = Unicode("application/javascript")
+
+    print_method = ObjectName("_repr_javascript_")
 
 
 class PDFFormatter(BaseFormatter):
@@ -933,11 +968,13 @@ class PDFFormatter(BaseFormatter):
     The return value of this formatter should be raw PDF data, *not*
     base64 encoded.
     """
-    format_type = Unicode('application/pdf')
 
-    print_method = ObjectName('_repr_pdf_')
+    format_type = Unicode("application/pdf")
+
+    print_method = ObjectName("_repr_pdf_")
 
     _return_type = (bytes, str)
+
 
 class IPythonDisplayFormatter(BaseFormatter):
     """An escape-hatch Formatter for objects that know how to display themselves.
@@ -958,7 +995,8 @@ class IPythonDisplayFormatter(BaseFormatter):
     so `_ipython_display_` should only be used for objects that require unusual
     display patterns, such as multiple display calls.
     """
-    print_method = ObjectName('_ipython_display_')
+
+    print_method = ObjectName("_ipython_display_")
     _return_type = (type(None), bool)
 
     @catch_format_error
@@ -995,7 +1033,8 @@ class MimeBundleFormatter(BaseFormatter):
 
     .. versionadded:: 6.1
     """
-    print_method = ObjectName('_repr_mimebundle_')
+
+    print_method = ObjectName("_repr_mimebundle_")
     _return_type = dict
 
     def _check_return(self, r, obj):
@@ -1078,8 +1117,4 @@ def format_display_data(obj, include=None, exclude=None):
     """
     from .interactiveshell import InteractiveShell
 
-    return InteractiveShell.instance().display_formatter.format(
-        obj,
-        include,
-        exclude
-    )
+    return InteractiveShell.instance().display_formatter.format(obj, include, exclude)

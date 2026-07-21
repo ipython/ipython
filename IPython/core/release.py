@@ -1,6 +1,6 @@
 """Release data for the IPython project."""
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (c) 2008, IPython Development Team.
 #  Copyright (c) 2001, Fernando Perez <fernando.perez@colorado.edu>
 #  Copyright (c) 2001, Janko Hauser <jhauser@zscout.de>
@@ -9,7 +9,7 @@
 #  Distributed under the terms of the Modified BSD License.
 #
 #  The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # IPython version information.  An empty _version_extra corresponds to a full
 # release.  'dev' as a _version_extra string means this is a development
@@ -24,9 +24,9 @@ _version_extra = ".dev"
 # Construct full version string from these.
 _ver = [_version_major, _version_minor, _version_patch]
 
-__version__ = '.'.join(map(str, _ver))
+__version__ = ".".join(map(str, _ver))
 if _version_extra:
-    __version__ = __version__  + _version_extra
+    __version__ = __version__ + _version_extra
 
 version = __version__  # backwards compatibility name
 version_info = (_version_major, _version_minor, _version_patch, _version_extra)
@@ -39,6 +39,6 @@ authors = {
     "M": ("M Bussonnier", "mbussonnier@gmail.com"),
 }
 
-author = 'The IPython Development Team'
+author = "The IPython Development Team"
 
-author_email = 'ipython-dev@python.org'
+author_email = "ipython-dev@python.org"

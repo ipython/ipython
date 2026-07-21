@@ -22,42 +22,49 @@ from IPython.core.async_helpers import _AsyncIOProxy
 from IPython.core.magic import Magics, cell_magic, line_magic, magics_class
 from IPython.utils.process import arg_split
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Magic implementation classes
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 def script_args(f):
     """single decorator for adding script args"""
     args = [
         magic_arguments.argument(
-            '--out', type=str,
+            "--out",
+            type=str,
             help="""The variable in which to store stdout from the script.
             If the script is backgrounded, this will be the stdout *pipe*,
             instead of the stderr text itself and will not be auto closed.
-            """
+            """,
         ),
         magic_arguments.argument(
-            '--err', type=str,
+            "--err",
+            type=str,
             help="""The variable in which to store stderr from the script.
             If the script is backgrounded, this will be the stderr *pipe*,
             instead of the stderr text itself and will not be autoclosed.
-            """
+            """,
         ),
         magic_arguments.argument(
-            '--bg', action="store_true",
+            "--bg",
+            action="store_true",
             help="""Whether to run the script in the background.
             If given, the only way to see the output of the command is
             with --out/err.
-            """
+            """,
         ),
         magic_arguments.argument(
-            '--proc', type=str,
+            "--proc",
+            type=str,
             help="""The variable in which to store Popen instance.
             This is used only when --bg option is given.
-            """
+            """,
         ),
         magic_arguments.argument(
-            '--no-raise-error', action="store_false", dest='raise_error',
+            "--no-raise-error",
+            action="store_false",
+            dest="raise_error",
             help="""Whether you should raise an error message in addition to
             a stream on stderr if you get a nonzero exit code.
             """,
@@ -101,24 +108,26 @@ class ScriptMagics(Magics):
         """,
     ).tag(config=True)
 
-    @default('script_magics')
+    @default("script_magics")
     def _script_magics_default(self):
         """default to a common list of programs"""
 
         defaults = [
-            'sh',
-            'bash',
-            'perl',
-            'ruby',
-            'python',
-            'python2',
-            'python3',
-            'pypy',
+            "sh",
+            "bash",
+            "perl",
+            "ruby",
+            "python",
+            "python2",
+            "python3",
+            "pypy",
         ]
-        if os.name == 'nt':
-            defaults.extend([
-                'cmd',
-            ])
+        if os.name == "nt":
+            defaults.extend(
+                [
+                    "cmd",
+                ]
+            )
 
         return defaults
 
@@ -140,7 +149,7 @@ class ScriptMagics(Magics):
         self.kill_bg_processes()
 
     def _generate_script_magics(self):
-        cell_magics = self.magics['cell']
+        cell_magics = self.magics["cell"]
         for name in self.script_magics:
             cell_magics[name] = self._make_script_magic(name)
 
@@ -279,9 +288,9 @@ class ScriptMagics(Magics):
             else:
                 raise
 
-        if not cell.endswith('\n'):
-            cell += '\n'
-        cell = cell.encode('utf8', 'replace')
+        if not cell.endswith("\n"):
+            cell += "\n"
+        cell = cell.encode("utf8", "replace")
         if args.bg:
             self.bg_processes.append(p)
             self._gc_bg_processes()
@@ -363,7 +372,7 @@ class ScriptMagics(Magics):
         self._gc_bg_processes()
 
     @line_magic("killbgscripts")
-    def killbgscripts(self, _nouse_=''):
+    def killbgscripts(self, _nouse_=""):
         """Kill all BG processes started by %%script and its family."""
         self.kill_bg_processes()
         print("All background processes were killed.")

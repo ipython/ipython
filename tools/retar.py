@@ -50,7 +50,7 @@ new = tarfile.open(fileobj=buf, mode="w", format=tarfile.GNU_FORMAT)
 for i, m in enumerate(old):
     data = None
     # mutation does not work, copy
-    if m.name.endswith('.DS_Store'):
+    if m.name.endswith(".DS_Store"):
         continue
     m2 = tarfile.TarInfo(m.name)
     m2.mtime = min(timestamp, m.mtime)

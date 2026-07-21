@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""Script to auto-generate our API docs.
-"""
+"""Script to auto-generate our API docs."""
 
 import os
 import sys
@@ -8,29 +7,31 @@ import sys
 pjoin = os.path.join
 
 here = os.path.abspath(os.path.dirname(__file__))
-sys.path.append(pjoin(os.path.abspath(here), 'sphinxext'))
+sys.path.append(pjoin(os.path.abspath(here), "sphinxext"))
 
 from apigen import ApiDocWriter
 
-source = pjoin(here, 'source')
+source = pjoin(here, "source")
 
-#*****************************************************************************
+
+# *****************************************************************************
 def main():
-    package = 'IPython'
-    outdir = pjoin(source, 'api', 'generated')
-    docwriter = ApiDocWriter(package,rst_extension='.rst')
+    package = "IPython"
+    outdir = pjoin(source, "api", "generated")
+    docwriter = ApiDocWriter(package, rst_extension=".rst")
     # You have to escape the . here because . is a special char for regexps.
     # You must do make clean if you change this!
-    docwriter.package_skip_patterns += [r'\.external$',
-                                        # Extensions are documented elsewhere.
-                                        r'\.extensions',
-                                        # This isn't API
-                                        r'\.sphinxext',
-                                        # The pt_inputhooks modules often cause
-                                        # problems on import, such as trying to
-                                        # load incompatible Qt bindings.
-                                        r'\.terminal\.pt_inputhooks',
-                                        ]
+    docwriter.package_skip_patterns += [
+        r"\.external$",
+        # Extensions are documented elsewhere.
+        r"\.extensions",
+        # This isn't API
+        r"\.sphinxext",
+        # The pt_inputhooks modules often cause
+        # problems on import, such as trying to
+        # load incompatible Qt bindings.
+        r"\.terminal\.pt_inputhooks",
+    ]
 
     docwriter.module_skip_patterns += [
         r"\.ipdoctest",
@@ -59,11 +60,9 @@ def main():
     docwriter.write_api_docs(outdir)
     # Write index with .txt extension - we can include it, but Sphinx won't try
     # to compile it
-    docwriter.write_index(outdir, 'gen.txt',
-                          relative_to = pjoin(source, 'api')
-                          )
-    print ('%d files written' % len(docwriter.written_modules))
+    docwriter.write_index(outdir, "gen.txt", relative_to=pjoin(source, "api"))
+    print("%d files written" % len(docwriter.written_modules))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -1,12 +1,11 @@
-"""Implementation of packaging-related magic functions.
-"""
-#-----------------------------------------------------------------------------
+"""Implementation of packaging-related magic functions."""
+# -----------------------------------------------------------------------------
 #  Copyright (c) 2018 The IPython Development Team.
 #
 #  Distributed under the terms of the Modified BSD License.
 #
 #  The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import functools
 import os
@@ -76,13 +75,22 @@ def _get_conda_like_executable(command):
 
 
 CONDA_COMMANDS_REQUIRING_PREFIX = {
-    'install', 'list', 'remove', 'uninstall', 'update', 'upgrade',
+    "install",
+    "list",
+    "remove",
+    "uninstall",
+    "update",
+    "upgrade",
 }
 CONDA_COMMANDS_REQUIRING_YES = {
-    'install', 'remove', 'uninstall', 'update', 'upgrade',
+    "install",
+    "remove",
+    "uninstall",
+    "update",
+    "upgrade",
 }
-CONDA_ENV_FLAGS = {'-p', '--prefix', '-n', '--name'}
-CONDA_YES_FLAGS = {'-y', '--y'}
+CONDA_ENV_FLAGS = {"-p", "--prefix", "-n", "--name"}
+CONDA_YES_FLAGS = {"-y", "--y"}
 
 
 @magics_class
@@ -115,7 +123,7 @@ class PackagingMagics(Magics):
 
         # When the subprocess does not allow us to respond "yes" during the installation,
         # we need to insert --yes in the argument list for some commands
-        stdin_disabled = getattr(self.shell, 'kernel', None) is not None
+        stdin_disabled = getattr(self.shell, "kernel", None) is not None
         needs_yes = command in CONDA_COMMANDS_REQUIRING_YES
         has_yes = set(args).intersection(CONDA_YES_FLAGS)
         if stdin_disabled and needs_yes and not has_yes:

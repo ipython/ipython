@@ -1,6 +1,7 @@
 """
 A context manager for managing things injected into :mod:`builtins`.
 """
+
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 from __future__ import annotations
@@ -31,9 +32,9 @@ HideBuiltin = __HideBuiltin()
 
 
 class BuiltinTrap(Configurable):
-
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
-                     allow_none=True)
+    shell = Instance(
+        "IPython.core.interactiveshell.InteractiveShellABC", allow_none=True
+    )
 
     def __init__(self, shell: Any = None) -> None:
         super().__init__(shell=shell, config=None)
@@ -45,9 +46,9 @@ class BuiltinTrap(Configurable):
         # builtins we always add - if set to HideBuiltin, they will just
         # be removed instead of being replaced by something else
         self.auto_builtins: dict[str, Any] = {
-            'exit': HideBuiltin,
-            'quit': HideBuiltin,
-            'get_ipython': self.shell.get_ipython,
+            "exit": HideBuiltin,
+            "quit": HideBuiltin,
+            "get_ipython": self.shell.get_ipython,
         }
 
     def __enter__(self) -> BuiltinTrap:
@@ -57,7 +58,12 @@ class BuiltinTrap(Configurable):
         # I return self, so callers can use add_builtin in a with clause.
         return self
 
-    def __exit__(self, type: type[BaseException] | None, value: BaseException | None, traceback: TracebackType | None) -> Literal[False]:
+    def __exit__(
+        self,
+        type: type[BaseException] | None,
+        value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> Literal[False]:
         if self._nested_level == 1:
             self.deactivate()
         self._nested_level -= 1
@@ -69,7 +75,7 @@ class BuiltinTrap(Configurable):
         bdict = builtin_mod.__dict__
         orig = bdict.get(key, BuiltinUndefined)
         if value is HideBuiltin:
-            if orig is not BuiltinUndefined: #same as 'key in bdict'
+            if orig is not BuiltinUndefined:  # same as 'key in bdict'
                 self._orig_builtins[key] = orig
                 del bdict[key]
         else:

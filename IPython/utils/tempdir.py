@@ -14,7 +14,14 @@ from types import TracebackType
 
 
 class NamedFileInTemporaryDirectory:
-    def __init__(self, filename: str, mode: str, bufsize: int=-1, add_to_syspath: bool=False, **kwds):
+    def __init__(
+        self,
+        filename: str,
+        mode: str,
+        bufsize: int = -1,
+        add_to_syspath: bool = False,
+        **kwds,
+    ):
         """
         Open a file named `filename` in a temporary directory.
 
@@ -39,7 +46,12 @@ class NamedFileInTemporaryDirectory:
     def __enter__(self) -> BufferedWriter:
         return self.file
 
-    def __exit__(self, type: type[BaseException] | None, value: BaseException | None, traceback: TracebackType | None) -> None:
+    def __exit__(
+        self,
+        type: type[BaseException] | None,
+        value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
         self.cleanup()
 
 
@@ -58,6 +70,11 @@ class TemporaryWorkingDirectory(TemporaryDirectory):
         _os.chdir(self.name)
         return super().__enter__()
 
-    def __exit__(self, exc: type[BaseException] | None, value: BaseException | None, tb: TracebackType | None) -> None:
+    def __exit__(
+        self,
+        exc: type[BaseException] | None,
+        value: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
         _os.chdir(self.old_wd)
         return super().__exit__(exc, value, tb)

@@ -1,4 +1,5 @@
 """Sentinel class for constants with useful reprs"""
+
 from __future__ import annotations
 
 # Copyright (c) IPython Development Team.

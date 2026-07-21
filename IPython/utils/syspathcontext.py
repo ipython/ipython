@@ -5,7 +5,6 @@ from types import TracebackType
 from typing import Literal, Self
 
 
-
 class prepended_to_syspath:
     """A context for prepending a directory to sys.path for a second."""
 

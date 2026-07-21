@@ -193,8 +193,12 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
     def disconnect(self) -> None:
         self._cancel_running_llm_task()
         for pt_app in self._connected_apps:
-            pt_app.default_buffer.on_text_insert.remove_handler(self.reset_history_position)
-            pt_app.default_buffer.on_cursor_position_changed.remove_handler(self._dismiss)
+            pt_app.default_buffer.on_text_insert.remove_handler(
+                self.reset_history_position
+            )
+            pt_app.default_buffer.on_cursor_position_changed.remove_handler(
+                self._dismiss
+            )
         self._connected_apps = []
 
     def connect(self, pt_app: PromptSession) -> None:
@@ -204,9 +208,7 @@ class NavigableAutoSuggestFromHistory(AutoSuggestFromHistory):
         pt_app.default_buffer.on_text_insert.add_handler(self.reset_history_position)
         pt_app.default_buffer.on_cursor_position_changed.add_handler(self._dismiss)
 
-    def get_suggestion(
-        self, buffer: Buffer, document: Document
-    ) -> Suggestion | None:
+    def get_suggestion(self, buffer: Buffer, document: Document) -> Suggestion | None:
         text = _get_query(document)
 
         if text.strip():

@@ -26,17 +26,17 @@ def inputhook(context):
     global _appref, _eventloop, _timer
     app = QtCore.QCoreApplication.instance()
     if not app:
-        if sys.platform == 'linux':
-            if not os.environ.get('DISPLAY') \
-                    and not os.environ.get('WAYLAND_DISPLAY'):
+        if sys.platform == "linux":
+            if not os.environ.get("DISPLAY") and not os.environ.get("WAYLAND_DISPLAY"):
                 import warnings
+
                 global _already_warned
                 if not _already_warned:
                     _already_warned = True
                     warnings.warn(
-                        'The DISPLAY or WAYLAND_DISPLAY environment variable is '
-                        'not set or empty and Qt5 requires this environment '
-                        'variable. Deactivate Qt5 code.'
+                        "The DISPLAY or WAYLAND_DISPLAY environment variable is "
+                        "not set or empty and Qt5 requires this environment "
+                        "variable. Deactivate Qt5 code."
                     )
                 return
         try:
@@ -60,7 +60,7 @@ def inputhook(context):
     if _eventloop is None:
         _eventloop = QtCore.QEventLoop(app)
 
-    if sys.platform == 'win32':
+    if sys.platform == "win32":
         # The QSocketNotifier method doesn't appear to work on Windows.
         # Use polling instead.
         if _timer is None:

@@ -23,16 +23,16 @@ Authors
 """
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2009-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # Stdlib
 import re
@@ -42,9 +42,10 @@ import builtins
 from doctest import DocTestFinder, DocTestRunner, TestResults
 from IPython.terminal.interactiveshell import InteractiveShell
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Classes and functions
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 def count_failures(runner):
     """Count number of failures in a doctest runner.
@@ -68,21 +69,21 @@ class IPython2PythonConverter:
     implementation, but for now it only does prompt conversion."""
 
     def __init__(self):
-        self.rps1 = re.compile(r'In\ \[\d+\]: ')
-        self.rps2 = re.compile(r'\ \ \ \.\.\.+: ')
-        self.rout = re.compile(r'Out\[\d+\]: \s*?\n?')
-        self.pyps1 = '>>> '
-        self.pyps2 = '... '
-        self.rpyps1 = re.compile (r'(\s*%s)(.*)$' % self.pyps1)
-        self.rpyps2 = re.compile (r'(\s*%s)(.*)$' % self.pyps2)
+        self.rps1 = re.compile(r"In\ \[\d+\]: ")
+        self.rps2 = re.compile(r"\ \ \ \.\.\.+: ")
+        self.rout = re.compile(r"Out\[\d+\]: \s*?\n?")
+        self.pyps1 = ">>> "
+        self.pyps2 = "... "
+        self.rpyps1 = re.compile(r"(\s*%s)(.*)$" % self.pyps1)
+        self.rpyps2 = re.compile(r"(\s*%s)(.*)$" % self.pyps2)
 
     def __call__(self, ds):
         """Convert IPython prompts to python ones in a string."""
         from . import globalipapp
 
-        pyps1 = '>>> '
-        pyps2 = '... '
-        pyout = ''
+        pyps1 = ">>> "
+        pyps2 = "... "
+        pyout = ""
 
         dnew = ds
         dnew = self.rps1.sub(pyps1, dnew)
@@ -94,25 +95,24 @@ class IPython2PythonConverter:
         out = []
         newline = out.append
         for line in dnew.splitlines():
-
             mps1 = self.rpyps1.match(line)
             if mps1 is not None:
                 prompt, text = mps1.groups()
-                newline(prompt+ip.prefilter(text, False))
+                newline(prompt + ip.prefilter(text, False))
                 continue
 
             mps2 = self.rpyps2.match(line)
             if mps2 is not None:
                 prompt, text = mps2.groups()
-                newline(prompt+ip.prefilter(text, True))
+                newline(prompt + ip.prefilter(text, True))
                 continue
 
             newline(line)
-        newline('')  # ensure a closing newline, needed by doctest
+        newline("")  # ensure a closing newline, needed by doctest
         # print("PYSRC:", '\n'.join(out))  # dbg
-        return '\n'.join(out)
+        return "\n".join(out)
 
-    #return dnew
+    # return dnew
 
 
 class Doc2UnitTester:
@@ -122,7 +122,8 @@ class Doc2UnitTester:
     no attempt is made at turning it into a singleton, there is no need for
     that).
     """
-    def __init__(self, verbose: bool=False):
+
+    def __init__(self, verbose: bool = False):
         """New decorator.
 
         Parameters
@@ -167,7 +168,7 @@ class Doc2UnitTester:
                         err = "Invalid number of test results: %s" % failed
                         raise ValueError(err)
                     # Report a normal failure.
-                    self.fail('failed doctests: %s' % str(failed[0]))
+                    self.fail("failed doctests: %s" % str(failed[0]))
 
         # Rename it so test reports have the original signature.
         Tester.__name__ = func.__name__
@@ -175,8 +176,7 @@ class Doc2UnitTester:
 
 
 def ipdocstring(func):
-    """Change the function docstring via ip2py.
-    """
+    """Change the function docstring via ip2py."""
     if func.__doc__ is not None:
         func.__doc__ = ip2py(func.__doc__)
     return func

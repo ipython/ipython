@@ -90,9 +90,11 @@ def setup_shortcut(seq):
     import IPython
 
     ip = IPython.get_ipython()
-    ip.pt_app.key_bindings.add_binding(
-        seq, filter=(navigable_suggestions & default_buffer_focused)
-    )(llm_autosuggestion),
+    (
+        ip.pt_app.key_bindings.add_binding(
+            seq, filter=(navigable_suggestions & default_buffer_focused)
+        )(llm_autosuggestion),
+    )
 
 
 class ExampleCompletionProvider(BaseProvider, FakeListLLM):  # type: ignore[misc, valid-type]

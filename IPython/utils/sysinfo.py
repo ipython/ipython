@@ -1,18 +1,19 @@
 """
 Utilities for getting information about IPython and the system it's running in.
 """
+
 from __future__ import annotations
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import os
 import platform
@@ -25,9 +26,10 @@ from pathlib import Path
 from IPython.core import release
 from IPython.utils import _sysinfo, encoding
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Code
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 def pkg_commit_hash(pkg_path: str) -> tuple[str, str]:
     """Get short form of commit hash given directory `pkg_path`
@@ -57,14 +59,16 @@ def pkg_commit_hash(pkg_path: str) -> tuple[str, str]:
         return "installation", _sysinfo.commit
 
     # maybe we are in a repository
-    proc = subprocess.Popen('git rev-parse --short HEAD'.split(' '),
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            cwd=pkg_path)
+    proc = subprocess.Popen(
+        "git rev-parse --short HEAD".split(" "),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        cwd=pkg_path,
+    )
     repo_commit, _ = proc.communicate()
     if repo_commit:
-        return 'repository', repo_commit.strip().decode('ascii')
-    return '(none found)', '<not found>'
+        return "repository", repo_commit.strip().decode("ascii")
+    return "(none found)", "<not found>"
 
 
 def pkg_info(pkg_path: str) -> dict:
@@ -92,12 +96,14 @@ def pkg_info(pkg_path: str) -> dict:
         platform=platform.platform(),
         os_name=os.name,
         default_encoding=encoding.DEFAULT_ENCODING,
-        )
+    )
+
 
 def get_sys_info() -> dict:
     """Return useful information about IPython and the system, as a dict."""
     path = Path(__file__, "..").resolve().parent
     return pkg_info(str(path))
+
 
 def sys_info() -> str:
     """Return useful information about IPython and the system, as a string.

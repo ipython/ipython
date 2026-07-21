@@ -128,6 +128,7 @@ Some of the known remaining caveats are:
 
 - Reloading a module, or importing the same module by a different name, creates new Enums. These may look the same, but are not.
 """
+
 from __future__ import annotations
 
 from IPython.core import magic_arguments

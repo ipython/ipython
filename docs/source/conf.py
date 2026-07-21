@@ -167,7 +167,6 @@ else:
 """
 
 
-
 class ConfigtraitFilter(logging.Filter):
     """
     This is a filter to remove in sphinx 3+ the error about config traits being duplicated.

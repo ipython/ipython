@@ -5,12 +5,11 @@ Utilities for working with external processes.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-
 import os
 import shutil
 import sys
 
-if sys.platform == 'win32':
+if sys.platform == "win32":
     from ._process_win32 import system, getoutput, arg_split, check_pid
 elif sys.platform == "emscripten":
     from ._process_emscripten import system, getoutput, arg_split, check_pid
@@ -50,24 +49,22 @@ def find_cmd(cmd):
     """
     path = shutil.which(cmd)
     if path is None:
-        raise FindCmdError('command could not be found: %s' % cmd)
+        raise FindCmdError("command could not be found: %s" % cmd)
     return path
 
 
 def abbrev_cwd():
-    """ Return abbreviated version of cwd, e.g. d:mydir """
-    cwd = os.getcwd().replace('\\','/')
-    drivepart = ''
+    """Return abbreviated version of cwd, e.g. d:mydir"""
+    cwd = os.getcwd().replace("\\", "/")
+    drivepart = ""
     tail = cwd
-    if sys.platform == 'win32':
+    if sys.platform == "win32":
         if len(cwd) < 4:
             return cwd
-        drivepart,tail = os.path.splitdrive(cwd)
+        drivepart, tail = os.path.splitdrive(cwd)
 
-
-    parts = tail.split('/')
+    parts = tail.split("/")
     if len(parts) > 2:
-        tail = '/'.join(parts[-2:])
+        tail = "/".join(parts[-2:])
 
-    return (drivepart + (
-        cwd == '/' and '/' or tail))
+    return drivepart + (cwd == "/" and "/" or tail)

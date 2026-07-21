@@ -12,6 +12,7 @@ def _strip_underline(line):
     else:
         return line
 
+
 def format_docstring(func):
     docstring = (func.__doc__ or "Undocumented").rstrip()
     docstring = indent(dedent(docstring))
@@ -20,8 +21,10 @@ def format_docstring(func):
     lines = [_strip_underline(l) for l in docstring.splitlines()]
     return "\n".join(lines)
 
+
 # Case insensitive sort by name
-def sortkey(s): return s[0].lower()
+def sortkey(s):
+    return s[0].lower()
 
 
 def main():
@@ -39,16 +42,15 @@ def main():
             # Aliases are magics, but shouldn't be documented here
             # Also skip aliases to other magics
             continue
-        output.extend([".. magic:: {}".format(name),
-                       "",
-                       format_docstring(func),
-                       ""])
+        output.extend([".. magic:: {}".format(name), "", format_docstring(func), ""])
 
-    output.extend([
-        "Cell magics",
-        "===========",
-        "",
-    ])
+    output.extend(
+        [
+            "Cell magics",
+            "===========",
+            "",
+        ]
+    )
 
     for name, func in sorted(magics["cell"].items(), key=sortkey):
         if name == "!":
@@ -59,10 +61,9 @@ def main():
             continue
         if isinstance(func, MagicAlias):
             continue
-        output.extend([".. cellmagic:: {}".format(name),
-                       "",
-                       format_docstring(func),
-                       ""])
+        output.extend(
+            [".. cellmagic:: {}".format(name), "", format_docstring(func), ""]
+        )
 
     src_path = Path(__file__).parent
     dest = src_path.joinpath("source", "interactive", "magics-generated.txt")

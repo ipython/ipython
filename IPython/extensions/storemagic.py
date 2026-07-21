@@ -21,25 +21,28 @@ from traitlets import Bool
 
 
 def restore_aliases(ip, alias=None):
-    staliases = ip.db.get('stored_aliases', {})
+    staliases = ip.db.get("stored_aliases", {})
     if alias is None:
-        for k,v in staliases.items():
+        for k, v in staliases.items():
             # print("restore alias",k,v)  # dbg
-            #self.alias_table[k] = v
-            ip.alias_manager.define_alias(k,v)
+            # self.alias_table[k] = v
+            ip.alias_manager.define_alias(k, v)
     else:
         ip.alias_manager.define_alias(alias, staliases[alias])
 
 
 def refresh_variables(ip):
     db = ip.db
-    for key in db.keys('autorestore/*'):
+    for key in db.keys("autorestore/*"):
         # strip autorestore
         justkey = os.path.basename(key)
         try:
             obj = db[key]
         except KeyError:
-            print("Unable to restore variable '%s', ignoring (use %%store -d to forget!)" % justkey)
+            print(
+                "Unable to restore variable '%s', ignoring (use %%store -d to forget!)"
+                % justkey
+            )
             print("The error was:", sys.exc_info()[0])
         else:
             # print("restored",justkey,"=",obj)  # dbg
@@ -47,7 +50,7 @@ def refresh_variables(ip):
 
 
 def restore_dhist(ip):
-    ip.user_ns['_dh'] = ip.db.get('dhist',[])
+    ip.user_ns["_dh"] = ip.db.get("dhist", [])
 
 
 def restore_data(ip):
@@ -62,10 +65,11 @@ class StoreMagics(Magics):
 
     Provides the %store magic."""
 
-    autorestore = Bool(False, help=
-        """If True, any %store-d variables will be automatically restored
+    autorestore = Bool(
+        False,
+        help="""If True, any %store-d variables will be automatically restored
         when IPython starts.
-        """
+        """,
     ).tag(config=True)
 
     def __init__(self, shell):
@@ -76,7 +80,7 @@ class StoreMagics(Magics):
 
     @skip_doctest
     @line_magic
-    def store(self, parameter_s=''):
+    def store(self, parameter_s=""):
         """Lightweight persistence for python variables.
 
         Example::
@@ -120,27 +124,27 @@ class StoreMagics(Magics):
         To remove an alias from the storage, use the %unalias magic.
         """
 
-        opts,argsl = self.parse_options(parameter_s,'drz',mode='string')
+        opts, argsl = self.parse_options(parameter_s, "drz", mode="string")
         args = argsl.split()
         ip = self.shell
         db = ip.db
         # delete
-        if 'd' in opts:
+        if "d" in opts:
             try:
                 todel = args[0]
             except IndexError as e:
-                raise UsageError('You must provide the variable to forget') from e
+                raise UsageError("You must provide the variable to forget") from e
             else:
                 try:
-                    del db['autorestore/' + todel]
+                    del db["autorestore/" + todel]
                 except BaseException as e:
                     raise UsageError("Can't delete variable '%s'" % todel) from e
         # reset
-        elif 'z' in opts:
-            for k in db.keys('autorestore/*'):
+        elif "z" in opts:
+            for k in db.keys("autorestore/*"):
                 del db[k]
 
-        elif 'r' in opts:
+        elif "r" in opts:
             if args:
                 for arg in args:
                     try:
@@ -157,20 +161,20 @@ class StoreMagics(Magics):
 
         # run without arguments -> list variables & values
         elif not args:
-            vars = db.keys('autorestore/*')
+            vars = db.keys("autorestore/*")
             vars.sort()
             if vars:
                 size = max(map(len, vars))
             else:
                 size = 0
 
-            print('Stored variables and their in-db values:')
-            fmt = '%-'+str(size)+'s -> %s'
+            print("Stored variables and their in-db values:")
+            fmt = "%-" + str(size) + "s -> %s"
             get = db.get
             for var in vars:
                 justkey = os.path.basename(var)
                 # print 30 first characters from every var
-                print(fmt % (justkey, repr(get(var, '<unavailable>'))[:50]))
+                print(fmt % (justkey, repr(get(var, "<unavailable>"))[:50]))
 
         # default action - store the variable
         else:
@@ -183,16 +187,20 @@ class StoreMagics(Magics):
                     fil = open(fnam, "w", encoding="utf-8")
                 with fil:
                     obj = ip.ev(args[0])
-                    print("Writing '{}' ({}) to file '{}'.".format(args[0],
-                        obj.__class__.__name__, fnam))
+                    print(
+                        "Writing '{}' ({}) to file '{}'.".format(
+                            args[0], obj.__class__.__name__, fnam
+                        )
+                    )
 
-                    if not isinstance (obj, str):
+                    if not isinstance(obj, str):
                         from pprint import pprint
+
                         pprint(obj, fil)
                     else:
                         fil.write(obj)
-                        if not obj.endswith('\n'):
-                            fil.write('\n')
+                        if not obj.endswith("\n"):
+                            fil.write("\n")
 
                 return
 
@@ -208,24 +216,28 @@ class StoreMagics(Magics):
                     except ValueError as e:
                         raise UsageError("Unknown variable '%s'" % name) from e
 
-                    staliases = db.get('stored_aliases',{})
+                    staliases = db.get("stored_aliases", {})
                     staliases[name] = cmd
-                    db['stored_aliases'] = staliases
+                    db["stored_aliases"] = staliases
                     print("Alias stored: {} ({})".format(name, cmd))
                     return
 
                 else:
-                    modname = getattr(inspect.getmodule(obj), '__name__', '')
-                    if modname == '__main__':
-                        print(textwrap.dedent("""\
+                    modname = getattr(inspect.getmodule(obj), "__name__", "")
+                    if modname == "__main__":
+                        print(
+                            textwrap.dedent(
+                                """\
                         Warning:{} is {}
                         Proper storage of interactively declared classes (or instances
                         of those classes) is not possible! Only instances
                         of classes in real modules on file system can be %store'd.
-                        """.format(arg, obj) ))
+                        """.format(arg, obj)
+                            )
+                        )
                         return
-                    #pickled = pickle.dumps(obj)
-                    db[ 'autorestore/' + arg ] = obj
+                    # pickled = pickle.dumps(obj)
+                    db["autorestore/" + arg] = obj
                     print("Stored '{}' ({})".format(arg, obj.__class__.__name__))
 
 

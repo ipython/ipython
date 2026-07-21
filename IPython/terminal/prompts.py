@@ -21,15 +21,17 @@ class Prompts:
         self.shell = shell
 
     def vi_mode(self):
-        if (getattr(self.shell.pt_app, 'editing_mode', None) == EditingMode.VI
-                and self.shell.prompt_includes_vi_mode):
+        if (
+            getattr(self.shell.pt_app, "editing_mode", None) == EditingMode.VI
+            and self.shell.prompt_includes_vi_mode
+        ):
             mode = str(self.shell.pt_app.app.vi_state.input_mode)
-            if mode.startswith('InputMode.'):
+            if mode.startswith("InputMode."):
                 mode = mode[10:13].lower()
-            elif mode.startswith('vi-'):
+            elif mode.startswith("vi-"):
                 mode = mode[3:6]
-            return '['+mode+'] '
-        return ''
+            return "[" + mode + "] "
+        return ""
 
     def current_line(self) -> int:
         if self.shell.pt_app is not None:
@@ -47,7 +49,7 @@ class Prompts:
             ),
             (Token.Prompt, "In ["),
             (Token.PromptNum, str(self.shell.execution_count)),
-            (Token.Prompt, ']: '),
+            (Token.Prompt, "]: "),
         ]
 
     def _width(self):
@@ -87,20 +89,21 @@ class Prompts:
     def rewrite_prompt_tokens(self):
         width = self._width()
         return [
-            (Token.Prompt, ('-' * (width - 2)) + '> '),
+            (Token.Prompt, ("-" * (width - 2)) + "> "),
         ]
 
     def out_prompt_tokens(self) -> list[tuple[_TokenType, str]]:
         return [
-            (Token.OutPrompt, 'Out['),
+            (Token.OutPrompt, "Out["),
             (Token.OutPromptNum, str(self.shell.execution_count - 1)),
-            (Token.OutPrompt, ']: '),
+            (Token.OutPrompt, "]: "),
         ]
+
 
 class ClassicPrompts(Prompts):
     def in_prompt_tokens(self):
         return [
-            (Token.Prompt, '>>> '),
+            (Token.Prompt, ">>> "),
         ]
 
     def continuation_prompt_tokens(self, width=None):
@@ -112,8 +115,10 @@ class ClassicPrompts(Prompts):
     def out_prompt_tokens(self):
         return []
 
+
 class RichPromptDisplayHook(DisplayHook):
     """Subclass of base display hook using coloured prompt"""
+
     def write_output_prompt(self):
         sys.stdout.write(self.shell.separate_out)
         # If we're not displaying a prompt, it effectively ends with a newline,
@@ -128,16 +133,19 @@ class RichPromptDisplayHook(DisplayHook):
                 self.prompt_end_newline = False
 
             if self.shell.pt_app:
-                print_formatted_text(PygmentsTokens(tokens),
-                    style=self.shell.pt_app.app.style, end='',
+                print_formatted_text(
+                    PygmentsTokens(tokens),
+                    style=self.shell.pt_app.app.style,
+                    end="",
                 )
             else:
                 sys.stdout.write(prompt_txt)
 
-    def write_format_data(self, format_dict: dict[str, str], md_dict: dict[Any, Any] | None = None) -> None:
+    def write_format_data(
+        self, format_dict: dict[str, str], md_dict: dict[Any, Any] | None = None
+    ) -> None:
         assert self.shell is not None
         if self.shell.mime_renderers:
-
             for mime, handler in self.shell.mime_renderers.items():
                 if mime in format_dict:
                     handler(format_dict[mime], None)

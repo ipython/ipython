@@ -82,9 +82,9 @@ def __getattr__(name):
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Matplotlib utilities
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 def getfigs(*fig_nums):
@@ -100,6 +100,7 @@ def getfigs(*fig_nums):
         A tuple of ints giving the figure numbers of the figures to return.
     """
     from matplotlib._pylab_helpers import Gcf
+
     if not fig_nums:
         fig_managers = Gcf.get_all_fig_managers()
         return [fm.canvas.figure for fm in fig_managers]
@@ -108,7 +109,7 @@ def getfigs(*fig_nums):
         for num in fig_nums:
             f = Gcf.figs.get(num)
             if f is None:
-                print('Warning: figure %s not available.' % num)
+                print("Warning: figure %s not available." % num)
             else:
                 figs.append(f.canvas.figure)
         return figs
@@ -122,7 +123,8 @@ def figsize(sizex, sizey):
       matplotlib.rcParams['figure.figsize'] = [sizex, sizey]
     """
     import matplotlib
-    matplotlib.rcParams['figure.figsize'] = [sizex, sizey]
+
+    matplotlib.rcParams["figure.figsize"] = [sizex, sizey]
 
 
 def print_figure(fig, fmt="png", bbox_inches="tight", base64=False, **kwargs):
@@ -146,17 +148,17 @@ def print_figure(fig, fmt="png", bbox_inches="tight", base64=False, **kwargs):
         return
 
     dpi = fig.dpi
-    if fmt == 'retina':
+    if fmt == "retina":
         dpi = dpi * 2
-        fmt = 'png'
+        fmt = "png"
 
     # build keyword args
     kw = {
-        "format":fmt,
-        "facecolor":fig.get_facecolor(),
-        "edgecolor":fig.get_edgecolor(),
-        "dpi":dpi,
-        "bbox_inches":bbox_inches,
+        "format": fmt,
+        "facecolor": fig.get_facecolor(),
+        "edgecolor": fig.get_edgecolor(),
+        "dpi": dpi,
+        "bbox_inches": bbox_inches,
     }
     # **kwargs get higher priority
     kw.update(kwargs)
@@ -164,15 +166,17 @@ def print_figure(fig, fmt="png", bbox_inches="tight", base64=False, **kwargs):
     bytes_io = BytesIO()
     if fig.canvas is None:
         from matplotlib.backend_bases import FigureCanvasBase
+
         FigureCanvasBase(fig)
 
     fig.canvas.print_figure(bytes_io, **kw)
     data = bytes_io.getvalue()
-    if fmt == 'svg':
-        data = data.decode('utf-8')
+    if fmt == "svg":
+        data = data.decode("utf-8")
     elif base64:
         data = b2a_base64(data, newline=False).decode("ascii")
     return data
+
 
 def retina_figure(fig, base64=False, **kwargs):
     """format a figure as a pixel-doubled (retina) PNG
@@ -189,7 +193,7 @@ def retina_figure(fig, base64=False, **kwargs):
     if pngdata is None:
         return
     w, h = _pngxy(pngdata)
-    metadata = {"width": w//2, "height":h//2}
+    metadata = {"width": w // 2, "height": h // 2}
     if base64:
         pngdata = b2a_base64(pngdata, newline=False).decode("ascii")
     return pngdata, metadata
@@ -212,7 +216,7 @@ def mpl_runner(safe_execfile):
     function.
     """
 
-    def mpl_execfile(fname,*where,**kw):
+    def mpl_execfile(fname, *where, **kw):
         """matplotlib-aware wrapper around safe_execfile.
 
         Its interface is identical to that of the :func:`execfile` builtin.
@@ -272,27 +276,27 @@ def select_figure_formats(shell, formats, **kwargs):
     import matplotlib
     from matplotlib.figure import Figure
 
-    svg_formatter = shell.display_formatter.formatters['image/svg+xml']
-    png_formatter = shell.display_formatter.formatters['image/png']
-    jpg_formatter = shell.display_formatter.formatters['image/jpeg']
-    pdf_formatter = shell.display_formatter.formatters['application/pdf']
+    svg_formatter = shell.display_formatter.formatters["image/svg+xml"]
+    png_formatter = shell.display_formatter.formatters["image/png"]
+    jpg_formatter = shell.display_formatter.formatters["image/jpeg"]
+    pdf_formatter = shell.display_formatter.formatters["application/pdf"]
 
     if isinstance(formats, str):
         formats = {formats}
     # cast in case of list / tuple
     formats = set(formats)
 
-    [ f.pop(Figure, None) for f in shell.display_formatter.formatters.values() ]
+    [f.pop(Figure, None) for f in shell.display_formatter.formatters.values()]
     mplbackend = matplotlib.get_backend().lower()
     if mplbackend in ("nbagg", "ipympl", "widget", "module://ipympl.backend_nbagg"):
         formatter = shell.display_formatter.ipython_display_formatter
         formatter.for_type(Figure, _reshow_nbagg_figure)
 
-    supported = {'png', 'png2x', 'retina', 'jpg', 'jpeg', 'svg', 'pdf'}
+    supported = {"png", "png2x", "retina", "jpg", "jpeg", "svg", "pdf"}
     bad = formats.difference(supported)
     if bad:
-        bs = "%s" % ','.join([repr(f) for f in bad])
-        gs = "%s" % ','.join([repr(f) for f in supported])
+        bs = "%s" % ",".join([repr(f) for f in bad])
+        gs = "%s" % ",".join([repr(f) for f in supported])
         raise ValueError("supported formats are: {} not {}".format(gs, bs))
 
     if "png" in formats:
@@ -312,9 +316,10 @@ def select_figure_formats(shell, formats, **kwargs):
             Figure, partial(print_figure, fmt="pdf", base64=True, **kwargs)
         )
 
-#-----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 # Code for initializing matplotlib and importing pylab
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 def find_gui_and_backend(gui=None, gui_select=None):
@@ -354,22 +359,21 @@ def find_gui_and_backend(gui=None, gui_select=None):
     mpl_version_info = getattr(matplotlib, "__version_info__", (0, 0))
     has_unified_qt_backend = mpl_version_info >= (3, 5)
 
-
     backends_ = dict(_deprecated_backends)
     if not has_unified_qt_backend:
         backends_["qt"] = "qt5agg"
 
-    if gui and gui != 'auto':
+    if gui and gui != "auto":
         # select backend based on requested gui
         backend = backends_[gui]
-        if gui == 'agg':
+        if gui == "agg":
             gui = None
     else:
         # We need to read the backend from the original data structure, *not*
         # from mpl.rcParams, since a prior invocation of %matplotlib may have
         # overwritten that.
         # WARNING: this assumes matplotlib 1.1 or newer!!
-        backend = matplotlib.rcParamsOrig['backend']
+        backend = matplotlib.rcParamsOrig["backend"]
 
         # In this case, we need to find what the appropriate gui selection call
         # should be for IPython, so we can activate inputhook accordingly
@@ -393,12 +397,13 @@ def activate_matplotlib(backend):
     """Activate the given backend and set interactive to True."""
 
     import matplotlib
+
     matplotlib.interactive(True)
 
     # Matplotlib had a bug where even switch_backend could not force
     # the rcParam to update. This needs to be set *before* the module
     # magic of switch_backend().
-    matplotlib.rcParams['backend'] = backend
+    matplotlib.rcParams["backend"] = backend
 
     # Due to circular imports, pyplot may be only partially initialised
     # when this function runs.
@@ -425,25 +430,26 @@ def import_pylab(user_ns, import_all=True):
     # Import numpy as np/pyplot as plt are conventions we're trying to
     # somewhat standardize on.  Making them available to users by default
     # will greatly help this.
-    s = ("import numpy\n"
-          "import matplotlib\n"
-          "from matplotlib import pylab, mlab, pyplot\n"
-          "np = numpy\n"
-          "plt = pyplot\n"
-          )
+    s = (
+        "import numpy\n"
+        "import matplotlib\n"
+        "from matplotlib import pylab, mlab, pyplot\n"
+        "np = numpy\n"
+        "plt = pyplot\n"
+    )
     exec(s, user_ns)
 
     if import_all:
-        s = ("from matplotlib.pylab import *\n"
-             "from numpy import *\n")
+        s = "from matplotlib.pylab import *\nfrom numpy import *\n"
         exec(s, user_ns)
 
     # IPython symbols to add
-    user_ns['figsize'] = figsize
+    user_ns["figsize"] = figsize
     from IPython.display import display
+
     # Add display and getfigs to the user's namespace
-    user_ns['display'] = display
-    user_ns['getfigs'] = getfigs
+    user_ns["display"] = display
+    user_ns["getfigs"] = getfigs
 
 
 # Determine if Matplotlib manages backends only if needed, and cache result.

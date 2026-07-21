@@ -53,7 +53,9 @@ class TerminalPdb(Pdb):
 
             def gen_comp(self, text):
                 return [m for m in methods_names if m.startswith(text)]
+
             import types
+
             newcomp = types.MethodType(gen_comp, compl)
             compl.custom_matchers.insert(0, newcomp)
             # end add completer.
@@ -109,7 +111,7 @@ class TerminalPdb(Pdb):
         override the same methods from cmd.Cmd to provide prompt toolkit replacement.
         """
         if not self.use_rawinput:
-            raise ValueError('Sorry ipdb does not support use_rawinput=False')
+            raise ValueError("Sorry ipdb does not support use_rawinput=False")
 
         # In order to make sure that prompt, which uses asyncio doesn't
         # interfere with applications in which it's used, we always run the
@@ -166,8 +168,9 @@ def set_trace(frame=None):
     TerminalPdb().set_trace(frame or sys._getframe().f_back)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import pdb
+
     # IPython.core.debugger.Pdb.trace_dispatch shall not catch
     # bdb.BdbQuit. When started through __main__ and an exception
     # happened after hitting "c", this is needed in order to

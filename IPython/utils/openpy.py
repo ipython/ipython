@@ -4,6 +4,7 @@ as per PEP 263.
 
 Much of the code is taken from the tokenize module in Python 3.2.
 """
+
 from __future__ import annotations
 
 import io
@@ -16,7 +17,12 @@ from tokenize import open, detect_encoding
 cookie_re = re.compile(r"coding[:=]\s*([-\w.]+)", re.UNICODE)
 cookie_comment_re = re.compile(r"^\s*#.*coding[:=]\s*([-\w.]+)", re.UNICODE)
 
-def source_to_unicode(txt: str | bytes | BytesIO, errors: str = 'replace', skip_encoding_cookie: bool = True) -> str:
+
+def source_to_unicode(
+    txt: str | bytes | BytesIO,
+    errors: str = "replace",
+    skip_encoding_cookie: bool = True,
+) -> str:
     """Converts a bytes string with python source code to unicode.
 
     Unicode strings are passed through unchanged. Byte strings are checked
@@ -36,11 +42,12 @@ def source_to_unicode(txt: str | bytes | BytesIO, errors: str = 'replace', skip_
         encoding = "ascii"
     buffer.seek(0)
     with TextIOWrapper(buffer, encoding, errors=errors, line_buffering=True) as text:
-        text.mode = 'r'
+        text.mode = "r"
         if skip_encoding_cookie:
             return "".join(strip_encoding_cookie(text))
         else:
             return text.read()
+
 
 def strip_encoding_cookie(filelike: Iterable[str]) -> Generator[str]:
     """Generator to pull lines from a text-mode file, skipping the encoding
@@ -58,6 +65,7 @@ def strip_encoding_cookie(filelike: Iterable[str]) -> Generator[str]:
         return
 
     yield from it
+
 
 def read_py_file(filename: str | Path, skip_encoding_cookie: bool = True) -> str:
     """Read a Python file, using the encoding declared inside the file.
@@ -81,7 +89,10 @@ def read_py_file(filename: str | Path, skip_encoding_cookie: bool = True) -> str
         else:
             return f.read()
 
-def read_py_url(url: str, errors: str = 'replace', skip_encoding_cookie: bool = True) -> str:
+
+def read_py_url(
+    url: str, errors: str = "replace", skip_encoding_cookie: bool = True
+) -> str:
     """Read a Python file from a URL, using the encoding declared inside the file.
 
     Parameters
@@ -101,6 +112,7 @@ def read_py_url(url: str, errors: str = 'replace', skip_encoding_cookie: bool = 
     """
     # Deferred import for faster start
     from urllib.request import urlopen
+
     response = urlopen(url)
     buffer = io.BytesIO(response.read())
     return source_to_unicode(buffer, errors, skip_encoding_cookie)

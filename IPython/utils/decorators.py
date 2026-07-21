@@ -5,16 +5,16 @@ in :mod:`IPython.utils`. Before putting something here please see if it should
 go into another topical module in :mod:`IPython.utils`.
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
@@ -24,9 +24,10 @@ from IPython.utils.docs import GENERATING_DOCUMENTATION
 
 F = TypeVar("F", bound=Callable[..., Any])
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Code
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 def flag_calls(func: Callable[..., Any]) -> Callable[..., Any]:
     """Wrap a function to detect and flag when it gets called.
@@ -42,7 +43,7 @@ def flag_calls(func: Callable[..., Any]) -> Callable[..., Any]:
     func() was attempted and succeeded."""
 
     # don't wrap twice
-    if hasattr(func, 'called'):
+    if hasattr(func, "called"):
         return func
 
     def wrapper(*args: Any, **kw: Any) -> Any:

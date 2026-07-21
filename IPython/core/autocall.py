@@ -11,21 +11,22 @@ Notes
 -----
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Code
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 class IPyAutocall:
     """Instances of this class are always autocalled
@@ -33,8 +34,10 @@ class IPyAutocall:
     This happens regardless of 'autocall' variable state. Use this to
     develop macro-like mechanisms.
     """
+
     _ip = None
     rewrite = True
+
     def __init__(self, ip=None):
         self._ip = ip
 
@@ -50,6 +53,7 @@ class IPyAutocall:
 class ExitAutocall(IPyAutocall):
     """An autocallable object which will be added to the user namespace so that
     exit, exit(), quit or quit() are all valid ways to close the shell."""
+
     rewrite = False
 
     def __call__(self):
@@ -65,6 +69,7 @@ class ZMQExitAutocall(ExitAutocall):
       If True, leave the kernel alive. Otherwise, tell the kernel to exit too
       (default).
     """
+
     def __call__(self, keep_kernel=False):
         self._ip.keepkernel_on_exit = keep_kernel
         self._ip.ask_exit()

@@ -21,11 +21,13 @@ from traitlets import List, Bool, Unicode
 
 class LaTeXTool(SingletonConfigurable):
     """An object to store configuration of the LaTeX tool."""
+
     def _config_default(self):
         return get_config()
 
     backends = List(
-        Unicode(), ["matplotlib", "dvipng"],
+        Unicode(),
+        ["matplotlib", "dvipng"],
         help="Preferred backend to draw LaTeX math equations. "
         "Backends in the list are checked one by one and the first "
         "usable one is used.  Note that `matplotlib` backend "
@@ -36,24 +38,24 @@ class LaTeXTool(SingletonConfigurable):
         # for display style, the default ["matplotlib", "dvipng"] can
         # be used.  To NOT use dvipng so that other repr such as
         # unicode pretty printing is used, you can use ["matplotlib"].
-        ).tag(config=True)
+    ).tag(config=True)
 
     use_breqn = Bool(
         True,
         help="Use breqn.sty to automatically break long equations. "
         "This configuration takes effect only for dvipng backend.",
-        ).tag(config=True)
+    ).tag(config=True)
 
     packages = List(
-        ['amsmath', 'amsthm', 'amssymb', 'bm'],
+        ["amsmath", "amsthm", "amssymb", "bm"],
         help="A list of packages to use for dvipng backend. "
         "'breqn' will be automatically appended when use_breqn=True.",
-        ).tag(config=True)
+    ).tag(config=True)
 
     preamble = Unicode(
         help="Additional preamble to use when generating LaTeX source "
         "for dvipng backend.",
-        ).tag(config=True)
+    ).tag(config=True)
 
 
 def latex_to_png(
@@ -85,29 +87,30 @@ def latex_to_png(
         backend = allowed_backends[0]
     if backend not in allowed_backends:
         return None
-    if backend == 'matplotlib':
+    if backend == "matplotlib":
         f = latex_to_png_mpl
-    elif backend == 'dvipng':
+    elif backend == "dvipng":
         f = latex_to_png_dvipng
-        if color.startswith('#'):
+        if color.startswith("#"):
             # Convert hex RGB color to LaTeX RGB color.
             if len(color) == 7:
                 try:
-                    color = "RGB {}".format(" ".join([str(int(x, 16)) for x in
-                                                      textwrap.wrap(color[1:], 2)]))
+                    color = "RGB {}".format(
+                        " ".join([str(int(x, 16)) for x in textwrap.wrap(color[1:], 2)])
+                    )
                 except ValueError as e:
-                    raise ValueError(f'Invalid color specification {color}.') from e
+                    raise ValueError(f"Invalid color specification {color}.") from e
             else:
-                raise ValueError(f'Invalid color specification {color}.')
+                raise ValueError(f"Invalid color specification {color}.")
     else:
-        raise ValueError(f'No such backend {backend}')
+        raise ValueError(f"No such backend {backend}")
     bin_data = f(s, wrap, color, scale)
     if encode and bin_data:
         bin_data = encodebytes(bin_data)
     return bin_data
 
 
-def latex_to_png_mpl(s, wrap, color='Black', scale=1.0):
+def latex_to_png_mpl(s, wrap, color="Black", scale=1.0):
     try:
         from matplotlib import figure, font_manager, mathtext
         from matplotlib.backends import backend_agg
@@ -116,9 +119,9 @@ def latex_to_png_mpl(s, wrap, color='Black', scale=1.0):
         return None
 
     # mpl mathtext doesn't support display math, force inline
-    s = s.replace('$$', '$')
+    s = s.replace("$$", "$")
     if wrap:
-        s = f'${s}$'
+        s = f"${s}$"
 
     try:
         prop = font_manager.FontProperties(size=12)
@@ -137,10 +140,10 @@ def latex_to_png_mpl(s, wrap, color='Black', scale=1.0):
         return None
 
 
-def latex_to_png_dvipng(s, wrap, color='Black', scale=1.0):
+def latex_to_png_dvipng(s, wrap, color="Black", scale=1.0):
     try:
-        find_cmd('latex')
-        find_cmd('dvipng')
+        find_cmd("latex")
+        find_cmd("dvipng")
     except FindCmdError:
         return None
 
@@ -204,10 +207,10 @@ def kpsewhich(filename):
     try:
         find_cmd("kpsewhich")
         proc = subprocess.Popen(
-            ["kpsewhich", filename],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            ["kpsewhich", filename], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
         (stdout, stderr) = proc.communicate()
-        return stdout.strip().decode('utf8', 'replace')
+        return stdout.strip().decode("utf8", "replace")
     except FindCmdError:
         pass
 
@@ -216,30 +219,31 @@ def genelatex(body, wrap):
     """Generate LaTeX document for dvipng backend."""
     lt = LaTeXTool.instance()
     breqn = wrap and lt.use_breqn and kpsewhich("breqn.sty")
-    yield r'\documentclass{article}'
+    yield r"\documentclass{article}"
     packages = lt.packages
     if breqn:
-        packages = packages + ['breqn']
+        packages = packages + ["breqn"]
     for pack in packages:
-        yield fr'\usepackage{{{pack}}}'
-    yield r'\pagestyle{empty}'
+        yield rf"\usepackage{{{pack}}}"
+    yield r"\pagestyle{empty}"
     if lt.preamble:
         yield lt.preamble
-    yield r'\begin{document}'
+    yield r"\begin{document}"
     if breqn:
-        yield r'\begin{dmath*}'
+        yield r"\begin{dmath*}"
         yield body
-        yield r'\end{dmath*}'
+        yield r"\end{dmath*}"
     elif wrap:
-        yield f'$${body}$$'
+        yield f"$${body}$$"
     else:
         yield body
-    yield '\\end{document}'
+    yield "\\end{document}"
 
 
 _data_uri_template_png = """<img src="data:image/png;base64,%s" alt=%s />"""
 
-def latex_to_html(s, alt='image'):
+
+def latex_to_html(s, alt="image"):
     """Render LaTeX to HTML with embedded PNG data using data URIs.
 
     Parameters
@@ -249,6 +253,6 @@ def latex_to_html(s, alt='image'):
     alt : str
         The alt text to use for the HTML.
     """
-    base64_data = latex_to_png(s, encode=True).decode('ascii')
+    base64_data = latex_to_png(s, encode=True).decode("ascii")
     if base64_data:
-        return _data_uri_template_png  % (base64_data, alt)
+        return _data_uri_template_png % (base64_data, alt)

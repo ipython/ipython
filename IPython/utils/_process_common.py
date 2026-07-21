@@ -4,16 +4,16 @@ This file is only meant to be imported by the platform-specific implementations
 of subprocess utilities, and it contains tools that are common to all of them.
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 import os
 import shlex
 import subprocess
@@ -25,9 +25,10 @@ _T = TypeVar("_T")
 
 from .encoding import DEFAULT_ENCODING
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Function definitions
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 def read_no_interrupt(stream: IO[bytes]) -> bytes | None:
     """Read from a pipe ignoring EINTR errors.
@@ -84,19 +85,22 @@ def process_handler(
     shell = isinstance(cmd, str)
     # On POSIX systems run shell commands with user-preferred shell.
     executable = None
-    if shell and os.name == 'posix' and 'SHELL' in os.environ:
-        executable = os.environ['SHELL']
-    p = subprocess.Popen(cmd, shell=shell,
-                         executable=executable,
-                         stdin=subprocess.PIPE,
-                         stdout=subprocess.PIPE,
-                         stderr=stderr,
-                         close_fds=close_fds)
+    if shell and os.name == "posix" and "SHELL" in os.environ:
+        executable = os.environ["SHELL"]
+    p = subprocess.Popen(
+        cmd,
+        shell=shell,
+        executable=executable,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=stderr,
+        close_fds=close_fds,
+    )
 
     try:
         out = callback(p)
     except KeyboardInterrupt:
-        print('^C')
+        print("^C")
         sys.stdout.flush()
         sys.stderr.flush()
         out = None
@@ -139,7 +143,7 @@ def getoutput(cmd: str | list[str]) -> str:
     """
     out = process_handler(cmd, lambda p: p.communicate()[0], subprocess.STDOUT)
     if out is None:
-        return ''
+        return ""
     return out.decode(DEFAULT_ENCODING, "replace")
 
 
@@ -181,9 +185,14 @@ def get_output_error_code(cmd: str | list[str]) -> tuple[str, str, int | None]:
 
     result = process_handler(cmd, lambda p: (p.communicate(), p))
     if result is None:
-        return '', '', None
+        return "", "", None
     (out, err), p = result
-    return out.decode(DEFAULT_ENCODING, "replace"), err.decode(DEFAULT_ENCODING, "replace"), p.returncode
+    return (
+        out.decode(DEFAULT_ENCODING, "replace"),
+        err.decode(DEFAULT_ENCODING, "replace"),
+        p.returncode,
+    )
+
 
 def arg_split(commandline: str, posix: bool = False, strict: bool = True) -> list[str]:
     """Split a command line's arguments in a shell-like manner.
@@ -206,7 +215,7 @@ def arg_split(commandline: str, posix: bool = False, strict: bool = True) -> lis
     # and it shouldn't raise an exception.
     # It may be a bad idea to parse things that are not command-line args
     # through this function, but we do, so let's be safe about it.
-    lex.commenters='' #fix for GH-1269
+    lex.commenters = ""  # fix for GH-1269
     tokens = []
     while True:
         try:
@@ -239,10 +248,11 @@ def arg_split_with_quotes(
     same on Posix and Windows. If ``strict`` is False, malformed input (e.g.
     an unbalanced quote) returns whatever was parsed so far instead of raising.
     """
+
     def _tokenize(s: str, posix: bool) -> list[str]:
         lex = shlex.shlex(s, posix=posix)
         lex.whitespace_split = True
-        lex.commenters = ''
+        lex.commenters = ""
         out = []
         while True:
             try:

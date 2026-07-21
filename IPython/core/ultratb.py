@@ -108,6 +108,7 @@ INDENT_SIZE = 8
 # it is too long.
 FAST_THRESHOLD = 10_000
 
+
 # ---------------------------------------------------------------------------
 class ListTB(TBTools):
     """Print traceback information from a traceback list, with optional color.
@@ -412,12 +413,12 @@ class ListTB(TBTools):
         return ListTB.structured_traceback(self, etype, value)
 
     def structured_traceback_doctest(
-            self,
-            etype,
-            evalue,
-            etb=None,
-            tb_offset=None,
-            context=5,
+        self,
+        etype,
+        evalue,
+        etb=None,
+        tb_offset=None,
+        context=5,
     ):
         """Return a doctest-freindly traceback.
 
@@ -436,17 +437,23 @@ class ListTB(TBTools):
             out_list.append("Traceback (most recent call last):\n")
             out_list.append("    ...\n")
 
-        lines  = "".join(self._format_exception_only(etype, evalue))
+        lines = "".join(self._format_exception_only(etype, evalue))
         out_list.append(lines)
 
         # Handle chained exceptions
         if etb is not None:
             exception = self.get_parts_of_chained_exception(evalue)
             if exception and (id(exception[1]) not in chained_exc_ids):
-                chained_exception_message = (self.prepare_chained_exception_message(evalue.__cause__)[0] if evalue is not None else [""])
+                chained_exception_message = (
+                    self.prepare_chained_exception_message(evalue.__cause__)[0]
+                    if evalue is not None
+                    else [""]
+                )
                 etype, evalue, etb = exception
                 chained_exc_ids.add(id(exception[1]))
-                chained_tb = self.structured_traceback_doctest(etype, evalue, (etb, chained_exc_ids), 0, context)
+                chained_tb = self.structured_traceback_doctest(
+                    etype, evalue, (etb, chained_exc_ids), 0, context
+                )
                 out_list = chained_tb + chained_exception_message + out_list
 
         return out_list
@@ -653,14 +660,13 @@ class VerboseTB(TBTools):
         if frame_info._sd is None:
             # fast fallback if file is too long
             assert frame_info.filename is not None
-            level_tokens = (
-                _tokens_filename(True, frame_info.filename, lineno=frame_info.lineno)
-                + [
-                    (Token, ", " if call else ""),
-                    (Token, call),
-                    (Token, "\n"),
-                ]
-            )
+            level_tokens = _tokens_filename(
+                True, frame_info.filename, lineno=frame_info.lineno
+            ) + [
+                (Token, ", " if call else ""),
+                (Token, call),
+                (Token, "\n"),
+            ]
 
             _line_format = Parser(theme_name=self._theme_name).format2
             assert isinstance(frame_info.code, types.CodeType)
@@ -929,7 +935,10 @@ class VerboseTB(TBTools):
                     # stack_data follows tb_next through the full chain,
                     # including IPython frames we skipped during collection.
                     # Filter those out, but always keep RepeatedFrames.
-                    if isinstance(sd_fi, stack_data.RepeatedFrames) or sd_fi.frame in group_frames:
+                    if (
+                        isinstance(sd_fi, stack_data.RepeatedFrames)
+                        or sd_fi.frame in group_frames
+                    ):
                         FIs.append(FrameInfo._from_stack_data_FrameInfo(sd_fi))
 
         return FIs
@@ -1149,14 +1158,14 @@ class FormattedTB(VerboseTB, ListTB):
                 include_vars=self.include_vars,
                 check_cache=self.check_cache,
                 debugger_cls=self.debugger_cls,
-            ).structured_traceback(
-                etype, evalue, etb, tb_offset, 1
-            )
+            ).structured_traceback(etype, evalue, etb, tb_offset, 1)
 
         elif mode == "Minimal":
             return ListTB.get_exception_only(self, etype, evalue)
         elif mode == "Doctest":
-            return ListTB.structured_traceback_doctest(self, etype, evalue, etb, tb_offset, context)
+            return ListTB.structured_traceback_doctest(
+                self, etype, evalue, etb, tb_offset, context
+            )
         else:
             # We must check the source cache because otherwise we can print
             # out-of-date source code.

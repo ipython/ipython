@@ -79,7 +79,7 @@ class EventManager:
             If ``event`` is not one of the known events.
         """
         if not callable(function):
-            raise TypeError('Need a callable, got %r' % function)
+            raise TypeError("Need a callable, got %r" % function)
         if function not in self.callbacks[event]:
             self.callbacks[event].append(function)
 
@@ -88,7 +88,9 @@ class EventManager:
         if function in self.callbacks[event]:
             return self.callbacks[event].remove(function)
 
-        raise ValueError(f'Function {function!r} is not registered as a {event} callback')
+        raise ValueError(
+            f"Function {function!r} is not registered as a {event} callback"
+        )
 
     def trigger(self, event: str, *args: Any, **kwargs: Any) -> None:
         """Call callbacks for ``event``.
@@ -108,15 +110,18 @@ class EventManager:
                     )
                 self.shell.showtraceback()
 
+
 # event_name -> prototype mapping
 available_events: dict[str, Callable[..., Any]] = {}
 
 _CallbackT = TypeVar("_CallbackT", bound=Callable[..., Any])
 
+
 def _define_event(callback_function: _CallbackT) -> _CallbackT:
     """Decorator to register a function as an available event prototype."""
     available_events[callback_function.__name__] = callback_function
     return callback_function
+
 
 # ------------------------------------------------------------------------------
 # Callback prototypes
@@ -124,6 +129,7 @@ def _define_event(callback_function: _CallbackT) -> _CallbackT:
 # No-op functions which describe the names of available events and the
 # signatures of callbacks for those events.
 # ------------------------------------------------------------------------------
+
 
 @_define_event
 def pre_execute() -> None:
@@ -133,6 +139,7 @@ def pre_execute() -> None:
     code cells.
     """
     pass
+
 
 @_define_event
 def pre_run_cell(info: ExecutionInfo) -> None:
@@ -145,6 +152,7 @@ def pre_run_cell(info: ExecutionInfo) -> None:
     """
     pass
 
+
 @_define_event
 def post_execute() -> None:
     """Fires after code is executed in response to user/frontend action.
@@ -153,6 +161,7 @@ def post_execute() -> None:
     code cells.
     """
     pass
+
 
 @_define_event
 def post_run_cell(result: ExecutionResult) -> None:
@@ -164,6 +173,7 @@ def post_run_cell(result: ExecutionResult) -> None:
         The object which will be returned as the execution result.
     """
     pass
+
 
 @_define_event
 def shell_initialized(ip: InteractiveShell) -> None:

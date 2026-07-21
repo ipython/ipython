@@ -5,7 +5,7 @@ Under Posix environments it works like a typical setup.py script.
 Under Windows, the command sdist is not supported, since IPython
 requires utilities which are not available under Windows."""
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (c) 2008-2011, IPython Development Team.
 #  Copyright (c) 2001-2007, Fernando Perez <fernando.perez@colorado.edu>
 #  Copyright (c) 2001, Janko Hauser <jhauser@zscout.de>
@@ -14,7 +14,7 @@ requires utilities which are not available under Windows."""
 #  Distributed under the terms of the Modified BSD License.
 #
 #  The full license is in the file COPYING.rst, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import os
 import sys
@@ -31,9 +31,7 @@ IPython 8.13+ supports Python 3.9 and above, following NEP 29.
 IPython 8.0-8.12 supports Python 3.8 and above, following NEP 29.
 
 Python {py} detected.
-""".format(
-        py=sys.version_info
-    )
+""".format(py=sys.version_info)
 
     print(error, file=sys.stderr)
     sys.exit(1)
@@ -53,13 +51,12 @@ from setupbase import (
     git_prebuild,
 )
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Things related to the IPython documentation
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 # update the manuals when building a source dist
-if len(sys.argv) >= 2 and sys.argv[1] == 'sdist':
-
+if len(sys.argv) >= 2 and sys.argv[1] == "sdist":
     # List of things to be updated. Each entry is a triplet of args for
     # target_update()
     to_update = [
@@ -70,32 +67,30 @@ if len(sys.argv) >= 2 and sys.argv[1] == 'sdist':
         ),
     ]
 
+    [target_update(*t) for t in to_update]
 
-    [ target_update(*t) for t in to_update ]
-
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Find all the packages, package data, and data_files
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 
 data_files = find_data_files()
 
-setup_args['data_files'] = data_files
+setup_args["data_files"] = data_files
 
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # custom distutils commands
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # imports here, so they are after setuptools import if there was one
 from setuptools.command.sdist import sdist
 
-setup_args['cmdclass'] = {
-    'build_py': \
-            check_package_data_first(git_prebuild('IPython')),
-    'sdist' : git_prebuild('IPython', sdist),
+setup_args["cmdclass"] = {
+    "build_py": check_package_data_first(git_prebuild("IPython")),
+    "sdist": git_prebuild("IPython", sdist),
 }
 
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Do the actual setup now
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
     setup(**setup_args)

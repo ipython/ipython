@@ -3,7 +3,6 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-
 import ast
 import bdb
 import builtins as builtin_mod
@@ -53,9 +52,9 @@ from IPython.utils.process import arg_split_with_quotes
 from IPython.utils.timing import clock, clock2
 from IPython.core.magics.ast_mod import ReplaceCodeTransformer
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Magic implementation classes
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class TimeitResult:
@@ -80,6 +79,7 @@ class TimeitResult:
       time of statement compilation (s)
 
     """
+
     def __init__(self, loops, repeat, best, worst, all_runs, compile_time, precision):
         self.loops = loops
         self.repeat = repeat
@@ -97,11 +97,13 @@ class TimeitResult:
     @property
     def stdev(self):
         mean = self.average
-        return (math.fsum([(x - mean) ** 2 for x in self.timings]) / len(self.timings)) ** 0.5
+        return (
+            math.fsum([(x - mean) ** 2 for x in self.timings]) / len(self.timings)
+        ) ** 0.5
 
     def __str__(self):
-        pm = '+-'
-        if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:
+        pm = "+-"
+        if hasattr(sys.stdout, "encoding") and sys.stdout.encoding:
             try:
                 "\xb1".encode(sys.stdout.encoding)
                 pm = "\xb1"
@@ -117,7 +119,7 @@ class TimeitResult:
             std=_format_time(self.stdev, self._precision),
         )
 
-    def _repr_pretty_(self, p , cycle):
+    def _repr_pretty_(self, p, cycle):
         unic = self.__str__()
         p.text("<TimeitResult : " + unic + ">")
 
@@ -128,6 +130,7 @@ class TimeitTemplateFiller(ast.NodeTransformer):
     This is quite closely tied to the template definition, which is in
     :meth:`ExecutionMagics.timeit`.
     """
+
     def __init__(self, ast_setup, ast_stmt):
         self.ast_setup = ast_setup
         self.ast_stmt = ast_stmt
@@ -142,7 +145,7 @@ class TimeitTemplateFiller(ast.NodeTransformer):
 
     def visit_For(self, node):
         "Fill in the statement to be timed"
-        if getattr(getattr(node.body[0], 'value', None), 'id', None) == 'stmt':
+        if getattr(getattr(node.body[0], "value", None), "id", None) == "stmt":
             node.body = self.ast_stmt.body
         return node
 
@@ -190,7 +193,7 @@ class ExecutionMagics(Magics):
     @skip_doctest
     @no_var_expand
     @line_cell_magic
-    def prun(self, parameter_s='', cell=None):
+    def prun(self, parameter_s="", cell=None):
         """Run a statement through the python code profiler.
 
         **Usage, in line mode**::
@@ -306,10 +309,11 @@ class ExecutionMagics(Magics):
 
         """
         # TODO: port to magic_arguments as currently this is duplicated in IPCompleter._extract_code
-        opts, arg_str = self.parse_options(parameter_s, 'D:l:rs:T:q',
-                                           list_all=True, posix=False)
+        opts, arg_str = self.parse_options(
+            parameter_s, "D:l:rs:T:q", list_all=True, posix=False
+        )
         if cell is not None:
-            arg_str += '\n' + cell
+            arg_str += "\n" + cell
         arg_str = self.shell.transform_cell(arg_str)
         return self._run_with_profiler(arg_str, opts, self.shell.user_ns)
 
@@ -329,12 +333,12 @@ class ExecutionMagics(Magics):
         """
 
         # Fill default values for unspecified options:
-        opts.merge(Struct(D=[''], l=[], s=['time'], T=['']))
+        opts.merge(Struct(D=[""], l=[], s=["time"], T=[""]))
 
         prof = profile.Profile()
         try:
             prof = prof.runctx(code, namespace, namespace)
-            sys_exit = ''
+            sys_exit = ""
         except SystemExit:
             sys_exit = """*** SystemExit exception caught in code being profiled."""
 
@@ -364,9 +368,9 @@ class ExecutionMagics(Magics):
         output = stdout_trap.getvalue()
         output = output.rstrip()
 
-        if 'q' not in opts:
+        if "q" not in opts:
             page.page(output)
-        print(sys_exit, end=' ')
+        print(sys_exit, end=" ")
 
         dump_file = opts.D[0]
         text_file = opts.T[0]
@@ -384,13 +388,13 @@ class ExecutionMagics(Magics):
                 f"\n*** Profile printout saved to text file {repr(text_file)}.{sys_exit}"
             )
 
-        if 'r' in opts:
+        if "r" in opts:
             return stats
 
         return None
 
     @line_magic
-    def pdb(self, parameter_s=''):
+    def pdb(self, parameter_s=""):
         """Control the automatic calling of the pdb interactive debugger.
 
         Call as '%pdb on', '%pdb 1', '%pdb off' or '%pdb 0'. If called without
@@ -415,8 +419,7 @@ class ExecutionMagics(Magics):
             try:
                 new_pdb = {"off": False, "0": False, "on": True, "1": True}[par]
             except KeyError:
-                print ('Incorrect argument. Use on/1, off/0, '
-                       'or nothing for a toggle.')
+                print("Incorrect argument. Use on/1, off/0, or nothing for a toggle.")
                 return
         else:
             # toggle
@@ -427,10 +430,13 @@ class ExecutionMagics(Magics):
         print("Automatic pdb calling has been turned", "ON" if new_pdb else "OFF")
 
     @magic_arguments.magic_arguments()
-    @magic_arguments.argument('--breakpoint', '-b', metavar='FILE:LINE',
+    @magic_arguments.argument(
+        "--breakpoint",
+        "-b",
+        metavar="FILE:LINE",
         help="""
         Set break point at LINE in FILE.
-        """
+        """,
     )
     @magic_arguments.kwds(
         epilog="""
@@ -486,7 +492,7 @@ class ExecutionMagics(Magics):
 
     def _debug_exec(self, code, breakpoint, local_ns=None):
         if breakpoint:
-            (filename, bp_line) = breakpoint.rsplit(':', 1)
+            (filename, bp_line) = breakpoint.rsplit(":", 1)
             bp_line = int(bp_line)
         else:
             (filename, bp_line) = (None, None)
@@ -509,8 +515,9 @@ class ExecutionMagics(Magics):
             # Switch exception reporting mode for this one call.
             # Ensure it is switched back.
             def xmode_switch_err(name):
-                warn('Error changing %s exception modes.\n%s' %
-                    (name,sys.exc_info()[1]))
+                warn(
+                    "Error changing %s exception modes.\n%s" % (name, sys.exc_info()[1])
+                )
 
             new_mode = s.strip().capitalize()
             original_mode = interactive_tb.mode
@@ -518,7 +525,7 @@ class ExecutionMagics(Magics):
                 try:
                     interactive_tb.set_mode(mode=new_mode)
                 except Exception:
-                    xmode_switch_err('user')
+                    xmode_switch_err("user")
                 else:
                     self.shell.showtraceback()
             finally:
@@ -528,8 +535,7 @@ class ExecutionMagics(Magics):
 
     @skip_doctest
     @line_magic
-    def run(self, parameter_s='', runner=None,
-                  file_finder=get_py_filename):
+    def run(self, parameter_s="", runner=None, file_finder=get_py_filename):
         """Run the named file inside IPython as a program.
 
         Usage::
@@ -690,12 +696,12 @@ class ExecutionMagics(Magics):
 
         # Logic to handle issue #3664
         # Add '--' after '-m <module_name>' to ignore additional args passed to a module.
-        if '-m' in parameter_s and '--' not in parameter_s:
-            argv = shlex.split(parameter_s, posix=(os.name == 'posix'))
+        if "-m" in parameter_s and "--" not in parameter_s:
+            argv = shlex.split(parameter_s, posix=(os.name == "posix"))
             for idx, arg in enumerate(argv):
-                if arg and arg.startswith('-') and arg != '-':
-                    if arg == '-m':
-                        argv.insert(idx + 2, '--')
+                if arg and arg.startswith("-") and arg != "-":
+                    if arg == "-m":
+                        argv.insert(idx + 2, "--")
                         break
                 else:
                     # Positional arg, break
@@ -703,30 +709,32 @@ class ExecutionMagics(Magics):
             parameter_s = shlex.join(argv)
 
         # get arguments and set sys.argv for program to be run.
-        opts, arg_lst = self.parse_options(parameter_s,
-                                           'nidtN:b:pD:l:rs:T:em:G',
-                                           mode='list', list_all=1)
+        opts, arg_lst = self.parse_options(
+            parameter_s, "nidtN:b:pD:l:rs:T:em:G", mode="list", list_all=1
+        )
         if "m" in opts:
             modulename = opts["m"][0]
             modpath = find_mod(modulename)
             if modpath is None:
-                msg = '%r is not a valid modulename on sys.path'%modulename
+                msg = "%r is not a valid modulename on sys.path" % modulename
                 raise Exception(msg)
             arg_lst = [modpath] + arg_lst
         try:
-            fpath = None # initialize to make sure fpath is in scope later
+            fpath = None  # initialize to make sure fpath is in scope later
             fpath = arg_lst[0]
             filename = file_finder(fpath)
         except IndexError as e:
-            msg = 'you must provide at least a filename.'
+            msg = "you must provide at least a filename."
             raise Exception(msg) from e
         except OSError as e:
             try:
                 msg = str(e)
             except UnicodeError:
                 msg = e.message
-            if os.name == 'nt' and re.match(r"^'.*'$",fpath):
-                warn('For Windows, use double quotes to wrap a filename: %run "mypath\\myfile.py"')
+            if os.name == "nt" and re.match(r"^'.*'$", fpath):
+                warn(
+                    'For Windows, use double quotes to wrap a filename: %run "mypath\\myfile.py"'
+                )
             raise Exception(msg) from e
         except TypeError:
             if fpath in sys.meta_path:
@@ -734,20 +742,20 @@ class ExecutionMagics(Magics):
             else:
                 raise
 
-        if filename.lower().endswith(('.ipy', '.ipynb')):
-            with preserve_keys(self.shell.user_ns, '__file__'):
-                self.shell.user_ns['__file__'] = filename
+        if filename.lower().endswith((".ipy", ".ipynb")):
+            with preserve_keys(self.shell.user_ns, "__file__"):
+                self.shell.user_ns["__file__"] = filename
                 self.shell.safe_execfile_ipy(filename, raise_exceptions=True)
             return
 
         # Control the response to exit() calls made by the script being run
-        exit_ignore = 'e' in opts
+        exit_ignore = "e" in opts
 
         # Make sure that the running script gets a proper sys.argv as if it
         # were run from a system shell.
-        save_argv = sys.argv # save it for later restoring
+        save_argv = sys.argv  # save it for later restoring
 
-        if 'G' in opts:
+        if "G" in opts:
             args = arg_lst[1:]
         else:
             # tilde and glob expansion. Tokens that were quoted in
@@ -768,22 +776,22 @@ class ExecutionMagics(Magics):
 
         sys.argv = [filename] + args  # put in the proper filename
 
-        if 'n' in opts:
+        if "n" in opts:
             name = Path(filename).stem
         else:
-            name = '__main__'
+            name = "__main__"
 
-        if 'i' in opts:
+        if "i" in opts:
             # Run in user's interactive namespace
             prog_ns = self.shell.user_ns
-            __name__save = self.shell.user_ns['__name__']
-            prog_ns['__name__'] = name
+            __name__save = self.shell.user_ns["__name__"]
+            prog_ns["__name__"] = name
             main_mod = self.shell.user_module
 
             # Since '%run foo' emulates 'python foo.py' at the cmd line, we must
             # set the __file__ global in the script's namespace
             # TK: Is this necessary in interactive mode?
-            prog_ns['__file__'] = filename
+            prog_ns["__file__"] = filename
         else:
             # Run in a fresh, empty namespace
 
@@ -795,10 +803,10 @@ class ExecutionMagics(Magics):
 
         # pickle fix.  See interactiveshell for an explanation.  But we need to
         # make sure that, if we overwrite __main__, we replace it at the end
-        main_mod_name = prog_ns['__name__']
+        main_mod_name = prog_ns["__name__"]
 
-        if main_mod_name == '__main__':
-            restore_main = sys.modules['__main__']
+        if main_mod_name == "__main__":
+            restore_main = sys.modules["__main__"]
         else:
             restore_main = False
 
@@ -806,38 +814,39 @@ class ExecutionMagics(Magics):
         # every single object ever created.
         sys.modules[main_mod_name] = main_mod
 
-        if 'p' in opts or 'd' in opts:
-            if 'm' in opts:
-                code = 'run_module(modulename, prog_ns)'
+        if "p" in opts or "d" in opts:
+            if "m" in opts:
+                code = "run_module(modulename, prog_ns)"
                 code_ns = {
-                    'run_module': self.shell.safe_run_module,
-                    'prog_ns': prog_ns,
-                    'modulename': modulename,
+                    "run_module": self.shell.safe_run_module,
+                    "prog_ns": prog_ns,
+                    "modulename": modulename,
                 }
             else:
-                if 'd' in opts:
+                if "d" in opts:
                     # allow exceptions to raise in debug mode
-                    code = 'execfile(filename, prog_ns, raise_exceptions=True)'
+                    code = "execfile(filename, prog_ns, raise_exceptions=True)"
                 else:
-                    code = 'execfile(filename, prog_ns)'
+                    code = "execfile(filename, prog_ns)"
                 code_ns = {
-                    'execfile': self.shell.safe_execfile,
-                    'prog_ns': prog_ns,
-                    'filename': get_py_filename(filename),
+                    "execfile": self.shell.safe_execfile,
+                    "prog_ns": prog_ns,
+                    "filename": get_py_filename(filename),
                 }
 
         try:
             stats = None
-            if 'p' in opts:
+            if "p" in opts:
                 stats = self._run_with_profiler(code, opts, code_ns)
             else:
-                if 'd' in opts:
+                if "d" in opts:
                     bp_file, bp_line = parse_breakpoint(
-                        opts.get('b', ['1'])[0], filename)
-                    self._run_with_debugger(
-                        code, code_ns, filename, bp_line, bp_file)
+                        opts.get("b", ["1"])[0], filename
+                    )
+                    self._run_with_debugger(code, code_ns, filename, bp_line, bp_file)
                 else:
-                    if 'm' in opts:
+                    if "m" in opts:
+
                         def run():
                             self.shell.safe_run_module(modulename, prog_ns)
                     else:
@@ -847,34 +856,33 @@ class ExecutionMagics(Magics):
                             runner = self.shell.safe_execfile
 
                         def run():
-                            runner(filename, prog_ns, prog_ns,
-                                    exit_ignore=exit_ignore)
+                            runner(filename, prog_ns, prog_ns, exit_ignore=exit_ignore)
 
-                    if 't' in opts:
+                    if "t" in opts:
                         # timed execution
                         try:
-                            nruns = int(opts['N'][0])
+                            nruns = int(opts["N"][0])
                             if nruns < 1:
-                                error('Number of runs must be >=1')
+                                error("Number of runs must be >=1")
                                 return
-                        except (KeyError):
+                        except KeyError:
                             nruns = 1
                         self._run_with_timing(run, nruns)
                     else:
                         # regular execution
                         run()
 
-            if 'i' in opts:
-                self.shell.user_ns['__name__'] = __name__save
+            if "i" in opts:
+                self.shell.user_ns["__name__"] = __name__save
             else:
                 # update IPython interactive namespace
 
                 # Some forms of read errors on the file may mean the
                 # __name__ key was never set; using pop we don't have to
                 # worry about a possible KeyError.
-                prog_ns.pop('__name__', None)
+                prog_ns.pop("__name__", None)
 
-                with preserve_keys(self.shell.user_ns, '__file__'):
+                with preserve_keys(self.shell.user_ns, "__file__"):
                     self.shell.user_ns.update(prog_ns)
         finally:
             # It's a bit of a mystery why, but __builtins__ can change from
@@ -885,14 +893,14 @@ class ExecutionMagics(Magics):
             # Since this seems to be done by the interpreter itself, the best
             # we can do is to at least restore __builtins__ for the user on
             # exit.
-            self.shell.user_ns['__builtins__'] = builtin_mod
+            self.shell.user_ns["__builtins__"] = builtin_mod
 
             # Ensure key global structures are restored
             sys.argv = save_argv
             if restore_main:
-                sys.modules['__main__'] = restore_main
-                if '__mp_main__' in sys.modules:
-                    sys.modules['__mp_main__'] = restore_main
+                sys.modules["__main__"] = restore_main
+                if "__mp_main__" in sys.modules:
+                    sys.modules["__mp_main__"] = restore_main
             else:
                 # Remove from sys.modules the reference to main_mod we'd
                 # added.  Otherwise it will trap references to objects
@@ -950,14 +958,16 @@ class ExecutionMagics(Magics):
                     if deb.checkline(bp_file, bp):
                         break
                 else:
-                    msg = ("\nI failed to find a valid line to set "
-                           "a breakpoint\n"
-                           "after trying up to line: %s.\n"
-                           "Please set a valid breakpoint manually "
-                           "with the -b option." % bp)
+                    msg = (
+                        "\nI failed to find a valid line to set "
+                        "a breakpoint\n"
+                        "after trying up to line: %s.\n"
+                        "Please set a valid breakpoint manually "
+                        "with the -b option." % bp
+                    )
                     raise UsageError(msg)
             # if we find a good linenumber, set the breakpoint
-            deb.do_break('{}:{}'.format(bp_file, bp_line))
+            deb.do_break("{}:{}".format(bp_file, bp_line))
 
         if filename:
             # Mimic Pdb._runscript(...)
@@ -1040,7 +1050,7 @@ class ExecutionMagics(Magics):
             t_sys = t1[1] - t0[1]
             print("\nIPython CPU timings (estimated):")
             print("Total runs performed:", nruns)
-            print("  Times  : %10s   %10s" % ('Total', 'Per run'))
+            print("  Times  : %10s   %10s" % ("Total", "Per run"))
             print("  User   : {:10.2f} s, {:10.2f} s.".format(t_usr, t_usr / nruns))
             print("  System : {:10.2f} s, {:10.2f} s.".format(t_sys, t_sys / nruns))
         twall1 = time.perf_counter()
@@ -1050,7 +1060,7 @@ class ExecutionMagics(Magics):
     @no_var_expand
     @line_cell_magic
     @needs_local_scope
-    def timeit(self, line='', cell=None, local_ns=None):
+    def timeit(self, line="", cell=None, local_ns=None):
         """Time execution of a Python statement or expression
 
         **Usage, in line mode**::
@@ -1161,7 +1171,7 @@ class ExecutionMagics(Magics):
         # this code has tight coupling to the inner workings of timeit.Timer,
         # but is there a better way to achieve that the code stmt has access
         # to the shell namespace?
-        transform  = self.shell.transform_cell
+        transform = self.shell.transform_cell
 
         if cell is None:
             # called as line magic
@@ -1184,15 +1194,19 @@ class ExecutionMagics(Magics):
         # This codestring is taken from timeit.template - we fill it in as an
         # AST, so that we can apply our AST transformations to the user code
         # without affecting the timing code.
-        timeit_ast_template = ast.parse('def inner(_it, _timer):\n'
-                                        '    setup\n'
-                                        '    _t0 = _timer()\n'
-                                        '    for _i in _it:\n'
-                                        '        stmt\n'
-                                        '    _t1 = _timer()\n'
-                                        '    return _t1 - _t0\n')
+        timeit_ast_template = ast.parse(
+            "def inner(_it, _timer):\n"
+            "    setup\n"
+            "    _t0 = _timer()\n"
+            "    for _i in _it:\n"
+            "        stmt\n"
+            "    _t1 = _timer()\n"
+            "    return _t1 - _t0\n"
+        )
 
-        timeit_ast = TimeitTemplateFiller(ast_setup, ast_stmt).visit(timeit_ast_template)
+        timeit_ast = TimeitTemplateFiller(ast_setup, ast_stmt).visit(
+            timeit_ast_template
+        )
         timeit_ast = ast.fix_missing_locations(timeit_ast)
 
         # Track compilation time so it can be reported if too long
@@ -1201,7 +1215,7 @@ class ExecutionMagics(Magics):
 
         t0 = clock()
         code = self.shell.compile(timeit_ast, "<magic-timeit>", "exec")
-        tc = clock()-t0
+        tc = clock() - t0
 
         ns = {}
         glob = self.shell.user_ns
@@ -1222,7 +1236,7 @@ class ExecutionMagics(Magics):
         if number == 0:
             # determine number so that 0.2 <= total time < 2.0
             for index in range(0, 10):
-                number = 10 ** index
+                number = 10**index
                 time_number = timer.timeit(number)
                 if time_number >= 0.2:
                     break
@@ -1230,7 +1244,9 @@ class ExecutionMagics(Magics):
         all_runs = timer.repeat(repeat, number)
         best = min(all_runs) / number
         worst = max(all_runs) / number
-        timeit_result = TimeitResult(number, repeat, best, worst, all_runs, tc, precision)
+        timeit_result = TimeitResult(
+            number, repeat, best, worst, all_runs, tc, precision
+        )
 
         # Restore global vars from conflict_globs
         if conflict_globs:
@@ -1243,11 +1259,13 @@ class ExecutionMagics(Magics):
             # we assume that it does not really matter if the fastest
             # timing is 4 times faster than the slowest timing or not.
             if worst > 4 * best and best > 0 and worst > 1e-6:
-                print("The slowest run took %0.2f times longer than the "
-                      "fastest. This could mean that an intermediate result "
-                      "is being cached." % (worst / best))
+                print(
+                    "The slowest run took %0.2f times longer than the "
+                    "fastest. This could mean that an intermediate result "
+                    "is being cached." % (worst / best)
+                )
 
-            print( timeit_result )
+            print(timeit_result)
 
             if tc > tc_min:
                 print("Compiler time: %.2f s" % tc)
@@ -1368,12 +1386,12 @@ class ExecutionMagics(Magics):
 
         expr_val = None
         if len(expr_ast.body) == 1 and isinstance(expr_ast.body[0], ast.Expr):
-            mode = 'eval'
-            source = '<timed eval>'
+            mode = "eval"
+            source = "<timed eval>"
             expr_ast = ast.Expression(expr_ast.body[0].value)
         else:
-            mode = 'exec'
-            source = '<timed exec>'
+            mode = "exec"
+            source = "<timed exec>"
             # multi-line %%time case
             if len(expr_ast.body) > 1 and isinstance(expr_ast.body[-1], ast.Expr):
                 expr_val = expr_ast.body[-1]
@@ -1416,7 +1434,7 @@ class ExecutionMagics(Magics):
                 out = None
                 # multi-line %%time case
                 if expr_val is not None:
-                    code_2 = self.shell.compile(expr_val, source, 'eval')
+                    code_2 = self.shell.compile(expr_val, source, "eval")
                     out = eval(code_2, glob, local_ns)
             except KeyboardInterrupt as e:
                 captured_exception = e
@@ -1454,7 +1472,7 @@ class ExecutionMagics(Magics):
 
     @skip_doctest
     @line_magic
-    def macro(self, parameter_s=''):
+    def macro(self, parameter_s=""):
         """Define a macro for future re-execution. It accepts ranges of history,
         filenames or string objects.
 
@@ -1518,17 +1536,20 @@ class ExecutionMagics(Magics):
           print(macro_name)
 
         """
-        opts,args = self.parse_options(parameter_s,'rq',mode='list')
-        if not args:   # List existing macros
-            return sorted(k for k,v in self.shell.user_ns.items() if isinstance(v, Macro))
+        opts, args = self.parse_options(parameter_s, "rq", mode="list")
+        if not args:  # List existing macros
+            return sorted(
+                k for k, v in self.shell.user_ns.items() if isinstance(v, Macro)
+            )
         if len(args) == 1:
             raise UsageError(
-                "%macro insufficient args; usage '%macro name n1-n2 n3-4...")
+                "%macro insufficient args; usage '%macro name n1-n2 n3-4..."
+            )
         name, codefrom = args[0], " ".join(args[1:])
 
         # print('rng',ranges)  # dbg
         try:
-            lines = self.shell.find_user_code(codefrom, 'r' in opts)
+            lines = self.shell.find_user_code(codefrom, "r" in opts)
         except (ValueError, TypeError) as e:
             print(e.args[0])
             return
@@ -1569,7 +1590,7 @@ class ExecutionMagics(Magics):
     @magic_arguments.argument(
         "--no-display",
         action="store_true",
-        help="""Don't capture IPython's rich display."""
+        help="""Don't capture IPython's rich display.""",
     )
     @cell_magic
     def capture(self, line, cell):
@@ -1664,12 +1685,12 @@ class ExecutionMagics(Magics):
 
 
 def parse_breakpoint(text, current_file):
-    '''Returns (file, line) for file:line and (current_file, line) for line'''
-    colon = text.find(':')
+    """Returns (file, line) for file:line and (current_file, line) for line"""
+    colon = text.find(":")
     if colon == -1:
         return current_file, int(text)
     else:
-        return text[:colon], int(text[colon+1:])
+        return text[:colon], int(text[colon + 1 :])
 
 
 def _format_time(timespan, precision=3):

@@ -130,9 +130,7 @@ def _pseudo_sync_runner(coro):
         return exc.value
     else:
         # TODO: do not raise but return an execution result with the right info.
-        raise RuntimeError(
-            f"{coro.__name__!r} needs a real async loop"
-        )
+        raise RuntimeError(f"{coro.__name__!r} needs a real async loop")
 
 
 def _should_be_async(cell: str) -> bool:

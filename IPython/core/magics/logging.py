@@ -1,16 +1,15 @@
-"""Implementation of magic functions for IPython's own logging.
-"""
-#-----------------------------------------------------------------------------
+"""Implementation of magic functions for IPython's own logging."""
+# -----------------------------------------------------------------------------
 #  Copyright (c) 2012 The IPython Development Team.
 #
 #  Distributed under the terms of the Modified BSD License.
 #
 #  The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # Stdlib
 import os
@@ -21,22 +20,24 @@ from IPython.core.magic import Magics, magics_class, line_magic
 from warnings import warn
 from traitlets import Bool
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Magic implementation classes
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 @magics_class
 class LoggingMagics(Magics):
     """Magics related to all logging machinery."""
 
-    quiet = Bool(False, help=
-        """
+    quiet = Bool(
+        False,
+        help="""
         Suppress output of log state when logging is enabled
-        """
+        """,
     ).tag(config=True)
 
     @line_magic
-    def logstart(self, parameter_s=''):
+    def logstart(self, parameter_s=""):
         """Start logging anywhere in a session.
 
         %logstart [-o|-r|-t|-q] [log_name [log_mode]]
@@ -94,11 +95,11 @@ class LoggingMagics(Magics):
             suppress output of logstate message when logging is invoked
         """
 
-        opts,par = self.parse_options(parameter_s,'ortq')
-        log_output = 'o' in opts
-        log_raw_input = 'r' in opts
-        timestamp = 't' in opts
-        quiet = 'q' in opts
+        opts, par = self.parse_options(parameter_s, "ortq")
+        log_output = "o" in opts
+        log_raw_input = "r" in opts
+        timestamp = "t" in opts
+        quiet = "q" in opts
 
         logger = self.shell.logger
 
@@ -106,10 +107,10 @@ class LoggingMagics(Magics):
         # ipython remain valid
         if par:
             try:
-                logfname,logmode = par.split()
+                logfname, logmode = par.split()
             except ValueError:
                 logfname = par
-                logmode = 'backup'
+                logmode = "backup"
         else:
             logfname = logger.logfname
             logmode = logger.logmode
@@ -121,10 +122,11 @@ class LoggingMagics(Magics):
             logfname = os.path.expanduser(logfname)
         self.shell.logfile = logfname
 
-        loghead = '# IPython log file\n\n'
+        loghead = "# IPython log file\n\n"
         try:
-            logger.logstart(logfname, loghead, logmode, log_output, timestamp,
-                            log_raw_input)
+            logger.logstart(
+                logfname, loghead, logmode, log_output, timestamp, log_raw_input
+            )
         except Exception:
             self.shell.logfile = old_logfile
             warn("Couldn't start log: %s" % sys.exc_info()[1])
@@ -145,24 +147,26 @@ class LoggingMagics(Magics):
             if log_output:
                 log_write = logger.log_write
                 output_hist = self.shell.history_manager.output_hist
-                for n in range(1,len(input_hist)-1):
-                    log_write(input_hist[n].rstrip() + '\n')
+                for n in range(1, len(input_hist) - 1):
+                    log_write(input_hist[n].rstrip() + "\n")
                     if n in output_hist:
-                        log_write(repr(output_hist[n]),'output')
+                        log_write(repr(output_hist[n]), "output")
             else:
-                logger.log_write('\n'.join(input_hist[1:]))
-                logger.log_write('\n')
+                logger.log_write("\n".join(input_hist[1:]))
+                logger.log_write("\n")
             if timestamp:
                 # re-enable timestamping
                 logger.timestamp = True
 
             if not (self.quiet or quiet):
-                print ('Activating auto-logging. '
-                       'Current session state plus future input saved.')
+                print(
+                    "Activating auto-logging. "
+                    "Current session state plus future input saved."
+                )
                 logger.logstate()
 
     @line_magic
-    def logstop(self, parameter_s=''):
+    def logstop(self, parameter_s=""):
         """Fully stop logging and close log file.
 
         In order to start logging again, a new %logstart call needs to be made,
@@ -171,14 +175,14 @@ class LoggingMagics(Magics):
         self.shell.logger.logstop()
 
     @line_magic
-    def logoff(self, parameter_s=''):
+    def logoff(self, parameter_s=""):
         """Temporarily stop logging.
 
         You must have previously started logging."""
         self.shell.logger.switch_log(0)
 
     @line_magic
-    def logon(self, parameter_s=''):
+    def logon(self, parameter_s=""):
         """Restart logging.
 
         This function is for restarting logging which you've temporarily
@@ -189,7 +193,7 @@ class LoggingMagics(Magics):
         self.shell.logger.switch_log(1)
 
     @line_magic
-    def logstate(self, parameter_s=''):
+    def logstate(self, parameter_s=""):
         """Print the status of the logging system."""
 
         self.shell.logger.logstate()

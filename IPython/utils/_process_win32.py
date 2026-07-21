@@ -201,7 +201,6 @@ except AttributeError:
     arg_split = py_arg_split
 
 
-
 def check_pid(pid: int) -> bool:
     # OpenProcess returns 0 if no such process (of ours) exists
     # positive int otherwise

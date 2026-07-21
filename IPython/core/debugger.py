@@ -645,7 +645,7 @@ class Pdb(OldPdb):
             self._show_display()
         else:
             # 3.13 and 3.12 don't need any changes.
-            super()._pdbcmd_print_frame_status(arg) # type: ignore[misc]
+            super()._pdbcmd_print_frame_status(arg)  # type: ignore[misc]
 
     def _get_frame_locals(self, frame):
         """ "

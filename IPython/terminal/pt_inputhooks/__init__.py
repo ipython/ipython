@@ -3,8 +3,8 @@ import os
 from collections.abc import Callable
 
 aliases = {
-    'qt4': 'qt',
-    'gtk2': 'gtk',
+    "qt4": "qt",
+    "gtk2": "gtk",
 }
 
 backends = [
@@ -25,6 +25,7 @@ backends = [
 
 registered = {}
 
+
 def register(name, inputhook):
     """Register the function *inputhook* as an event loop integration."""
     registered[name] = inputhook
@@ -35,9 +36,9 @@ class UnknownBackend(KeyError):
         self.name = name
 
     def __str__(self):
-        return ("No event loop integration for {!r}. "
-                "Supported event loops are: {}").format(self.name,
-                                    ', '.join(backends + sorted(registered)))
+        return (
+            "No event loop integration for {!r}. Supported event loops are: {}"
+        ).format(self.name, ", ".join(backends + sorted(registered)))
 
 
 def set_qt_api(gui):

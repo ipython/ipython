@@ -7,6 +7,7 @@ empty function call is counted as a test, which just inflates tests numbers
 artificially).
 """
 
+
 def doctest_simple():
     """ipdoctest must handle simple inputs
 
@@ -16,6 +17,7 @@ def doctest_simple():
     In [2]: print(1)
     1
     """
+
 
 def doctest_multiline1():
     """The ipdoctest machinery must handle multiline examples gracefully.
@@ -28,6 +30,7 @@ def doctest_multiline1():
     2
     3
     """
+
 
 def doctest_multiline2():
     """Multiline examples that define functions and print output.
@@ -73,7 +76,7 @@ def doctest_multiline3():
 
     In [15]: h(0)
     Out[15]: -1
-   """
+    """
 
 
 def doctest_builtin_underscore():

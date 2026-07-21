@@ -39,20 +39,17 @@ else:
 
 @undoc
 class HasGetItem(Protocol):
-    def __getitem__(self, key) -> None:
-        ...
+    def __getitem__(self, key) -> None: ...
 
 
 @undoc
 class InstancesHaveGetItem(Protocol):
-    def __call__(self, *args, **kwargs) -> HasGetItem:
-        ...
+    def __call__(self, *args, **kwargs) -> HasGetItem: ...
 
 
 @undoc
 class HasGetAttr(Protocol):
-    def __getattr__(self, key) -> None:
-        ...
+    def __getattr__(self, key) -> None: ...
 
 
 @undoc
@@ -695,7 +692,8 @@ def _handle_annassign(node, context):
         annotation_value = _resolve_annotation(annotation_result, context)
         # Use Value for generic types
         use_value = (
-            isinstance(annotation_value, GENERIC_CONTAINER_TYPES) and node.value is not None
+            isinstance(annotation_value, GENERIC_CONTAINER_TYPES)
+            and node.value is not None
         )
     else:
         annotation_value = annotation_result
@@ -722,6 +720,7 @@ def _handle_annassign(node, context):
         return None
 
     return None
+
 
 def _extract_args_and_kwargs(node: ast.Call, context: EvaluationContext):
     args = [eval_node(arg, context) for arg in node.args]

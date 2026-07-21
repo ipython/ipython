@@ -3,6 +3,7 @@
 Everything in this module is a private API,
 not to be used outside IPython.
 """
+
 from __future__ import annotations
 
 # Copyright (c) IPython Development Team.
@@ -12,8 +13,10 @@ import unicodedata
 from wcwidth import wcwidth
 
 from IPython.core.completer import (
-    provisionalcompleter, cursor_to_position,
-    _deduplicate_completions)
+    provisionalcompleter,
+    cursor_to_position,
+    _deduplicate_completions,
+)
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.lexers import Lexer
 from prompt_toolkit.lexers import PygmentsLexer
@@ -42,14 +45,14 @@ def _elide_point(string: str, *, min_elide) -> str:
     """
     if min_elide <= 0:
         return string
-    string = string.replace('...','\N{HORIZONTAL ELLIPSIS}')
-    string = string.replace('..','\N{TWO DOT LEADER}')
+    string = string.replace("...", "\N{HORIZONTAL ELLIPSIS}")
+    string = string.replace("..", "\N{TWO DOT LEADER}")
     if len(string) < min_elide:
         return string
 
-    object_parts = string.split('.')
+    object_parts = string.split(".")
     file_parts = string.split(os.sep)
-    if file_parts[-1] == '':
+    if file_parts[-1] == "":
         file_parts.pop()
 
     if len(object_parts) > 3:
@@ -77,23 +80,22 @@ def _elide_typed(string: str, typed: str, *, min_elide: int) -> str:
         return string
     if len(string) < min_elide:
         return string
-    cut_how_much = len(typed)-3
+    cut_how_much = len(typed) - 3
     if cut_how_much < 7:
         return string
-    if string.startswith(typed) and len(string)> len(typed):
+    if string.startswith(typed) and len(string) > len(typed):
         return f"{string[:3]}\N{HORIZONTAL ELLIPSIS}{string[cut_how_much:]}"
     return string
 
 
 def _elide(string: str, typed: str, min_elide) -> str:
     return _elide_typed(
-        _elide_point(string, min_elide=min_elide),
-        typed, min_elide=min_elide)
-
+        _elide_point(string, min_elide=min_elide), typed, min_elide=min_elide
+    )
 
 
 def _adjust_completion_text_based_on_context(text, body, offset):
-    if text.endswith('=') and len(body) > offset and body[offset] == '=':
+    if text.endswith("=") and len(body) > offset and body[offset] == "=":
         return text[:-1]
     else:
         return text
@@ -101,6 +103,7 @@ def _adjust_completion_text_based_on_context(text, body, offset):
 
 class IPythonPTCompleter(Completer):
     """Adaptor to provide IPython completions to prompt_toolkit"""
+
     def __init__(self, ipy_completer=None, shell=None):
         if shell is None and ipy_completer is None:
             raise TypeError("Please pass shell=an InteractiveShell instance.")
@@ -128,26 +131,27 @@ class IPythonPTCompleter(Completer):
             cursor_position = document.cursor_position
             offset = cursor_to_position(body, cursor_row, cursor_col)
             try:
-                yield from self._get_completions(body, offset, cursor_position, self.ipy_completer)
+                yield from self._get_completions(
+                    body, offset, cursor_position, self.ipy_completer
+                )
             except Exception as e:
                 try:
                     exc_type, exc_value, exc_tb = sys.exc_info()
                     traceback.print_exception(exc_type, exc_value, exc_tb)
                 except AttributeError:
-                    print('Unrecoverable Error in completions')
+                    print("Unrecoverable Error in completions")
 
     def _get_completions(self, body, offset, cursor_position, ipyc):
         """
         Private equivalent of get_completions() use only for unit_testing.
         """
-        debug = getattr(ipyc, 'debug', False)
-        completions = _deduplicate_completions(
-            body, ipyc.completions(body, offset))
+        debug = getattr(ipyc, "debug", False)
+        completions = _deduplicate_completions(body, ipyc.completions(body, offset))
         for c in completions:
             if not c.text:
                 # Guard against completion machinery giving us an empty string.
                 continue
-            text = unicodedata.normalize('NFC', c.text)
+            text = unicodedata.normalize("NFC", c.text)
             # When the first character of the completion has a zero length,
             # then it's probably a decomposed unicode character. E.g. caused by
             # the "\dot" completion. Try to compose again with the previous
@@ -155,12 +159,13 @@ class IPythonPTCompleter(Completer):
             if wcwidth(text[0]) == 0:
                 if cursor_position + c.start > 0:
                     char_before = body[c.start - 1]
-                    fixed_text = unicodedata.normalize(
-                        'NFC', char_before + text)
+                    fixed_text = unicodedata.normalize("NFC", char_before + text)
 
                     # Yield the modified completion instead, if this worked.
                     if wcwidth(text[0:1]) == 1:
-                        yield Completion(fixed_text, start_position=c.start - offset - 1)
+                        yield Completion(
+                            fixed_text, start_position=c.start - offset - 1
+                        )
                         continue
 
             # TODO: Use Jedi to determine meta_text
@@ -202,19 +207,20 @@ class IPythonPTLexer(Lexer):
     """
     Wrapper around PythonLexer and BashLexer.
     """
+
     def __init__(self):
         l = pygments_lexers
         self.python_lexer = PygmentsLexer(l.Python3Lexer)
         self.shell_lexer = PygmentsLexer(l.BashLexer)
 
         self.magic_lexers = {
-            'HTML': PygmentsLexer(l.HtmlLexer),
-            'html': PygmentsLexer(l.HtmlLexer),
-            'javascript': PygmentsLexer(l.JavascriptLexer),
-            'js': PygmentsLexer(l.JavascriptLexer),
-            'perl': PygmentsLexer(l.PerlLexer),
-            'ruby': PygmentsLexer(l.RubyLexer),
-            'latex': PygmentsLexer(l.TexLexer),
+            "HTML": PygmentsLexer(l.HtmlLexer),
+            "html": PygmentsLexer(l.HtmlLexer),
+            "javascript": PygmentsLexer(l.JavascriptLexer),
+            "js": PygmentsLexer(l.JavascriptLexer),
+            "perl": PygmentsLexer(l.PerlLexer),
+            "ruby": PygmentsLexer(l.RubyLexer),
+            "latex": PygmentsLexer(l.TexLexer),
         }
 
     def lex_document(self, document):
@@ -222,12 +228,12 @@ class IPythonPTLexer(Lexer):
 
         lexer = self.python_lexer
 
-        if text.startswith('!') or text.startswith('%%bash'):
+        if text.startswith("!") or text.startswith("%%bash"):
             lexer = self.shell_lexer
 
-        elif text.startswith('%%'):
+        elif text.startswith("%%"):
             for magic, l in self.magic_lexers.items():
-                if text.startswith('%%' + magic):
+                if text.startswith("%%" + magic):
                     lexer = l
                     break
 

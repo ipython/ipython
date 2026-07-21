@@ -1,5 +1,4 @@
-"""Various utilities common to IPython release and maintenance tools.
-"""
+"""Various utilities common to IPython release and maintenance tools."""
 
 # Library imports
 import os
@@ -20,9 +19,10 @@ def sh(cmd):
     """Run system command in shell, raise SystemExit if it returns an error."""
     print("$", cmd)
     stat = os.system(cmd)
-    #stat = 0  # Uncomment this and comment previous to run in debug mode
+    # stat = 0  # Uncomment this and comment previous to run in debug mode
     if stat:
         raise SystemExit("Command %s failed with code: %s" % (cmd, stat))
+
 
 def get_ipdir():
     """Get IPython directory from command line, or assume it's the one above."""

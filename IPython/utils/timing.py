@@ -2,16 +2,16 @@
 Utilities for timing code execution.
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from __future__ import annotations
 
@@ -19,9 +19,9 @@ import time
 from typing import Any
 from collections.abc import Callable
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Code
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # If possible (Unix), use the resource module instead of time.clock()
 try:
@@ -31,6 +31,7 @@ except ModuleNotFoundError:
 
 # Some implementations (like jyputerlite) don't have getrusage
 if resource is not None and hasattr(resource, "getrusage"):
+
     def clocku():
         """clocku() -> floating point number
 
@@ -56,8 +57,8 @@ if resource is not None and hasattr(resource, "getrusage"):
         the process.  This is done via a call to resource.getrusage, so it
         avoids the wraparound problems in time.clock()."""
 
-        u,s = resource.getrusage(resource.RUSAGE_SELF)[:2]
-        return u+s
+        u, s = resource.getrusage(resource.RUSAGE_SELF)[:2]
+        return u + s
 
     def clock2() -> tuple[float, float]:
         """clock2() -> (t_user,t_system)
@@ -96,19 +97,20 @@ def timings_out(
     documentation for the time module for more details."""
 
     reps = int(reps)
-    assert reps >=1, 'reps must be >= 1'
-    if reps==1:
+    assert reps >= 1, "reps must be >= 1"
+    if reps == 1:
         start = clock()
-        out = func(*args,**kw)
-        tot_time = clock()-start
+        out = func(*args, **kw)
+        tot_time = clock() - start
     else:
-        rng = range(reps-1) # the last time is executed separately to store output
+        rng = range(reps - 1)  # the last time is executed separately to store output
         start = clock()
-        for dummy in rng: func(*args,**kw)
-        out = func(*args,**kw)  # one last time
-        tot_time = clock()-start
+        for dummy in rng:
+            func(*args, **kw)
+        out = func(*args, **kw)  # one last time
+        tot_time = clock() - start
     av_time = tot_time / reps
-    return tot_time,av_time,out
+    return tot_time, av_time, out
 
 
 def timings(
@@ -123,7 +125,7 @@ def timings(
     time in seconds and the time per call. These are just the first two values
     in timings_out()."""
 
-    return timings_out(reps,func,*args,**kw)[0:2]
+    return timings_out(reps, func, *args, **kw)[0:2]
 
 
 def timing(func: Callable[..., Any], *args: Any, **kw: Any) -> float:
@@ -132,4 +134,4 @@ def timing(func: Callable[..., Any], *args: Any, **kw: Any) -> float:
     Execute a function once, return the elapsed total CPU time in
     seconds. This is just the first value in timings_out()."""
 
-    return timings_out(1,func,*args,**kw)[0]
+    return timings_out(1, func, *args, **kw)[0]

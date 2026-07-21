@@ -4,6 +4,7 @@
 #
 # Copyright (c) 2004-2021 Holger Krekel and others
 """Discover and run ipdoctests in modules and test files."""
+
 from __future__ import annotations
 
 import bdb
@@ -385,7 +386,9 @@ class IPDoctestItem(pytest.Item):
     ) -> str | TerminalRepr:
         import doctest
 
-        failures: Sequence[doctest.DocTestFailure | doctest.UnexpectedException] | None = None
+        failures: (
+            Sequence[doctest.DocTestFailure | doctest.UnexpectedException] | None
+        ) = None
         if isinstance(
             excinfo.value, (doctest.DocTestFailure, doctest.UnexpectedException)
         ):

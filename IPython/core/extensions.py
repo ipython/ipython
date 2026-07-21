@@ -13,9 +13,9 @@ from IPython.utils.path import ensure_dir_exists
 from traitlets import Instance
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Main class
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 BUILTINS_EXTS = {"storemagic": False, "autoreload": False}
 
@@ -44,7 +44,9 @@ class ExtensionManager(Configurable):
     they can be imported by Python's standard import mechanism.
     """
 
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
+    shell = Instance(
+        "IPython.core.interactiveshell.InteractiveShellABC", allow_none=True
+    )
 
     def __init__(self, shell=None, **kwargs):
         super().__init__(shell=shell, **kwargs)
@@ -124,11 +126,11 @@ class ExtensionManager(Configurable):
             self.load_extension(module_str)
 
     def _call_load_ipython_extension(self, mod):
-        if hasattr(mod, 'load_ipython_extension'):
+        if hasattr(mod, "load_ipython_extension"):
             mod.load_ipython_extension(self.shell)
             return True
 
     def _call_unload_ipython_extension(self, mod):
-        if hasattr(mod, 'unload_ipython_extension'):
+        if hasattr(mod, "unload_ipython_extension"):
             mod.unload_ipython_extension(self.shell)
             return True

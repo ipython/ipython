@@ -26,21 +26,23 @@ from setuptools.command.install import install
 from setuptools.command.install_scripts import install_scripts
 
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Useful globals and utility functions
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 # A few handy globals
 repo_root = Path(__file__).resolve().parent
+
 
 def execfile(path, globs, locs=None):
     locs = locs or globs
     with path.open(encoding="utf-8") as f:
         exec(compile(f.read(), str(path), "exec"), globs, locs)
 
-#---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
 # Basic project information
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 
 # release.py contains version, authors, license, url, keywords, etc.
 execfile(Path(repo_root, "IPython", "core", "release.py"), globals())
@@ -48,14 +50,15 @@ execfile(Path(repo_root, "IPython", "core", "release.py"), globals())
 # Create a dict with the basic information
 # This dict is eventually passed to setup after additional keys are added.
 setup_args = dict(
-      author           = author,
-      author_email     = author_email,
-      license          = license,
-      )
+    author=author,
+    author_email=author_email,
+    license=license,
+)
 
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Check package data
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+
 
 def check_package_data(package_data):
     """verify that package_data globs make sense"""
@@ -75,16 +78,19 @@ def check_package_data_first(command):
 
     Probably only needs to wrap build_py
     """
+
     class DecoratedCommand(command):
         def run(self):
             check_package_data(self.package_data)
             command.run(self)
+
     return DecoratedCommand
 
 
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Find data files
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+
 
 def find_data_files():
     """
@@ -112,6 +118,7 @@ def find_data_files():
 
 # The two functions below are copied from IPython.utils.path, so we don't need
 # to import IPython during setup, which fails on Python 3.
+
 
 def target_outdated(target, deps):
     """Determine whether a target is out of date.
@@ -148,9 +155,11 @@ def target_update(target, deps, cmd):
     if target_outdated(target, deps):
         os.system(cmd)
 
-#---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
 # VCS related
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+
 
 def git_prebuild(pkg_dir, build_cmd=build_py):
     """Return extended build or sdist command class for recording commit
@@ -161,18 +170,23 @@ def git_prebuild(pkg_dir, build_cmd=build_py):
     """
 
     class MyBuildPy(build_cmd):
-        ''' Subclass to write commit data into installation tree '''
+        """Subclass to write commit data into installation tree"""
+
         def run(self):
             # loose as `.dev` is suppose to be invalid
             print("check version number")
-            loose_pep440re = re.compile(r'^(\d+)\.(\d+)\.(\d+((a|b|rc)\d+)?)(\.post\d+)?(\.dev\d*)?$')
+            loose_pep440re = re.compile(
+                r"^(\d+)\.(\d+)\.(\d+((a|b|rc)\d+)?)(\.post\d+)?(\.dev\d*)?$"
+            )
             if not loose_pep440re.match(version):
-                raise ValueError("Version number '%s' is not valid (should match [N!]N(.N)*[{a|b|rc}N][.postN][.devN])" % version)
-
+                raise ValueError(
+                    "Version number '%s' is not valid (should match [N!]N(.N)*[{a|b|rc}N][.postN][.devN])"
+                    % version
+                )
 
             build_cmd.run(self)
             # this one will only fire for build commands
-            if hasattr(self, 'build_lib'):
+            if hasattr(self, "build_lib"):
                 self._record_commit(self.build_lib)
 
         def make_release_tree(self, base_dir, files):
@@ -182,10 +196,13 @@ def git_prebuild(pkg_dir, build_cmd=build_py):
 
         def _record_commit(self, base_dir):
             import subprocess
-            proc = subprocess.Popen('git rev-parse --short HEAD',
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE,
-                                    shell=True)
+
+            proc = subprocess.Popen(
+                "git rev-parse --short HEAD",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=True,
+            )
             repo_commit, _ = proc.communicate()
             repo_commit = repo_commit.strip().decode("ascii")
 

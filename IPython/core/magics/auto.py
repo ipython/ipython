@@ -1,26 +1,27 @@
-"""Implementation of magic functions that control various automatic behaviors.
-"""
+"""Implementation of magic functions that control various automatic behaviors."""
+
 from __future__ import annotations
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (c) 2012 The IPython Development Team.
 #
 #  Distributed under the terms of the Modified BSD License.
 #
 #  The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # Our own packages
 from IPython.core.magic import Bunch, Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
 from logging import error
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Magic implementation classes
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 @magics_class
 class AutoMagics(Magics):
@@ -32,7 +33,7 @@ class AutoMagics(Magics):
         self._magic_state = Bunch()
 
     @line_magic
-    def automagic(self, parameter_s=''):
+    def automagic(self, parameter_s=""):
         """Make magic functions callable without having to type the initial %.
 
         Without arguments toggles on/off (when off, you must call it as
@@ -51,18 +52,18 @@ class AutoMagics(Magics):
 
         arg = parameter_s.lower()
         mman = self.shell.magics_manager
-        if arg in ('on', '1', 'true'):
+        if arg in ("on", "1", "true"):
             val = True
-        elif arg in ('off', '0', 'false'):
+        elif arg in ("off", "0", "false"):
             val = False
         else:
             val = not mman.auto_magic
         mman.auto_magic = val
-        print('\n' + self.shell.magics_manager.auto_status())
+        print("\n" + self.shell.magics_manager.auto_status())
 
     @skip_doctest
     @line_magic
-    def autocall(self, parameter_s=''):
+    def autocall(self, parameter_s=""):
         """Make functions callable without having to type parentheses.
 
         Usage:
@@ -124,7 +125,7 @@ class AutoMagics(Magics):
                 return
             arg = int(parameter_s)
         else:
-            arg = 'toggle'
+            arg = "toggle"
 
         if arg not in (*list(valid_modes.keys()), "toggle"):
             error(errorMessage())
@@ -132,7 +133,7 @@ class AutoMagics(Magics):
 
         if arg in (valid_modes.keys()):
             self.shell.autocall = arg
-        else: # toggle
+        else:  # toggle
             if self.shell.autocall:
                 self._magic_state.autocall_save = self.shell.autocall
                 self.shell.autocall = 0

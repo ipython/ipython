@@ -10,9 +10,9 @@ from io import StringIO
 from types import TracebackType
 from typing import Any
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Classes and functions
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class RichOutput:
@@ -24,8 +24,13 @@ class RichOutput:
 
     def display(self):
         from IPython.display import publish_display_data
-        publish_display_data(data=self.data, metadata=self.metadata,
-                             transient=self.transient, update=self.update)
+
+        publish_display_data(
+            data=self.data,
+            metadata=self.metadata,
+            transient=self.transient,
+            update=self.update,
+        )
 
     def _repr_mime_(self, mime):
         if mime not in self.data:
@@ -93,14 +98,14 @@ class CapturedIO:
     def stdout(self) -> str:
         "Captured standard output"
         if not self._stdout:
-            return ''
+            return ""
         return self._stdout.getvalue()
 
     @property
     def stderr(self) -> str:
         "Captured standard error"
         if not self._stderr:
-            return ''
+            return ""
         return self._stderr.getvalue()
 
     @property
@@ -114,7 +119,7 @@ class CapturedIO:
             for o in c.outputs:
                 display(o)
         """
-        return [ RichOutput(**kargs) for kargs in self._outputs ]
+        return [RichOutput(**kargs) for kargs in self._outputs]
 
     def show(self):
         """write my output to sys.stdout/err as appropriate"""
@@ -130,11 +135,12 @@ class CapturedIO:
 
 class capture_output:
     """context manager for capturing stdout/err"""
+
     stdout = True
     stderr = True
     display = True
 
-    def __init__(self, stdout: bool=True, stderr: bool=True, display: bool=True):
+    def __init__(self, stdout: bool = True, stderr: bool = True, display: bool = True):
         self.stdout = stdout
         self.stderr = stderr
         self.display = display
@@ -164,12 +170,16 @@ class capture_output:
             self.shell.display_pub = CapturingDisplayPublisher()
             outputs = self.shell.display_pub.outputs
             self.save_display_hook = sys.displayhook
-            sys.displayhook = CapturingDisplayHook(shell=self.shell,
-                                                   outputs=outputs)
+            sys.displayhook = CapturingDisplayHook(shell=self.shell, outputs=outputs)
 
         return CapturedIO(stdout, stderr, outputs)
 
-    def __exit__(self, exc_type: type[BaseException] | None, exc_value: BaseException | None, traceback: TracebackType | None) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
         sys.stdout = self.sys_stdout
         sys.stderr = self.sys_stderr
         if self.display and self.shell:

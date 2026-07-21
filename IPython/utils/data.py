@@ -1,13 +1,13 @@
-"""Utilities for working with data structures like lists, dicts and tuples.
-"""
+"""Utilities for working with data structures like lists, dicts and tuples."""
+
 from __future__ import annotations
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import warnings
 from collections.abc import Iterable, Sequence

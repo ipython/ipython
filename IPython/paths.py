@@ -1,5 +1,5 @@
-"""Find files and directories which IPython uses.
-"""
+"""Find files and directories which IPython uses."""
+
 from __future__ import annotations
 
 import os.path
@@ -27,8 +27,7 @@ def get_ipython_dir() -> str:
     env = os.environ
     pjoin = os.path.join
 
-
-    ipdir_def = '.ipython'
+    ipdir_def = ".ipython"
 
     home_dir = get_home_dir()
     xdg_dir = get_xdg_dir()
@@ -40,16 +39,24 @@ def get_ipython_dir() -> str:
         if xdg_dir:
             # Several IPython versions (up to 1.x) defaulted to .config/ipython
             # on Linux. We have decided to go back to using .ipython everywhere
-            xdg_ipdir = pjoin(xdg_dir, 'ipython')
+            xdg_ipdir = pjoin(xdg_dir, "ipython")
 
             if _writable_dir(xdg_ipdir):
                 cu = compress_user
                 if os.path.exists(ipdir):
-                    warn(('Ignoring {0} in favour of {1}. Remove {0} to '
-                        'get rid of this message').format(cu(xdg_ipdir), cu(ipdir)))
+                    warn(
+                        (
+                            "Ignoring {0} in favour of {1}. Remove {0} to "
+                            "get rid of this message"
+                        ).format(cu(xdg_ipdir), cu(ipdir))
+                    )
                 elif os.path.islink(xdg_ipdir):
-                    warn(('{} is deprecated. Move link to {} to '
-                        'get rid of this message').format(cu(xdg_ipdir), cu(ipdir)))
+                    warn(
+                        (
+                            "{} is deprecated. Move link to {} to "
+                            "get rid of this message"
+                        ).format(cu(xdg_ipdir), cu(ipdir))
+                    )
                 else:
                     ipdir = xdg_ipdir
 
@@ -57,19 +64,25 @@ def get_ipython_dir() -> str:
 
     if os.path.exists(ipdir) and not _writable_dir(ipdir):
         # ipdir exists, but is not writable
-        warn("IPython dir '{}' is not a writable location,"
-                " using a temp directory.".format(ipdir))
+        warn(
+            "IPython dir '{}' is not a writable location,"
+            " using a temp directory.".format(ipdir)
+        )
         ipdir = tempfile.mkdtemp()
     elif not os.path.exists(ipdir):
         parent = os.path.dirname(ipdir)
         if not _writable_dir(parent):
             # ipdir does not exist and parent isn't writable
-            warn("IPython parent '{}' is not a writable location,"
-                    " using a temp directory.".format(parent))
+            warn(
+                "IPython parent '{}' is not a writable location,"
+                " using a temp directory.".format(parent)
+            )
             ipdir = tempfile.mkdtemp()
         else:
             os.makedirs(ipdir, exist_ok=True)
-    assert isinstance(ipdir, str), "all path manipulation should be str(unicode), but are not."
+    assert isinstance(ipdir, str), (
+        "all path manipulation should be str(unicode), but are not."
+    )
     return ipdir
 
 
@@ -101,11 +114,11 @@ def get_ipython_module_path(module_str):
     IPython package. This will always return the path to the ``.py``
     version of the module.
     """
-    if module_str == 'IPython':
-        return os.path.join(get_ipython_package_dir(), '__init__.py')
+    if module_str == "IPython":
+        return os.path.join(get_ipython_package_dir(), "__init__.py")
     mod = import_item(module_str)
-    the_path = mod.__file__.replace('.pyc', '.py')
-    the_path = the_path.replace('.pyo', '.py')
+    the_path = mod.__file__.replace(".pyc", ".py")
+    the_path = the_path.replace(".pyo", ".py")
     return the_path
 
 
@@ -115,6 +128,7 @@ def locate_profile(profile: str = "default") -> str:
     I.e. find $IPYTHONDIR/profile_whatever.
     """
     from IPython.core.profiledir import ProfileDir, ProfileDirError
+
     try:
         pd = ProfileDir.find_profile_dir_by_name(get_ipython_dir(), profile)
     except ProfileDirError as e:

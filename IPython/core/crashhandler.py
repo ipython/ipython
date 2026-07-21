@@ -6,17 +6,17 @@ Authors:
 * Brian E. Granger
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
 #  Copyright (C) 2008-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from __future__ import annotations
 
@@ -41,9 +41,9 @@ if TYPE_CHECKING:
     # avoid a circular import: application imports crashhandler at module load
     from IPython.core.application import Application
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Code
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # Template for the user message.
 _default_message_template = """\
@@ -102,7 +102,7 @@ class CrashHandler:
     """
 
     message_template = _default_message_template
-    section_sep = '\n\n'+'*'*75+'\n\n'
+    section_sep = "\n\n" + "*" * 75 + "\n\n"
     info: dict[str, str | None]
 
     def __init__(
@@ -143,13 +143,15 @@ class CrashHandler:
         self.crash_report_fname = "Crash_report_%s.txt" % app.name
         self.app = app
         self.call_pdb = call_pdb
-        #self.call_pdb = True # dbg
+        # self.call_pdb = True # dbg
         self.show_crash_traceback = show_crash_traceback
-        self.info = dict(app_name = app.name,
-                    contact_name = contact_name,
-                    contact_email = contact_email,
-                    bug_tracker = bug_tracker,
-                    crash_report_fname = self.crash_report_fname)
+        self.info = dict(
+            app_name=app.name,
+            contact_name=contact_name,
+            contact_email=contact_email,
+            bug_tracker=bug_tracker,
+            crash_report_fname=self.crash_report_fname,
+        )
 
     def __call__(
         self,
@@ -184,10 +186,10 @@ class CrashHandler:
             call_pdb=self.call_pdb,
         )
         if self.call_pdb:
-            TBhandler(etype,evalue,etb)
+            TBhandler(etype, evalue, etb)
             return
         else:
-            traceback = TBhandler.text(etype,evalue,etb,context=31)
+            traceback = TBhandler.text(etype, evalue, etb, context=31)
 
         # print traceback to screen
         if self.show_crash_traceback:
@@ -197,12 +199,12 @@ class CrashHandler:
         try:
             report = open(report_name, "w", encoding="utf-8")
         except OSError:
-            print('Could not create crash report on disk.', file=sys.stderr)
+            print("Could not create crash report on disk.", file=sys.stderr)
             return
 
         with report:
             # Inform user on stderr of what happened
-            print('\n'+'*'*70+'\n', file=sys.stderr)
+            print("\n" + "*" * 70 + "\n", file=sys.stderr)
             print(self.message_template.format(**self.info), file=sys.stderr)
 
             # Construct report on disk
@@ -215,7 +217,7 @@ class CrashHandler:
 
         sec_sep = self.section_sep
 
-        report = ['*'*75+'\n\n'+'IPython post-mortem report\n\n']
+        report = ["*" * 75 + "\n\n" + "IPython post-mortem report\n\n"]
         rpt_add = report.append
         rpt_add(sys_info())
 
@@ -227,9 +229,9 @@ class CrashHandler:
             rpt_add(config)
         except Exception:
             pass
-        rpt_add(sec_sep+'Crash traceback:\n\n' + traceback)
+        rpt_add(sec_sep + "Crash traceback:\n\n" + traceback)
 
-        return ''.join(report)
+        return "".join(report)
 
 
 def crash_handler_lite(
@@ -239,10 +241,16 @@ def crash_handler_lite(
     traceback.print_exception(etype, evalue, tb)
 
     from IPython.core.interactiveshell import InteractiveShell
+
     if InteractiveShell.initialized():
         # we are in a Shell environment, give %magic example
         config = "%config "
     else:
         # we are not in a shell, show generic config
         config = "c."
-    print(_lite_message_template.format(email=author_email, config=config, version=version), file=sys.stderr)
+    print(
+        _lite_message_template.format(
+            email=author_email, config=config, version=version
+        ),
+        file=sys.stderr,
+    )

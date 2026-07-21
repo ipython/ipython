@@ -15,16 +15,19 @@ import warnings
 
 from IPython.utils.process import system
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Code
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 fs_encoding = sys.getfilesystemencoding()
+
 
 def _writable_dir(path: str) -> bool:
     """Whether `path` is a directory, to which the user has write access."""
     return os.path.isdir(path) and os.access(path, os.W_OK)
 
-if sys.platform == 'win32':
+
+if sys.platform == "win32":
+
     def _get_long_path_name(path):
         """Get a long path name (expand ~) on Windows using ctypes.
 
@@ -38,10 +41,11 @@ if sys.platform == 'win32':
         try:
             import ctypes
         except ImportError as e:
-            raise ImportError('you need to have ctypes installed for this to work') from e
+            raise ImportError(
+                "you need to have ctypes installed for this to work"
+            ) from e
         _GetLongPathName = ctypes.windll.kernel32.GetLongPathNameW
-        _GetLongPathName.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p,
-            ctypes.c_uint ]
+        _GetLongPathName.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint]
 
         buf = ctypes.create_unicode_buffer(260)
         rv = _GetLongPathName(path, buf, 260)
@@ -50,10 +54,10 @@ if sys.platform == 'win32':
         else:
             return buf.value
 else:
+
     def _get_long_path_name(path):
         """Dummy no-op."""
         return path
-
 
 
 def get_long_path_name(path):
@@ -69,8 +73,9 @@ def compress_user(path: str) -> str:
     """Reverse of :func:`os.path.expanduser`"""
     home = os.path.expanduser("~")
     if path.startswith(home):
-        path =  "~" + path[len(home):]
+        path = "~" + path[len(home) :]
     return path
+
 
 def get_py_filename(name):
     """Return a valid python filename in the current directory.
@@ -139,20 +144,22 @@ def filefind(filename: str, path_dirs=None) -> str:
         path_dirs = (path_dirs,)
 
     for path in path_dirs:
-        if path == '.': path = os.getcwd()
+        if path == ".":
+            path = os.getcwd()
         testname = expand_path(os.path.join(path, filename))
         if os.path.isfile(testname):
             return os.path.abspath(testname)
 
-    raise OSError("File %r does not exist in any of the search paths: %r" %
-                  (filename, path_dirs) )
+    raise OSError(
+        "File %r does not exist in any of the search paths: %r" % (filename, path_dirs)
+    )
 
 
 class HomeDirError(Exception):
     pass
 
 
-def get_home_dir(require_writable: bool=False) -> str:
+def get_home_dir(require_writable: bool = False) -> str:
     """Return the 'home' directory, as a unicode string.
 
     Uses os.path.expanduser('~'), and checks for writability.
@@ -171,20 +178,21 @@ def get_home_dir(require_writable: bool=False) -> str:
             The path is resolved, but it is not guaranteed to exist or be writable.
     """
 
-    homedir = os.path.expanduser('~')
+    homedir = os.path.expanduser("~")
     # Next line will make things work even when /home/ is a symlink to
     # /usr/home as it is on FreeBSD, for example
     homedir = os.path.realpath(homedir)
 
-    if not _writable_dir(homedir) and os.name == 'nt':
+    if not _writable_dir(homedir) and os.name == "nt":
         # expanduser failed, use the registry to get the 'My Documents' folder.
         try:
             import winreg as wreg
+
             with wreg.OpenKey(
                 wreg.HKEY_CURRENT_USER,
-                r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
+                r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders",
             ) as key:
-                homedir = wreg.QueryValueEx(key,'Personal')[0]
+                homedir = wreg.QueryValueEx(key, "Personal")[0]
         except Exception:
             pass
 
@@ -192,8 +200,11 @@ def get_home_dir(require_writable: bool=False) -> str:
         assert isinstance(homedir, str), "Homedir should be unicode not bytes"
         return homedir
     else:
-        raise HomeDirError('%s is not a writable dir, '
-                'set $HOME environment variable to override' % homedir)
+        raise HomeDirError(
+            "%s is not a writable dir, "
+            "set $HOME environment variable to override" % homedir
+        )
+
 
 def get_xdg_dir() -> str | None:
     """Return the XDG_CONFIG_HOME, if it is defined and exists, else None.
@@ -206,7 +217,9 @@ def get_xdg_dir() -> str | None:
     if os.name == "posix":
         # Linux, Unix, AIX, etc.
         # use ~/.config if empty OR not set
-        xdg = env.get("XDG_CONFIG_HOME", None) or os.path.join(get_home_dir(), '.config')
+        xdg = env.get("XDG_CONFIG_HOME", None) or os.path.join(
+            get_home_dir(), ".config"
+        )
         if xdg and _writable_dir(xdg):
             assert isinstance(xdg, str)
             return xdg
@@ -225,7 +238,7 @@ def get_xdg_cache_dir():
     if os.name == "posix":
         # Linux, Unix, AIX, etc.
         # use ~/.cache if empty OR not set
-        xdg = env.get("XDG_CACHE_HOME", None) or os.path.join(get_home_dir(), '.cache')
+        xdg = env.get("XDG_CACHE_HOME", None) or os.path.join(get_home_dir(), ".cache")
         if xdg and _writable_dir(xdg):
             assert isinstance(xdg, str)
             return xdg
@@ -248,21 +261,23 @@ def expand_path(s: str) -> str:
     # the $ to get (\\server\share\%username%). I think it considered $
     # alone an empty var. But, we need the $ to remains there (it indicates
     # a hidden share).
-    if os.name=='nt':
-        s = s.replace('$\\', 'IPYTHON_TEMP')
+    if os.name == "nt":
+        s = s.replace("$\\", "IPYTHON_TEMP")
     s = os.path.expandvars(os.path.expanduser(s))
-    if os.name=='nt':
-        s = s.replace('IPYTHON_TEMP', '$\\')
+    if os.name == "nt":
+        s = s.replace("IPYTHON_TEMP", "$\\")
     return s
 
 
 def unescape_glob(string):
     """Unescape glob pattern in `string`."""
+
     def unescape(s):
-        for pattern in '*[]!?':
-            s = s.replace(fr'\{pattern}', pattern)
+        for pattern in "*[]!?":
+            s = s.replace(rf"\{pattern}", pattern)
         return s
-    return '\\'.join(map(unescape, string.split('\\\\')))
+
+    return "\\".join(map(unescape, string.split("\\\\")))
 
 
 def shellglob(args):
@@ -275,12 +290,14 @@ def shellglob(args):
     expanded = []
     # Do not unescape backslash in Windows as it is interpreted as
     # path separator:
-    unescape = unescape_glob if sys.platform != 'win32' else lambda x: x
+    unescape = unescape_glob if sys.platform != "win32" else lambda x: x
     for a in args:
         expanded.extend(glob.glob(a) or [unescape(a)])
     return expanded
 
+
 ENOLINK = 1998
+
 
 def link(src, dst):
     """Hard links ``src`` to ``dst``, returning 0 or errno.
@@ -320,7 +337,7 @@ def link_or_copy(src, dst):
             # anyway, we get duplicate files - see http://bugs.python.org/issue21876
             return
 
-        new_dst = dst + "-temp-%04X" %(random.randint(1, 16**4), )
+        new_dst = dst + "-temp-%04X" % (random.randint(1, 16**4),)
         try:
             link_or_copy(src, new_dst)
         except Exception:
@@ -335,7 +352,8 @@ def link_or_copy(src, dst):
         # linking, or 'src' and 'dst' are on different filesystems.
         shutil.copy(src, dst)
 
-def ensure_dir_exists(path: str, mode: int=0o755):
+
+def ensure_dir_exists(path: str, mode: int = 0o755):
     """ensure that a directory exists
 
     If it doesn't exist, try to create it and protect against a race condition

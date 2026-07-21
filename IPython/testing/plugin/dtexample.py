@@ -24,7 +24,8 @@ def pyfunc():
     ...
     0 1 1 2 2 3
     """
-    return 'pyfunc'
+    return "pyfunc"
+
 
 def ipfunc():
     """Some ipython tests...
@@ -85,31 +86,31 @@ ipos.__skip_doctest__ = os.name == "nt"
 def ranfunc():
     """A function with some random output.
 
-       Normal examples are verified as usual:
-       >>> 1+3
-       4
+    Normal examples are verified as usual:
+    >>> 1+3
+    4
 
-       But if you put '# random' in the output, it is ignored:
-       >>> 1+3
-       junk goes here...  # random
+    But if you put '# random' in the output, it is ignored:
+    >>> 1+3
+    junk goes here...  # random
 
-       >>> 1+2
-       again,  anything goes #random
-       if multiline, the random mark is only needed once.
+    >>> 1+2
+    again,  anything goes #random
+    if multiline, the random mark is only needed once.
 
-       >>> 1+2
-       You can also put the random marker at the end:
-       # random
+    >>> 1+2
+    You can also put the random marker at the end:
+    # random
 
-       >>> 1+2
-       # random
-       .. or at the beginning.
+    >>> 1+2
+    # random
+    .. or at the beginning.
 
-       More correct input is properly verified:
-       >>> ranfunc()
-       'ranfunc'
+    More correct input is properly verified:
+    >>> ranfunc()
+    'ranfunc'
     """
-    return 'ranfunc'
+    return "ranfunc"
 
 
 def random_all():
@@ -136,6 +137,7 @@ def random_all():
     """
     pass
 
+
 def iprand():
     """Some ipython tests with random output.
 
@@ -148,7 +150,8 @@ def iprand():
     In [9]: iprand()
     Out[9]: 'iprand'
     """
-    return 'iprand'
+    return "iprand"
+
 
 def iprand_all():
     """Some ipython tests with fully random output.
@@ -164,4 +167,4 @@ def iprand_all():
     In [9]: iprand_all()
     Out[9]: 'junk'
     """
-    return 'iprand_all'
+    return "iprand_all"
