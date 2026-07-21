@@ -35,10 +35,9 @@ jobs:
         uv pip install --system darker==3.0.0 ruff
     - name: Lint with darker
       run: |
-        # disabling darker for now, I can't get it to format the same locally and on CI.
-        # darker --formatter=ruff -r f51c0b1b6b8e48e228a4eaf62dda382f7e4ba0da --check --diff . || (
-        # echo "Changes need auto-formatting. Run:"
-        # echo "    darker --formatter=ruff -r f51c0b1b6b8e48e228a4eaf62dda382f7e4ba0da ."
-        # echo "then commit and push changes to fix."
-        # exit 1
-        # )
+        darker --formatter=ruff -r f51c0b1b6b8e48e228a4eaf62dda382f7e4ba0da --check --diff . || (
+        echo "Changes need auto-formatting. Run:"
+        echo "    darker --formatter=ruff -r f51c0b1b6b8e48e228a4eaf62dda382f7e4ba0da ."
+        echo "then commit and push changes to fix."
+        exit 1
+        )
