@@ -32,13 +32,13 @@ jobs:
     - name: Install dependencies
       run: |
         # when changing the versions please update CONTRIBUTING.md too
-        uv pip install --system darker==2.1.1 black==24.10.0
+        uv pip install --system darker==3.0.0 ruff
     - name: Lint with darker
       run: |
         # disabling darker for now, I can't get it to format the same locally and on CI.
-        # darker -r 60625f241f298b5039cb2debc365db38aa7bb522 --check --diff . || (
+        # darker --formatter=ruff -r f51c0b1b6b8e48e228a4eaf62dda382f7e4ba0da --check --diff . || (
         # echo "Changes need auto-formatting. Run:"
-        # echo "    darker -r 60625f241f298b5039cb2debc365db38aa7bb522 ."
+        # echo "    darker --formatter=ruff -r f51c0b1b6b8e48e228a4eaf62dda382f7e4ba0da ."
         # echo "then commit and push changes to fix."
         # exit 1
         # )

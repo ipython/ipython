@@ -11,7 +11,8 @@ repos:
     -   id: check-added-large-files
 
 -   repo: https://github.com/akaihola/darker
-    rev: 1.7.2
+    rev: v3.0.0
     hooks:
     -   id: darker
-        additional_dependencies: [isort, mypy, flake8]
+        args: [--formatter=ruff]
+        additional_dependencies: [ruff, isort, mypy, flake8]
