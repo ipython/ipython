@@ -5,6 +5,7 @@ repos:
     rev: v4.4.0
     hooks:
     -   id: trailing-whitespace
+        exclude: 'tests/test_ipunittest\.py'
     -   id: end-of-file-fixer
     -   id: check-yaml
     -   id: check-added-large-files
