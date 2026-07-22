@@ -90,8 +90,8 @@ jobs:
         uv pip install --system git+https://github.com/ipython/matplotlib-inline.git@main
         uv pip list --system
 
-    - name: Restore pytest last-failed cache
-      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+    - name: Cache pytest last-failed
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: .pytest_cache/v/cache/lastfailed
         key: pytest-lastfailed-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.deps }}-${{ github.run_id }}
@@ -103,14 +103,6 @@ jobs:
         COLUMNS: 120
       run: |
         pytest --color=yes -raXxs ${{ startsWith(matrix.python-version, 'pypy') && ' ' || '--cov --cov-report=xml' }} --ff --maxfail=5
-
-    - name: Save pytest last-failed cache
-      if: always()
-      continue-on-error: true
-      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-      with:
-        path: .pytest_cache/v/cache/lastfailed
-        key: pytest-lastfailed-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.deps }}-${{ github.run_id }}
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6
@@ -163,8 +155,8 @@ jobs:
       if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
       run: uvx check-manifest
 
-    - name: Restore pytest last-failed cache
-      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+    - name: Cache pytest last-failed
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: .pytest_cache/v/cache/lastfailed
         key: pytest-lastfailed-oldest-deps-${{ matrix.os }}-${{ github.run_id }}
@@ -175,11 +167,3 @@ jobs:
       env:
         COLUMNS: 120
       run: pytest --color=yes -raXxs --ff --maxfail=5
-
-    - name: Save pytest last-failed cache
-      if: always()
-      continue-on-error: true
-      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-      with:
-        path: .pytest_cache/v/cache/lastfailed
-        key: pytest-lastfailed-oldest-deps-${{ matrix.os }}-${{ github.run_id }}
