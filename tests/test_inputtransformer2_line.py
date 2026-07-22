@@ -25,6 +25,22 @@ def test_cell_magic():
     assert ipt2.cell_magic(sample.splitlines(keepends=True)) == expected.splitlines(keepends=True)
 
 
+def test_leading_comments_before_cell_magic():
+    cell = "# Set up timing\n\n# Measure this expression\n%%time\npass\n"
+
+    assert ipt2.TransformerManager().transform_cell(cell) == (
+        "get_ipython().run_cell_magic('time', '', 'pass\\n')\n"
+    )
+
+
+def test_leading_prompted_comments_before_cell_magic():
+    cell = "In [1]: # Set up timing\n   ...: %%time\n   ...: pass\n"
+
+    assert ipt2.TransformerManager().transform_cell(cell) == (
+        "get_ipython().run_cell_magic('time', '', 'pass\\n')\n"
+    )
+
+
 CLASSIC_PROMPT = (
     """\
 >>> for a in range(5):
