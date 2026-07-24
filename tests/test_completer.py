@@ -438,6 +438,30 @@ def test_local_file_completions():
             comp = {prefix + s for s in suffixes}
             assert comp.issubset(set(c)), f"completes in {name}"
 
+def test_file_completions_only_in_path_contexts():
+    ip = get_ipython()
+
+    def path_matches(text):
+        with provisionalcompleter():
+            return [
+                completion.text
+                for completion in ip.Completer.completions(text, len(text))
+                if completion.type == "path"
+            ]
+
+    with TemporaryWorkingDirectory():
+        open("alpha_path_marker", "w", encoding="utf-8").close()
+        open("foo_path_marker", "w", encoding="utf-8").close()
+
+        assert path_matches("f(x=") == []
+        assert path_matches("# alpha") == []
+        assert path_matches("foo != alpha") == []
+        assert "./foo_path_marker" in path_matches("./foo")
+        assert "alpha_path_marker" in path_matches('f("alpha')
+        assert "alpha_path_marker" in path_matches("!cat alpha")
+        assert "alpha_path_marker" in path_matches("%ls alpha")
+        assert "alpha_path_marker" in path_matches("files = ! cat alpha")
+
 def test_quoted_file_completions():
     ip = get_ipython()
 
