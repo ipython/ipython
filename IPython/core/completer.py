@@ -514,7 +514,7 @@ class Completion:
     ``IPython.python_matches``, ``IPython.magics_matches``...).
     """
 
-    __slots__ = ['start', 'end', 'text', 'type', 'signature', '_origin']
+    __slots__ = ["_origin", "end", "signature", "start", "text", "type"]
 
     def __init__(
         self,
