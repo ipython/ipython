@@ -451,7 +451,6 @@ extend-select = [
     "UP028",        #  3   Replace `yield` over `for` loop with `yield from`
     "UP029",        #  1   Unnecessary builtin import
     # "UP030",        # 28   Use implicit references for positional format fields
-    # "UP031",        #386   Use format specifiers instead of percent format
     # "UP032",        # 75   [*] Use f-string instead of `format` call
     "UP034",        #  1   [*] Avoid extraneous parentheses
     "UP035",       #  0   [*] Deprecated typing imports (0 violations, locked in)
@@ -484,6 +483,13 @@ ignore = [
     #  "SIM105",   # SIM105 Use `contextlib.suppress(...)`
     #  "PLR",      # Design related pylint codes
     #  "S101",     # Use of `assert` detected
+    "UP031",       # 297   Use format specifiers instead of percent format
+    "I001",        # 162   unsorted imports
+    "BLE001",      # 111   blind-except
+    "UP032",       # 90    f-strings
+    "C408",        # 33    unnecessary collection call
+    "SIM201",      # 27    collapsible IF
+    "PLC0414",      # WRONG CONFLICT WITH EXPLICT REEXPORT
     "E713", #   1      Test for membership should be `not in`
     "F601", #   3      Dictionary key literal `True` repeated (`True` hashes to the same value as `1`)
     "E702", #   3      Multiple statements on one line (semicolon)
@@ -501,6 +507,67 @@ ignore = [
     "F401", #  69      imported but unused
     "F821", # 624      Undefined name
     "FURB110", # prefer explicit `x if x else y` ternary over `x or y` (readability)
+    "SIM102", 	# collapsible-if
+    "S110",   	# try-except-pass
+    "PIE790", 	# unnecessary-placeholder
+    "RUF012", 	# mutable-class-default
+    "SIM115", 	# open-file-with-context-handler
+    "S102",   	# exec-builtin
+    "N999",   	# invalid-module-name
+    "SIM118", 	# in-dict-keys
+    "LOG015", 	# root-logger-call
+    "RUF059", 	# unused-unpacked-variable
+    "RUF022", 	# unsorted-dunder-all
+    "FLY002", 	# static-join-to-f-string
+    "RET501", 	# unnecessary-return-none
+    "T100",   	# debugger
+    "TRY002", 	# raise-vanilla-class
+    "RUF100", 	# unused-noqa
+    "UP020",  	# open-alias
+    "TRY004", 	# type-check-without-type-error
+    "B018",   	# useless-expression
+    "SIM114", 	# if-with-same-arms
+    "B009",   	# get-attr-with-constant
+    "C419",   	# unnecessary-comprehension-in-call
+    "DTZ005", 	# call-datetime-now-without-tzinfo
+    "EXE002", 	# shebang-missing-executable-file
+    "PIE810", 	# multiple-starts-ends-with
+    "RUF010", 	# explicit-f-string-type-conversion
+    "SIM103", 	# needless-bool
+    "UP009",  	# utf8-encoding-declaration
+    "B006",   	# mutable-argument-default
+    "PTH124", 	# py-path
+    "B004",   	# unreliable-callable-check
+    "EXE001", 	# shebang-not-executable
+    "G201",   	# logging-exc-info
+    "ISC004", 	# implicit-string-concatenation-in-collection-literal
+    "PIE794", 	# duplicate-class-field-definition
+    "PIE808", 	# unnecessary-range-start
+    "PLC0206",	# dict-index-missing-items
+    "PLC0208",	# iteration-over-set
+    "PLR1711",	# useless-return
+    "PLW0120",	# useless-else-on-loop
+    "PLW0602",	# global-variable-not-assigned
+    "PLW1508",	# invalid-envvar-default
+    "PYI034", 	# non-self-return-type
+    "RUF015", 	# unnecessary-iterable-allocation-for-first-element
+    "SIM101", 	# duplicate-isinstance-call
+    "SIM210", 	# if-expr-with-true-false
+    "SIM905", 	# split-static-string
+    "B010",   	# set-attr-with-constant
+    "B019",   	# cached-instance-method
+    "DTZ006", 	# call-datetime-fromtimestamp
+    "EXE005", 	# shebang-not-first-line
+    "PERF102",	# incorrect-dict-iterator
+    "PIE800", 	# unnecessary-spread
+    "PLR0402",	# manual-from-import
+    "PLR1722",	# sys-exit-alias
+    "PLR1730",	# if-stmt-min-max
+    "PLR2044",	# empty-comment
+    "PYI036", 	# bad-exit-annotation
+    "PYI063", 	# pep484-style-positional-only-parameter
+    "SIM117", 	# multiple-with-statements
+    "UP036",  	# outdated-version-block
 ]
 unfixable = [
     # Don't touch print statements
