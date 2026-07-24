@@ -21,7 +21,8 @@ from textwrap import dedent
 
 from IPython.utils import tokenutil
 
-_indent_re = re.compile(r'^[ \t]+')
+_indent_re = re.compile(r"^[ \t]+")
+
 
 def leading_empty_lines(lines):
     """Remove leading empty lines
@@ -36,6 +37,7 @@ def leading_empty_lines(lines):
             return lines[i:]
     return lines
 
+
 def leading_indent(lines):
     """Remove leading indentation.
 
@@ -44,6 +46,7 @@ def leading_indent(lines):
     if not lines:
         return lines
     return dedent("".join(lines)).splitlines(keepends=True)
+
 
 class PromptStripper:
     """Remove matching input prompts from a block of input.
@@ -67,6 +70,7 @@ class PromptStripper:
     If any prompt is found on the first two lines,
     prompts will be stripped from the rest of the block.
     """
+
     def __init__(self, prompt_re, initial_re=None, *, doctest=False):
         self.prompt_re = prompt_re
         self.initial_re = initial_re or prompt_re
@@ -76,15 +80,14 @@ class PromptStripper:
             # We only treat "..." as a continuation prompt when the same pasted
             # block contains at least one ">>>" line, to avoid ambiguity with the
             # Python Ellipsis literal.
-            self._doctest_initial_re = re.compile(r'^\s*>>>')
-            self._doctest_ps1_re = re.compile(r'^\s*>>>\s?')
-            self._doctest_ps2_re = re.compile(r'^\s*\.\.\.\s?')
+            self._doctest_initial_re = re.compile(r"^\s*>>>")
+            self._doctest_ps1_re = re.compile(r"^\s*>>>[ \t]?")
+            self._doctest_ps2_re = re.compile(r"^\s*\.\.\.[ \t]?")
 
             # Very small state machine to detect triple-quoted strings in the
             # *same* input block (e.g. user typed """ then pasted doctest).
             # We preserve literal >>> / ... inside triple-quoted strings.
             self._triple_quote_re = re.compile(r"(?<!\\)(\"\"\"|''')")
-
 
     def _triple_quote_mask(self, lines: list[str]) -> list[bool]:
         """
@@ -95,22 +98,35 @@ class PromptStripper:
         """
         mask: list[bool] = []
         in_triple: str | None = None  # either ''' or """
+        preserve_prompt = False
+        seen_prompt = False
+        string_prefix_re = re.compile(r"(?i)^[rubf]*$")
+
         for line in lines:
-            mask.append(in_triple is not None)
+            mask.append(in_triple is not None and preserve_prompt)
             # Toggle state for each occurrence of """ or ''' in the line.
             for m in self._triple_quote_re.finditer(line):
                 q = m.group(1)
                 if in_triple is None:
                     in_triple = q
-                    mask[-1] = True  # current line is inside triple quotes
+                    before_quote = line[: m.start()]
+                    stripped = self._doctest_ps1_re.sub("", before_quote, count=1)
+                    stripped = self._doctest_ps2_re.sub("", stripped, count=1)
+                    had_prompt = stripped != before_quote
+                    prompted_code = had_prompt and seen_prompt
+                    preserve_prompt = bool(
+                        not prompted_code and string_prefix_re.match(stripped.strip())
+                    )
+                    mask[-1] = preserve_prompt
                 elif in_triple == q:
                     in_triple = None
+                    preserve_prompt = False
                 # else: ignore mismatched triple quote while inside
+            seen_prompt = seen_prompt or bool(self._doctest_initial_re.match(line))
         return mask
 
-
     def _strip(self, lines):
-        return [self.prompt_re.sub('', l, count=1) for l in lines]
+        return [self.prompt_re.sub("", l, count=1) for l in lines]
 
     def __call__(self, lines):
         if not lines:
@@ -137,9 +153,9 @@ class PromptStripper:
                     continue
 
                 if self._doctest_ps1_re.match(l):
-                    new_l = self._doctest_ps1_re.sub('', l, count=1)
+                    new_l = self._doctest_ps1_re.sub("", l, count=1)
                 elif self._doctest_ps2_re.match(l):
-                    new_l = self._doctest_ps2_re.sub('', l, count=1)
+                    new_l = self._doctest_ps2_re.sub("", l, count=1)
                 else:
                     new_l = l
                 out_lines.append(new_l)
@@ -158,7 +174,7 @@ class PromptStripper:
                 seg_stripped = any(stripped_mask[i:j])
 
                 if (not in_triple) and seg_stripped:
-                    dedented.extend(dedent(''.join(segment)).splitlines(keepends=True))
+                    dedented.extend(dedent("".join(segment)).splitlines(keepends=True))
                 else:
                     dedented.extend(segment)
 
@@ -166,14 +182,16 @@ class PromptStripper:
 
             return dedented
 
-        if self.initial_re.match(lines[0]) or \
-                (len(lines) > 1 and self.prompt_re.match(lines[1])):
+        if self.initial_re.match(lines[0]) or (
+            len(lines) > 1 and self.prompt_re.match(lines[1])
+        ):
             return self._strip(lines)
         return lines
 
+
 classic_prompt = PromptStripper(
-    prompt_re=re.compile(r'^(>>>|\.\.\.)( |$)'),
-    initial_re=re.compile(r'^>>>( |$)'),
+    prompt_re=re.compile(r"^(>>>|\.\.\.)( |$)"),
+    initial_re=re.compile(r"^>>>( |$)"),
     doctest=True,
 )
 
@@ -203,15 +221,16 @@ ipython_prompt = PromptStripper(
 
 
 def cell_magic(lines):
-    if not lines or not lines[0].startswith('%%'):
+    if not lines or not lines[0].startswith("%%"):
         return lines
-    if re.match(r'%%\w+\?', lines[0]):
+    if re.match(r"%%\w+\?", lines[0]):
         # This case will be handled by help_end
         return lines
-    magic_name, _, first_line = lines[0][2:].rstrip().partition(' ')
-    body = ''.join(lines[1:])
-    return ['get_ipython().run_cell_magic(%r, %r, %r)\n'
-            % (magic_name, first_line, body)]
+    magic_name, _, first_line = lines[0][2:].rstrip().partition(" ")
+    body = "".join(lines[1:])
+    return [
+        "get_ipython().run_cell_magic(%r, %r, %r)\n" % (magic_name, first_line, body)
+    ]
 
 
 def _find_assign_op(token_line) -> int | None:
@@ -222,14 +241,15 @@ def _find_assign_op(token_line) -> int | None:
     paren_level = 0
     for i, ti in enumerate(token_line):
         s = ti.string
-        if s == '=' and paren_level == 0:
+        if s == "=" and paren_level == 0:
             return i
-        if s in {'(','[','{'}:
+        if s in {"(", "[", "{"}:
             paren_level += 1
-        elif s in {')', ']', '}'}:
+        elif s in {")", "]", "}"}:
             if paren_level > 0:
                 paren_level -= 1
     return None
+
 
 def find_end_of_continued_line(lines, start_line: int):
     """Find the last line of a line explicitly extended using backslashes.
@@ -237,11 +257,12 @@ def find_end_of_continued_line(lines, start_line: int):
     Uses 0-indexed line numbers.
     """
     end_line = start_line
-    while lines[end_line].endswith('\\\n'):
+    while lines[end_line].endswith("\\\n"):
         end_line += 1
         if end_line >= len(lines):
             break
     return end_line
+
 
 def assemble_continued_line(lines, start: tuple[int, int], end_line: int):
     r"""Assemble a single line from multiple continued line pieces
@@ -266,9 +287,12 @@ def assemble_continued_line(lines, start: tuple[int, int], end_line: int):
     Used to allow ``%magic`` and ``!system`` commands to be continued over
     multiple lines.
     """
-    parts = [lines[start[0]][start[1]:]] + lines[start[0]+1:end_line+1]
-    return ' '.join([p.rstrip()[:-1] for p in parts[:-1]]  # Strip backslash+newline
-                    + [parts[-1].rstrip()])         # Strip newline from last line
+    parts = [lines[start[0]][start[1] :]] + lines[start[0] + 1 : end_line + 1]
+    return " ".join(
+        [p.rstrip()[:-1] for p in parts[:-1]]  # Strip backslash+newline
+        + [parts[-1].rstrip()]
+    )  # Strip newline from last line
+
 
 class TokenTransformBase:
     """Base class for transformations which examine tokens.
@@ -290,6 +314,7 @@ class TokenTransformBase:
     transformers match in the same place. Lower numbers have higher priority.
     This allows "%magic?" to be turned into a help call rather than a magic call.
     """
+
     # Lower numbers -> higher priority (for matches in the same location)
     priority = 10
 
@@ -297,7 +322,7 @@ class TokenTransformBase:
         return self.start_line, self.start_col, self.priority
 
     def __init__(self, start):
-        self.start_line = start[0] - 1   # Shift from 1-index to 0-index
+        self.start_line = start[0] - 1  # Shift from 1-index to 0-index
         self.start_col = start[1]
 
     @classmethod
@@ -321,52 +346,57 @@ class TokenTransformBase:
         """
         raise NotImplementedError
 
+
 class MagicAssign(TokenTransformBase):
     """Transformer for assignments from magics (a = %foo)"""
+
     @classmethod
     def find(cls, tokens_by_line):
-        """Find the first magic assignment (a = %foo) in the cell.
-        """
+        """Find the first magic assignment (a = %foo) in the cell."""
         for line in tokens_by_line:
             assign_ix = _find_assign_op(line)
-            if (assign_ix is not None) \
-                    and (len(line) >= assign_ix + 2) \
-                    and (line[assign_ix+1].string == '%') \
-                    and (line[assign_ix+2].type == tokenize.NAME):
-                return cls(line[assign_ix+1].start)
+            if (
+                (assign_ix is not None)
+                and (len(line) >= assign_ix + 2)
+                and (line[assign_ix + 1].string == "%")
+                and (line[assign_ix + 2].type == tokenize.NAME)
+            ):
+                return cls(line[assign_ix + 1].start)
 
     def transform(self, lines: list[str]):
-        """Transform a magic assignment found by the ``find()`` classmethod.
-        """
+        """Transform a magic assignment found by the ``find()`` classmethod."""
         start_line, start_col = self.start_line, self.start_col
         lhs = lines[start_line][:start_col]
         end_line = find_end_of_continued_line(lines, start_line)
         rhs = assemble_continued_line(lines, (start_line, start_col), end_line)
-        assert rhs.startswith('%'), rhs
-        magic_name, _, args = rhs[1:].partition(' ')
+        assert rhs.startswith("%"), rhs
+        magic_name, _, args = rhs[1:].partition(" ")
 
         lines_before = lines[:start_line]
         call = f"get_ipython().run_line_magic({magic_name!r}, {args!r})"
-        new_line = lhs + call + '\n'
-        lines_after = lines[end_line+1:]
+        new_line = lhs + call + "\n"
+        lines_after = lines[end_line + 1 :]
 
         return lines_before + [new_line] + lines_after
 
 
 class SystemAssign(TokenTransformBase):
     """Transformer for assignments from system commands (a = !foo)"""
+
     @classmethod
     def find_pre_312(cls, tokens_by_line):
         for line in tokens_by_line:
             assign_ix = _find_assign_op(line)
-            if (assign_ix is not None) \
-                    and not line[assign_ix].line.strip().startswith('=') \
-                    and (len(line) >= assign_ix + 2) \
-                    and (line[assign_ix + 1].type == tokenize.ERRORTOKEN):
+            if (
+                (assign_ix is not None)
+                and not line[assign_ix].line.strip().startswith("=")
+                and (len(line) >= assign_ix + 2)
+                and (line[assign_ix + 1].type == tokenize.ERRORTOKEN)
+            ):
                 ix = assign_ix + 1
 
                 while ix < len(line) and line[ix].type == tokenize.ERRORTOKEN:
-                    if line[ix].string == '!':
+                    if line[ix].string == "!":
                         return cls(line[ix].start)
                     elif not line[ix].string.isspace():
                         break
@@ -393,22 +423,22 @@ class SystemAssign(TokenTransformBase):
         return cls.find_post_312(tokens_by_line)
 
     def transform(self, lines: list[str]):
-        """Transform a system assignment found by the ``find()`` classmethod.
-        """
+        """Transform a system assignment found by the ``find()`` classmethod."""
         start_line, start_col = self.start_line, self.start_col
 
         lhs = lines[start_line][:start_col]
         end_line = find_end_of_continued_line(lines, start_line)
         rhs = assemble_continued_line(lines, (start_line, start_col), end_line)
-        assert rhs.startswith('!'), rhs
+        assert rhs.startswith("!"), rhs
         cmd = rhs[1:]
 
         lines_before = lines[:start_line]
         call = f"get_ipython().getoutput({cmd!r})"
-        new_line = lhs + call + '\n'
-        lines_after = lines[end_line + 1:]
+        new_line = lhs + call + "\n"
+        lines_after = lines[end_line + 1 :]
 
         return lines_before + [new_line] + lines_after
+
 
 # The escape sequences that define the syntax transformations IPython will
 # apply to user input.  These can NOT be just changed here: many regular
@@ -416,30 +446,31 @@ class SystemAssign(TokenTransformBase):
 # for all intents and purposes they constitute the 'IPython syntax', so they
 # should be considered fixed.
 
-ESC_SHELL  = '!'     # Send line to underlying system shell
-ESC_SH_CAP = '!!'    # Send line to system shell and capture output
-ESC_HELP   = '?'     # Find information about object
-ESC_HELP2  = '??'    # Find extra-detailed information about object
-ESC_MAGIC  = '%'     # Call magic function
-ESC_MAGIC2 = '%%'    # Call cell-magic function
-ESC_QUOTE  = ','     # Split args on whitespace, quote each as string and call
-ESC_QUOTE2 = ';'     # Quote all args as a single string, call
-ESC_PAREN  = '/'     # Call first argument with rest of line as arguments
+ESC_SHELL = "!"  # Send line to underlying system shell
+ESC_SH_CAP = "!!"  # Send line to system shell and capture output
+ESC_HELP = "?"  # Find information about object
+ESC_HELP2 = "??"  # Find extra-detailed information about object
+ESC_MAGIC = "%"  # Call magic function
+ESC_MAGIC2 = "%%"  # Call cell-magic function
+ESC_QUOTE = ","  # Split args on whitespace, quote each as string and call
+ESC_QUOTE2 = ";"  # Quote all args as a single string, call
+ESC_PAREN = "/"  # Call first argument with rest of line as arguments
 
-ESCAPE_SINGLES = {'!', '?', '%', ',', ';', '/'}
-ESCAPE_DOUBLES = {'!!', '??'}  # %% (cell magic) is handled separately
+ESCAPE_SINGLES = {"!", "?", "%", ",", ";", "/"}
+ESCAPE_DOUBLES = {"!!", "??"}  # %% (cell magic) is handled separately
+
 
 def _make_help_call(target, esc):
     """Prepares a pinfo(2)/psearch call from a target name and the escape
     (i.e. ? or ??)"""
-    method  = 'pinfo2' if esc == '??' \
-                else 'psearch' if '*' in target \
-                else 'pinfo'
+    method = "pinfo2" if esc == "??" else "psearch" if "*" in target else "pinfo"
     arg = " ".join([method, target])
-    #Prepare arguments for get_ipython().run_line_magic(magic_name, magic_args)
-    t_magic_name, _, t_magic_arg_s = arg.partition(' ')
+    # Prepare arguments for get_ipython().run_line_magic(magic_name, magic_args)
+    t_magic_name, _, t_magic_arg_s = arg.partition(" ")
     t_magic_name = t_magic_name.lstrip(ESC_MAGIC)
-    return "get_ipython().run_line_magic({!r}, {!r})".format(t_magic_name, t_magic_arg_s)
+    return "get_ipython().run_line_magic({!r}, {!r})".format(
+        t_magic_name, t_magic_arg_s
+    )
 
 
 def _tr_help(content):
@@ -448,9 +479,10 @@ def _tr_help(content):
     A naked help line should fire the intro help screen (shell.show_usage())
     """
     if not content:
-        return 'get_ipython().show_usage()'
+        return "get_ipython().show_usage()"
 
-    return _make_help_call(content, '?')
+    return _make_help_call(content, "?")
+
 
 def _tr_help2(content):
     """Translate lines escaped with: ??
@@ -458,24 +490,28 @@ def _tr_help2(content):
     A naked help line should fire the intro help screen (shell.show_usage())
     """
     if not content:
-        return 'get_ipython().show_usage()'
+        return "get_ipython().show_usage()"
 
-    return _make_help_call(content, '??')
+    return _make_help_call(content, "??")
+
 
 def _tr_magic(content):
     "Translate lines escaped with a percent sign: %"
-    name, _, args = content.partition(' ')
-    return 'get_ipython().run_line_magic({!r}, {!r})'.format(name, args)
+    name, _, args = content.partition(" ")
+    return "get_ipython().run_line_magic({!r}, {!r})".format(name, args)
+
 
 def _tr_quote(content):
     "Translate lines escaped with a comma: ,"
-    name, _, args = content.partition(' ')
-    return '{}("{}")'.format(name, '", "'.join(args.split()) )
+    name, _, args = content.partition(" ")
+    return '{}("{}")'.format(name, '", "'.join(args.split()))
+
 
 def _tr_quote2(content):
     "Translate lines escaped with a semicolon: ;"
-    name, _, args = content.partition(' ')
+    name, _, args = content.partition(" ")
     return '{}("{}")'.format(name, args)
+
 
 def _tr_paren(content):
     "Translate lines escaped with a slash: /"
@@ -483,23 +519,27 @@ def _tr_paren(content):
     if name == "":
         raise SyntaxError(f'"{ESC_SHELL}" must be followed by a callable name')
 
-    return '{}({})'.format(name, ", ".join(args.split()))
+    return "{}({})".format(name, ", ".join(args.split()))
 
-tr = { ESC_SHELL  : 'get_ipython().system({!r})'.format,
-       ESC_SH_CAP : 'get_ipython().getoutput({!r})'.format,
-       ESC_HELP   : _tr_help,
-       ESC_HELP2  : _tr_help2,
-       ESC_MAGIC  : _tr_magic,
-       ESC_QUOTE  : _tr_quote,
-       ESC_QUOTE2 : _tr_quote2,
-       ESC_PAREN  : _tr_paren }
+
+tr = {
+    ESC_SHELL: "get_ipython().system({!r})".format,
+    ESC_SH_CAP: "get_ipython().getoutput({!r})".format,
+    ESC_HELP: _tr_help,
+    ESC_HELP2: _tr_help2,
+    ESC_MAGIC: _tr_magic,
+    ESC_QUOTE: _tr_quote,
+    ESC_QUOTE2: _tr_quote2,
+    ESC_PAREN: _tr_paren,
+}
+
 
 class EscapedCommand(TokenTransformBase):
     """Transformer for escaped commands like %foo, !foo, or /foo"""
+
     @classmethod
     def find(cls, tokens_by_line):
-        """Find the first escaped command (%foo, !foo, etc.) in the cell.
-        """
+        """Find the first escaped command (%foo, !foo, etc.) in the cell."""
         for line in tokens_by_line:
             if not line:
                 continue
@@ -513,8 +553,7 @@ class EscapedCommand(TokenTransformBase):
                 return cls(line[ix].start)
 
     def transform(self, lines):
-        """Transform an escaped line found by the ``find()`` classmethod.
-        """
+        """Transform an escaped line found by the ``find()`` classmethod."""
         start_line, start_col = self.start_line, self.start_col
 
         indent = lines[start_line][:start_col]
@@ -529,11 +568,11 @@ class EscapedCommand(TokenTransformBase):
         if escape in tr:
             call = tr[escape](content)
         else:
-            call = ''
+            call = ""
 
         lines_before = lines[:start_line]
-        new_line = indent + call + '\n'
-        lines_after = lines[end_line + 1:]
+        new_line = indent + call + "\n"
+        lines_after = lines[end_line + 1 :]
 
         return lines_before + [new_line] + lines_after
 
@@ -551,6 +590,7 @@ _help_end_re = re.compile(
 
 class HelpEnd(TokenTransformBase):
     """Transformer for help syntax: obj? and obj??"""
+
     # This needs to be higher priority (lower number) than EscapedCommand so
     # that inspecting magics (%foo?) works.
     priority = 5
@@ -562,11 +602,10 @@ class HelpEnd(TokenTransformBase):
 
     @classmethod
     def find(cls, tokens_by_line):
-        """Find the first help command (foo?) in the cell.
-        """
+        """Find the first help command (foo?) in the cell."""
         for line in tokens_by_line:
             # Last token is NEWLINE; look at last but one
-            if len(line) > 2 and line[-2].string == '?':
+            if len(line) > 2 and line[-2].string == "?":
                 # Find the first token that's not INDENT/DEDENT
                 ix = 0
                 while line[ix].type in {tokenize.INDENT, tokenize.DEDENT}:
@@ -574,8 +613,7 @@ class HelpEnd(TokenTransformBase):
                 return cls(line[ix].start, line[-2].start)
 
     def transform(self, lines):
-        """Transform a help command found by the ``find()`` classmethod.
-        """
+        """Transform a help command found by the ``find()`` classmethod."""
 
         piece = "".join(lines[self.start_line : self.q_line + 1])
         indent, content = piece[: self.start_col], piece[self.start_col :]
@@ -589,13 +627,13 @@ class HelpEnd(TokenTransformBase):
         target = m.group(1)
         esc = m.group(3)
 
-
         call = _make_help_call(target, esc)
-        new_line = indent + call + '\n'
+        new_line = indent + call + "\n"
 
         return lines_before + [new_line] + lines_after
 
-def make_tokens_by_line(lines:list[str]):
+
+def make_tokens_by_line(lines: list[str]):
     """Tokenize a series of lines and group tokens by line.
 
     The tokens for a multiline Python string or expression are grouped as one
@@ -623,22 +661,19 @@ def make_tokens_by_line(lines:list[str]):
             iter(lines).__next__, extra_errors_to_catch=["expected EOF"]
         ):
             tokens_by_line[-1].append(token)
-            if (token.type == NEWLINE) \
-                    or ((token.type == NL) and (parenlev <= 0)):
+            if (token.type == NEWLINE) or ((token.type == NL) and (parenlev <= 0)):
                 tokens_by_line.append([])
-            elif token.string in {'(', '[', '{'}:
+            elif token.string in {"(", "[", "{"}:
                 parenlev += 1
-            elif token.string in {')', ']', '}'}:
+            elif token.string in {")", "]", "}"}:
                 if parenlev > 0:
                     parenlev -= 1
     except tokenize.TokenError:
         # Input ended in a multiline string or expression. That's OK for us.
         pass
 
-
     if not tokens_by_line[-1]:
         tokens_by_line.pop()
-
 
     return tokens_by_line
 
@@ -655,8 +690,10 @@ def has_sunken_brackets(tokens: list[tokenize.TokenInfo]):
                 return True
     return False
 
+
 # Arbitrary limit to prevent getting stuck in infinite loops
 TRANSFORM_LOOP_LIMIT = 500
+
 
 class TransformerManager:
     """Applies various transformations to a cell or code block.
@@ -664,6 +701,7 @@ class TransformerManager:
     The key methods for external use are ``transform_cell()``
     and ``check_complete()``.
     """
+
     def __init__(self):
         self.cleanup_transforms = [
             leading_empty_lines,
@@ -719,19 +757,21 @@ class TransformerManager:
             if not changed:
                 return lines
 
-        raise RuntimeError("Input transformation still changing after "
-                           "%d iterations. Aborting." % TRANSFORM_LOOP_LIMIT)
+        raise RuntimeError(
+            "Input transformation still changing after "
+            "%d iterations. Aborting." % TRANSFORM_LOOP_LIMIT
+        )
 
     def transform_cell(self, cell: str) -> str:
         """Transforms a cell of input code"""
-        if not cell.endswith('\n'):
-            cell += '\n'  # Ensure the cell has a trailing newline
+        if not cell.endswith("\n"):
+            cell += "\n"  # Ensure the cell has a trailing newline
         lines = cell.splitlines(keepends=True)
         for transform in self.cleanup_transforms + self.line_transforms:
             lines = transform(lines)
 
         lines = self.do_token_transforms(lines)
-        return ''.join(lines)
+        return "".join(lines)
 
     def check_complete(self, cell: str):
         """Return whether a block of code is ready to execute, or should be continued
@@ -753,7 +793,7 @@ class TransformerManager:
         # Remember if the lines ends in a new line.
         ends_with_newline = False
         for character in reversed(cell):
-            if character == '\n':
+            if character == "\n":
                 ends_with_newline = True
                 break
             elif character.strip():
@@ -764,12 +804,12 @@ class TransformerManager:
         if not ends_with_newline:
             # Append an newline for consistent tokenization
             # See https://bugs.python.org/issue33899
-            cell += '\n'
+            cell += "\n"
 
         lines = cell.splitlines(keepends=True)
 
         if not lines:
-            return 'complete', None
+            return "complete", None
 
         for line in reversed(lines):
             if not line.strip():
@@ -781,25 +821,25 @@ class TransformerManager:
 
         try:
             for transform in self.cleanup_transforms:
-                if not getattr(transform, 'has_side_effects', False):
+                if not getattr(transform, "has_side_effects", False):
                     lines = transform(lines)
         except SyntaxError:
-            return 'invalid', None
+            return "invalid", None
 
-        if lines[0].startswith('%%'):
+        if lines[0].startswith("%%"):
             # Special case for cell magics - completion marked by blank line
             if lines[-1].strip():
-                return 'incomplete', find_last_indent(lines)
+                return "incomplete", find_last_indent(lines)
             else:
-                return 'complete', None
+                return "complete", None
 
         try:
             for transform in self.line_transforms:
-                if not getattr(transform, 'has_side_effects', False):
+                if not getattr(transform, "has_side_effects", False):
                     lines = transform(lines)
             lines = self.do_token_transforms(lines)
         except SyntaxError:
-            return 'invalid', None
+            return "invalid", None
 
         tokens_by_line = make_tokens_by_line(lines)
 
@@ -813,22 +853,22 @@ class TransformerManager:
             return "invalid", None
 
         if not tokens_by_line:
-            return 'incomplete', find_last_indent(lines)
+            return "incomplete", find_last_indent(lines)
 
         if (
             tokens_by_line[-1][-1].type != tokenize.ENDMARKER
             and tokens_by_line[-1][-1].type != tokenize.ERRORTOKEN
         ):
             # We're in a multiline string or expression
-            return 'incomplete', find_last_indent(lines)
+            return "incomplete", find_last_indent(lines)
 
-        newline_types = {tokenize.NEWLINE, tokenize.COMMENT, tokenize.ENDMARKER} # type: ignore
+        newline_types = {tokenize.NEWLINE, tokenize.COMMENT, tokenize.ENDMARKER}  # type: ignore
 
         # Pop the last line which only contains DEDENTs and ENDMARKER
         last_token_line = None
         if {t.type for t in tokens_by_line[-1]} in [
             {tokenize.DEDENT, tokenize.ENDMARKER},
-            {tokenize.ENDMARKER}
+            {tokenize.ENDMARKER},
         ] and len(tokens_by_line) > 1:
             last_token_line = tokens_by_line.pop()
 
@@ -836,50 +876,56 @@ class TransformerManager:
             tokens_by_line[-1].pop()
 
         if not tokens_by_line[-1]:
-            return 'incomplete', find_last_indent(lines)
+            return "incomplete", find_last_indent(lines)
 
-        if tokens_by_line[-1][-1].string == ':':
+        if tokens_by_line[-1][-1].string == ":":
             # The last line starts a block (e.g. 'if foo:')
             ix = 0
             while tokens_by_line[-1][ix].type in {tokenize.INDENT, tokenize.DEDENT}:
                 ix += 1
 
             indent = tokens_by_line[-1][ix].start[1]
-            return 'incomplete', indent + 4
+            return "incomplete", indent + 4
 
-        if tokens_by_line[-1][0].line.endswith('\\'):
-            return 'incomplete', None
+        if tokens_by_line[-1][0].line.endswith("\\"):
+            return "incomplete", None
 
         # At this point, our checks think the code is complete (or invalid).
         # We'll use codeop.compile_command to check this with the real parser
         try:
             with warnings.catch_warnings():
-                warnings.simplefilter('error', SyntaxWarning)
-                res = compile_command(''.join(lines), symbol='exec')
-        except (SyntaxError, OverflowError, ValueError, TypeError,
-                MemoryError, SyntaxWarning):
-            return 'invalid', None
+                warnings.simplefilter("error", SyntaxWarning)
+                res = compile_command("".join(lines), symbol="exec")
+        except (
+            SyntaxError,
+            OverflowError,
+            ValueError,
+            TypeError,
+            MemoryError,
+            SyntaxWarning,
+        ):
+            return "invalid", None
         else:
             if res is None:
-                return 'incomplete', find_last_indent(lines)
+                return "incomplete", find_last_indent(lines)
 
         if last_token_line and last_token_line[0].type == tokenize.DEDENT:
             if ends_with_newline:
-                return 'complete', None
-            return 'incomplete', find_last_indent(lines)
+                return "complete", None
+            return "incomplete", find_last_indent(lines)
 
         # If there's a blank line at the end, assume we're ready to execute
         if not lines[-1].strip():
-            return 'complete', None
+            return "complete", None
 
-        return 'complete', None
+        return "complete", None
 
 
 def find_last_indent(lines):
     m = _indent_re.match(lines[-1])
     if not m:
         return 0
-    return len(m.group(0).replace('\t', ' '*4))
+    return len(m.group(0).replace("\t", " " * 4))
 
 
 class MaybeAsyncCompile(Compile):
