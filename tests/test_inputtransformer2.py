@@ -182,10 +182,14 @@ def test_check_make_token_by_line_never_ends_empty():
     """
     from string import printable
 
-    for c in printable:
-        assert make_tokens_by_line(c)[-1] != []
-        for k in printable:
-            assert make_tokens_by_line(c + k)[-1] != []
+    # Most of the two-character combinations below are missing a line
+    # ending, which `make_tokens_by_line` deliberately warns about; assert
+    # on that warning instead of letting it leak into the test output.
+    with pytest.warns(UserWarning, match="do not have lineending markers"):
+        for c in printable:
+            assert make_tokens_by_line(c)[-1] != []
+            for k in printable:
+                assert make_tokens_by_line(c + k)[-1] != []
 
 
 def check_find(transformer, case, match=True):

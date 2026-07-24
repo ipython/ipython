@@ -160,7 +160,8 @@ def test_exec_lines_run_and_are_hidden(make_app):
     app = make_app(
         [
             "--no-banner",
-            "--InteractiveShellApp.exec_lines=['zzz_el = 99', 'zzz_el2 = zzz_el + 1']",
+            "--InteractiveShellApp.exec_lines=zzz_el = 99",
+            "--InteractiveShellApp.exec_lines=zzz_el2 = zzz_el + 1",
         ]
     )
     assert app.shell.user_ns["zzz_el"] == 99
@@ -172,7 +173,11 @@ def test_exec_lines_run_and_are_hidden(make_app):
 
 def test_exec_lines_error_continues(make_app):
     app = make_app(
-        ["--no-banner", "--InteractiveShellApp.exec_lines=['1/0', 'zzz_after = 5']"]
+        [
+            "--no-banner",
+            "--InteractiveShellApp.exec_lines=1/0",
+            "--InteractiveShellApp.exec_lines=zzz_after = 5",
+        ]
     )
     # an error in one line doesn't prevent the next from running
     assert app.shell.user_ns["zzz_after"] == 5
@@ -187,7 +192,8 @@ def test_exec_files(tmp_path, make_app):
     app = make_app(
         [
             "--no-banner",
-            "--InteractiveShellApp.exec_files=['%s', '%s']" % (pyfile, ipyfile),
+            "--InteractiveShellApp.exec_files=%s" % pyfile,
+            "--InteractiveShellApp.exec_files=%s" % ipyfile,
         ]
     )
     assert app.shell.user_ns["zzz_exec_py"] == 1
@@ -196,7 +202,7 @@ def test_exec_files(tmp_path, make_app):
 
 def test_exec_files_missing_is_only_a_warning(make_app):
     app = make_app(
-        ["--no-banner", "--InteractiveShellApp.exec_files=['zzz_no_such_file.py']"]
+        ["--no-banner", "--InteractiveShellApp.exec_files=zzz_no_such_file.py"]
     )
     # a missing exec_file is not fatal
     assert app.shell is not None
@@ -242,9 +248,7 @@ def test_startup_file_error_is_not_fatal(tmp_path, make_app, monkeypatch, capsys
 def test_exec_files_error_is_not_fatal(tmp_path, make_app, capsys):
     bad = tmp_path / "zzz_bad_exec.py"
     bad.write_text("raise ValueError('zzz-bad-exec-file')\n")
-    app = make_app(
-        ["--no-banner", "--InteractiveShellApp.exec_files=['%s']" % bad]
-    )
+    app = make_app(["--no-banner", "--InteractiveShellApp.exec_files=%s" % bad])
     assert app.shell is not None
     out, err = capsys.readouterr()
     assert "zzz-bad-exec-file" in out + err

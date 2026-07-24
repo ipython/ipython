@@ -1049,7 +1049,11 @@ def test_pdb_subclass_accepts_mode(cls, mode):
     """The ``mode`` argument (added to ``pdb.Pdb`` in Python 3.14) should be
     accepted on every supported Python version and stored on the instance."""
     inst = cls(mode=mode)
-    assert inst.mode == mode
+    try:
+        assert inst.mode == mode
+    finally:
+        if isinstance(inst, TerminalPdb):
+            _cleanup_terminal_pdb(inst)
 
 
 # -----------------------------------------------------------------------------
@@ -1517,8 +1521,8 @@ def test_list_shows_breakpoint_markers(tmp_path):
 def test_format_stack_entry_return_and_args(tmp_path):
     exc, path = _exec_failing_module(tmp_path)
     p = _post_mortem_pdb(exc)
-    p.curframe_locals["__return__"] = "some-return-value"
-    p.curframe_locals["__args__"] = (1, 2, 3)
+    p._curframe_locals["__return__"] = "some-return-value"
+    p._curframe_locals["__args__"] = (1, 2, 3)
     out = _uncolor(p.format_stack_entry(p.stack[p.curindex]))
     assert "some-return-value" in out
     assert "(1, 2, 3)" in out

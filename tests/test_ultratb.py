@@ -316,9 +316,12 @@ def test_exception_during_handling_error():
 
 
 def test_sysexit_while_handling_error():
-    with tt.AssertPrints(["SystemExit", "to see the full traceback"]):
-        with tt.AssertNotPrints(["another exception"], suppress=False):
-            ip.run_cell(_SYS_EXIT_WITH_CONTEXT_CODE)
+    # Raising SystemExit from user code deliberately makes IPython emit its
+    # "To exit: use 'exit', 'quit', or Ctrl-D." reminder; that is expected.
+    with pytest.warns(UserWarning, match="To exit: use 'exit', 'quit', or Ctrl-D."):
+        with tt.AssertPrints(["SystemExit", "to see the full traceback"]):
+            with tt.AssertNotPrints(["another exception"], suppress=False):
+                ip.run_cell(_SYS_EXIT_WITH_CONTEXT_CODE)
 
 
 def test_suppress_exception_chaining():

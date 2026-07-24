@@ -4,6 +4,7 @@ Test for async helpers.
 Should only trigger on python 3.5+ or will have syntax errors.
 """
 
+import contextlib
 import sys
 from itertools import chain, repeat
 from textwrap import dedent, indent
@@ -26,6 +27,19 @@ def iprc(x):
 
 def iprc_nr(x):
     return ip.run_cell(dedent(x))
+
+
+def _finally_return_warning():
+    """Context manager for the ``{val}="return"`` + ``"finally"`` test case.
+
+    Compiling a ``return`` that exits a ``finally`` block emits
+    ``SyntaxWarning: 'return' in a 'finally' block`` starting with Python
+    3.14 (PEP 765). That warning does not exist on older Pythons, so only
+    assert it there; on earlier versions this is a no-op.
+    """
+    if sys.version_info >= (3, 14):
+        return pytest.warns(SyntaxWarning, match="'return' in a 'finally' block")
+    return contextlib.nullcontext()
 
 
 @pytest.fixture(autouse=True)
@@ -245,14 +259,15 @@ def test_top_level_return_error():
         ),
     )
 
-    for test_name, test_case in tl_err_test_cases:
-        # This example should work if 'pass' is used as the value
-        iprc(test_case.format(val="pass"))
+    with _finally_return_warning():
+        for test_name, test_case in tl_err_test_cases:
+            # This example should work if 'pass' is used as the value
+            iprc(test_case.format(val="pass"))
 
-        # It should fail with all the values
-        for val in vals:
-            with pytest.raises(SyntaxError):
-                iprc(test_case.format(val=val))
+            # It should fail with all the values
+            for val in vals:
+                with pytest.raises(SyntaxError):
+                    iprc(test_case.format(val=val))
 
 
 def test_in_func_no_error():
@@ -341,18 +356,19 @@ def test_in_func_no_error():
 
     tests = chain(success_tests, failure_tests)
 
-    for context_name, async_func, context in func_contexts:
-        for (test_name, test_case), should_fail in tests:
-            nested_case = nest_case(context, test_case)
+    with _finally_return_warning():
+        for context_name, async_func, context in func_contexts:
+            for (test_name, test_case), should_fail in tests:
+                nested_case = nest_case(context, test_case)
 
-            for val in vals:
-                cell = nested_case.format(val=val)
+                for val in vals:
+                    cell = nested_case.format(val=val)
 
-                if should_fail:
-                    with pytest.raises(SyntaxError):
+                    if should_fail:
+                        with pytest.raises(SyntaxError):
+                            iprc(cell)
+                    else:
                         iprc(cell)
-                else:
-                    iprc(cell)
 
 
 def test_nonlocal():

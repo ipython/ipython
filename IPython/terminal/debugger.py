@@ -126,7 +126,7 @@ class TerminalPdb(Pdb):
             if self.cmdqueue:
                 line = self.cmdqueue.pop(0)
             else:
-                self._ptcomp.ipy_completer.namespace = self.curframe_locals
+                self._ptcomp.ipy_completer.namespace = self._curframe_locals
                 self._ptcomp.ipy_completer.global_namespace = self.curframe.f_globals
 
                 # Run the prompt in a different thread.
@@ -156,7 +156,7 @@ class TerminalPdb(Pdb):
         global_ns = self.curframe.f_globals
         ipshell(
             module=sys.modules.get(global_ns["__name__"], None),
-            local_ns=self.curframe_locals,
+            local_ns=self._curframe_locals,
         )
 
 
