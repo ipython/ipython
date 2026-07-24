@@ -492,6 +492,29 @@ def reset_buffer(event):
         b.reset()
 
 
+def reset_buffer_or_interrupt(event):
+    """Reset buffer, or send interrupt to main thread if in bg prompt mode.
+
+    When using background prompt mode:
+    - If buffer is empty and main thread is executing code, send SIGINT to main thread
+    - Otherwise, reset the buffer (default Ctrl-C behavior)
+    """
+
+    b = event.current_buffer
+    shell = get_ipython()
+
+    # Check if we're in background prompt mode with code executing
+    in_bg_mode = getattr(shell, "_prompt_thread", None) is not None
+    is_executing = getattr(shell, "_executing", False)
+    buffer_is_empty = not b.text
+
+    if in_bg_mode and is_executing and buffer_is_empty:
+        # Send SIGINT to the main thread (ourselves, since we're in a thread)
+        os.kill(os.getpid(), signal.SIGINT)
+    else:
+        reset_buffer(event)
+
+
 def reset_search_buffer(event):
     """Reset search buffer"""
     if event.current_buffer.document.text:
@@ -601,7 +624,7 @@ KEY_BINDINGS = [
         "vi_insert_mode & default_buffer_focused",
     ),
     Binding(dismiss_completion, ["c-g"], "default_buffer_focused & has_completions"),
-    Binding(reset_buffer, ["c-c"], "default_buffer_focused"),
+    Binding(reset_buffer_or_interrupt, ["c-c"], "default_buffer_focused"),
     Binding(reset_search_buffer, ["c-c"], "search_buffer_focused"),
     Binding(suspend_to_bg, ["c-z"], "supports_suspend"),
     Binding(
