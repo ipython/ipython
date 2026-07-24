@@ -98,6 +98,17 @@ def test_retina_figure():
     assert "height" in md
 
 
+def test_print_figure_normalizes_none_string_marker():
+    with matplotlib.rc_context():
+        matplotlib.rcParams["lines.marker"] = "None"
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        ax.plot([1, 2, 3])
+        plt.draw()
+        png = pt.print_figure(fig, "png")
+    assert ImageFormat.from_data(png) is ImageFormat.png
+
+
 _fmt_mime_map = {
     "png": "image/png",
     "jpeg": "image/jpeg",
