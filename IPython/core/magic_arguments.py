@@ -180,7 +180,7 @@ class MagicArgumentParser(argparse.ArgumentParser):
             while marker in argstring:
                 marker += "_"
             replacements[marker] = shlex.split(match.group("value"), posix=True)[0]
-            return f'{match.group("option")}={marker}'
+            return f"{match.group('option')}={marker}"
 
         masked = QUOTED_ARG_VALUE_RE.sub(replace_quoted_value, argstring)
         argv = arg_split(masked, strict=not partial)
