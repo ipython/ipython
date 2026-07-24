@@ -56,12 +56,27 @@ __all__ = [
     "clipboard_get",
 ]
 
+
+def _quote_if_needed(path):
+    """Wrap path in double quotes if it contains spaces and isn't already quoted."""
+    if " " in path and not (path.startswith('"') and path.endswith('"')):
+        return '"%s"' % path
+    return path
+
+
 def editor(self, filename, linenum=None, wait=True):
     """Open the default editor at the given filename and linenumber.
 
     This is IPython's default editor hook, you can use it as an example to
     write your own modified one.  To set your own editor function as the
-    new editor hook, call ip.set_hook('editor',yourfunc)."""
+    new editor hook, call ip.set_hook('editor',yourfunc).
+
+    Notes
+    -----
+    `filename` is always passed in raw/unquoted form. Any quoting or
+    escaping needed to safely build a shell command is the responsibility
+    of the hook implementation, not the caller.
+    """
 
     # IPython configures a default editor at startup by reading $EDITOR from
     # the environment, and falling back on vi (unix) or notepad (win32).
@@ -74,8 +89,9 @@ def editor(self, filename, linenum=None, wait=True):
         linemark = '+%d' % int(linenum)
 
     # Enclose in quotes if necessary and legal
-    if ' ' in editor and os.path.isfile(editor) and editor[0] != '"':
-        editor = '"%s"' % editor
+    if os.path.isfile(editor):
+        editor = _quote_if_needed(editor)
+    filename = _quote_if_needed(filename)
 
     # Call the actual editor
     proc = subprocess.Popen('{} {} {}'.format(editor, linemark, filename),
