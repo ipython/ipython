@@ -261,7 +261,7 @@ class TerminalInteractiveShell(InteractiveShell):
     ).tag(config=True)
 
     emacs_bindings_in_vi_insert_mode = Bool(
-        True,
+        False,
         help="Add shortcuts from 'emacs' insert mode to 'vi' insert mode.",
     ).tag(config=True)
 
