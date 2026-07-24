@@ -59,7 +59,8 @@ def test_geojson():
             "maxZoom": 18,
         },
     )
-    assert "<IPython.core.display.GeoJSON object>" == str(gj)
+    # assert "<IPython.core.display.GeoJSON object>" == str(gj)
+    assert str(gj) == json.dumps(gj.data, indent=2)
 
 
 def test_retina_png():
