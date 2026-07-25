@@ -134,10 +134,32 @@ class ScriptMagics(Magics):
         super().__init__(shell=shell)
         self._generate_script_magics()
         self.bg_processes = []
+        self._event_loop_thread = None
         atexit.register(self.kill_bg_processes)
+        atexit.register(self.stop_event_loop)
 
     def __del__(self):
         self.kill_bg_processes()
+        self.stop_event_loop()
+
+    def stop_event_loop(self):
+        """Stop the background event loop and the thread running it.
+
+        The loop is started lazily by ``shebang`` and then kept around to be
+        reused; this is the deterministic way to shut it back down. Without it
+        the thread lives until the process exits, which leaves the loop (and
+        the socketpair it uses for its self-pipe) unclosed, and keeps the
+        process multi-threaded, which ``os.fork()`` warns about since
+        Python 3.12. Safe to call more than once.
+        """
+        event_loop, self.event_loop = self.event_loop, None
+        thread, self._event_loop_thread = self._event_loop_thread, None
+        if event_loop is None:
+            return
+        event_loop.call_soon_threadsafe(event_loop.stop)
+        if thread is not None:
+            thread.join()
+        event_loop.close()
 
     def _generate_script_magics(self):
         cell_magics = self.magics['cell']
@@ -211,6 +233,7 @@ class ScriptMagics(Magics):
             # start the loop in a background thread
             asyncio_thread = Thread(target=event_loop.run_forever, daemon=True)
             asyncio_thread.start()
+            self._event_loop_thread = asyncio_thread
         else:
             event_loop = self.event_loop
 
