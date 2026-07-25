@@ -23,6 +23,7 @@ def _supports_kitty_graphics() -> bool:
         "warp",
         "wayst",
         "wezterm-gui",
+        "yakuake",
     }
     import psutil
 
