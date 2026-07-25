@@ -396,7 +396,7 @@ def test_pylab_inline_replaced_by_auto(make_app):
     pytest.importorskip("matplotlib")
     app = make_app(["--no-banner"])
     with pytest.warns(UserWarning, match="'inline' not available"):
-        app._pylab_changed("pylab", None, "inline")
+        app.pylab = "inline"
     assert app.pylab == "auto"
 
 
