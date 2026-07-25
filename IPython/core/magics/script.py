@@ -11,6 +11,7 @@ import os
 import signal
 import sys
 import time
+import weakref
 from codecs import getincrementaldecoder
 from subprocess import CalledProcessError
 from threading import Thread
@@ -134,13 +135,24 @@ class ScriptMagics(Magics):
         super().__init__(shell=shell)
         self._generate_script_magics()
         self.bg_processes = []
-        self._event_loop_thread = None
+        self._event_loop_finalizer = None
         atexit.register(self.kill_bg_processes)
-        atexit.register(self.stop_event_loop)
 
     def __del__(self):
         self.kill_bg_processes()
-        self.stop_event_loop()
+
+    @staticmethod
+    def _shutdown_event_loop(event_loop, thread):
+        """Stop ``event_loop``, wait for ``thread`` to notice, and close it.
+
+        Kept free of any reference to the ``ScriptMagics`` instance so it can
+        be handed to :func:`weakref.finalize` without keeping that instance
+        alive.
+        """
+        if not event_loop.is_closed():
+            event_loop.call_soon_threadsafe(event_loop.stop)
+            thread.join()
+            event_loop.close()
 
     def stop_event_loop(self):
         """Stop the background event loop and the thread running it.
@@ -151,15 +163,14 @@ class ScriptMagics(Magics):
         the socketpair it uses for its self-pipe) unclosed, and keeps the
         process multi-threaded, which ``os.fork()`` warns about since
         Python 3.12. Safe to call more than once.
+
+        The same shutdown runs on its own if this object is garbage collected,
+        and at interpreter exit, through the finalizer ``shebang`` registers.
         """
-        event_loop, self.event_loop = self.event_loop, None
-        thread, self._event_loop_thread = self._event_loop_thread, None
-        if event_loop is None:
-            return
-        event_loop.call_soon_threadsafe(event_loop.stop)
-        if thread is not None:
-            thread.join()
-        event_loop.close()
+        finalizer, self._event_loop_finalizer = self._event_loop_finalizer, None
+        self.event_loop = None
+        if finalizer is not None:
+            finalizer()
 
     def _generate_script_magics(self):
         cell_magics = self.magics['cell']
@@ -233,7 +244,11 @@ class ScriptMagics(Magics):
             # start the loop in a background thread
             asyncio_thread = Thread(target=event_loop.run_forever, daemon=True)
             asyncio_thread.start()
-            self._event_loop_thread = asyncio_thread
+            # ... and make sure it is stopped again, at the latest when we are
+            # collected or the interpreter exits
+            self._event_loop_finalizer = weakref.finalize(
+                self, self._shutdown_event_loop, event_loop, asyncio_thread
+            )
         else:
             event_loop = self.event_loop
 
