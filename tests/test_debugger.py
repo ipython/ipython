@@ -1049,7 +1049,11 @@ def test_pdb_subclass_accepts_mode(cls, mode):
     """The ``mode`` argument (added to ``pdb.Pdb`` in Python 3.14) should be
     accepted on every supported Python version and stored on the instance."""
     inst = cls(mode=mode)
-    assert inst.mode == mode
+    try:
+        assert inst.mode == mode
+    finally:
+        if isinstance(inst, TerminalPdb):
+            _cleanup_terminal_pdb(inst)
 
 
 # -----------------------------------------------------------------------------
