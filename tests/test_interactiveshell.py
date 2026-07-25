@@ -1277,7 +1277,10 @@ def test_run_cell_async():
     coro = ip.run_cell_async(raw_cell, transformed_cell=ip.transform_cell(raw_cell))
     assert asyncio.iscoroutine(coro)
     loop = asyncio.new_event_loop()
-    result = loop.run_until_complete(coro)
+    try:
+        result = loop.run_until_complete(coro)
+    finally:
+        loop.close()
     assert isinstance(result, interactiveshell.ExecutionResult)
     assert result.result == 5
 
