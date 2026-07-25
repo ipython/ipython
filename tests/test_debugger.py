@@ -1839,7 +1839,10 @@ def test_set_trace_function_with_header(capsys):
 
 
 def _cleanup_terminal_pdb(p):
-    p.thread_executor.shutdown(wait=False)
+    # Wait for the worker thread, if the executor ever started one: leaving it
+    # alive keeps the process multi-threaded for every later test, and
+    # ``os.fork()`` warns about that since Python 3.12.
+    p.thread_executor.shutdown()
     loop = getattr(p, "pt_loop", None)
     if loop is not None:
         loop.close()
