@@ -264,11 +264,11 @@ def test_get_xdg_dir_3(monkeypatch):
 
 def test_filefind():
     """Various tests for filefind"""
-    f = tempfile.NamedTemporaryFile()
-    # print('fname:',f.name)
-    alt_dirs = paths.get_ipython_dir()
-    t = path.filefind(f.name, alt_dirs)
-    # print('found:',t)
+    with tempfile.NamedTemporaryFile() as f:
+        # print('fname:',f.name)
+        alt_dirs = paths.get_ipython_dir()
+        t = path.filefind(f.name, alt_dirs)
+        # print('found:',t)
 
 
 @dec.skip_if_not_win32
