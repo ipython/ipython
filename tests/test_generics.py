@@ -6,7 +6,7 @@ import pytest
 
 from IPython.core.error import TryNext
 from IPython.utils import generics
-from IPython.utils.generics import complete_object, inspect_object
+from IPython.utils.generics import complete_object
 
 
 def test_inspect_object_deprecated():
@@ -23,6 +23,8 @@ def test_complete_object_not_deprecated():
 
 
 def test_inspect_object_default_raises_trynext():
+    with pytest.warns(DeprecationWarning, match="inspect_object is deprecated"):
+        inspect_object = generics.inspect_object
     with pytest.raises(TryNext):
         inspect_object(object())
 
@@ -38,12 +40,14 @@ def test_inspect_object_custom_dispatch():
 
     called_with = []
 
-    @inspect_object.register(MyType)
-    def _(obj):
-        called_with.append(obj)
+    with pytest.warns(DeprecationWarning, match="inspect_object is deprecated"):
+        @generics.inspect_object.register(MyType)
+        def _(obj):
+            called_with.append(obj)
 
     obj = MyType()
-    inspect_object(obj)
+    with pytest.warns(DeprecationWarning, match="inspect_object is deprecated"):
+        generics.inspect_object(obj)
     assert called_with == [obj]
 
 
