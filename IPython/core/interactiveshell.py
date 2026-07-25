@@ -804,7 +804,7 @@ class InteractiveShell(SingletonConfigurable):
         new = proposal["value"]
         if not new == new.lower():
             warn(
-                f"`TerminalInteractiveShell.colors` is now lowercase: `{new.lower()}`,"
+                f"`TerminalInteractiveShell.colors` is now lowercase since IPython 9.0: `{new.lower()}`,"
                 " non lowercase, may be invalid in the future.",
                 DeprecationWarning,
                 stacklevel=2,
