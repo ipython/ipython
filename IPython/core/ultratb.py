@@ -530,7 +530,7 @@ class VerboseTB(TBTools):
             if theme_name != _default:
                 warnings.warn(
                     "You passed both `theme_name` and `color_scheme` "
-                    "(deprecated) to VerboseTB constructor. `theme_name` will "
+                    "(deprecated since IPython 9.0) to VerboseTB constructor. `theme_name` will "
                     "be ignored for the time being.",
                     stacklevel=2,
                     category=DeprecationWarning,
