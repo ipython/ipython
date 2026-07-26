@@ -1818,13 +1818,16 @@ def test_bookmark():
 
 def test_ls_magic():
     ip = get_ipython()
-    json_formatter = ip.display_formatter.formatters["application/json"]
-    json_formatter.enabled = True
     lsmagic = ip.run_line_magic("lsmagic", "")
-    with warnings.catch_warnings(record=True) as w:
-        j = json_formatter(lsmagic)
-    assert sorted(j) == ["cell", "line"]
-    assert w == []  # no warnings
+    assert isinstance(lsmagic, str)
+    assert "Available line magics:" in lsmagic
+    assert "Available cell magics:" in lsmagic
+
+
+def test_ls_magic_json():
+    ip = get_ipython()
+    lsmagic = ip.run_line_magic("lsmagic", "--json")
+    assert sorted(lsmagic) == ["cell", "line"]
 
 
 def test_strip_initial_indent():
