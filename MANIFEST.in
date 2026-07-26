@@ -6,6 +6,7 @@ include .mailmap
 include .flake8
 include .pre-commit-config.yaml
 include long_description.rst
+include conftest.py
 
 recursive-include tests *
 

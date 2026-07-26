@@ -308,12 +308,14 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         # Make sure there is a space below the banner.
         if self.log_level <= logging.INFO: print()
 
-    def _pylab_changed(self, name, old, new):
+    @observe("pylab")
+    def _pylab_changed(self, change):
         """Replace --pylab='inline' with --pylab='auto'"""
-        if new == 'inline':
-            warnings.warn("'inline' not available as pylab backend, "
-                      "using 'auto' instead.")
-            self.pylab = 'auto'
+        if change["new"] == "inline":
+            warnings.warn(
+                "'inline' not available as pylab backend, using 'auto' instead."
+            )
+            self.pylab = "auto"
 
     def start(self):
         if self.subapp is not None:

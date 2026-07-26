@@ -167,13 +167,15 @@ def _assert_interrupts(command):
         time.sleep(0.5)
         interrupt_main()
 
-    threading.Thread(target=interrupt).start()
+    thread = threading.Thread(target=interrupt)
+    thread.start()
     start = time.time()
     try:
         result = command()
     except KeyboardInterrupt:
         pass
     end = time.time()
+    thread.join()
     assert end - start < 2, "Process didn't die quickly: %s" % (end - start)
     return result
 
@@ -188,6 +190,11 @@ def test_system_quotes():
     assert status == 0
 
 
+# ``system()`` forks a pty, and this test deliberately does so while the
+# interrupting thread of ``_assert_interrupts`` is alive, which Python 3.12 and
+# above warn about. The interrupt has to come from another thread for the test
+# to mean anything, so the warning is expected here.
+@pytest.mark.filterwarnings("ignore:This process .*is multi-threaded")
 def test_system_interrupt():
     """When interrupted in the way ipykernel interrupts IPython, the subprocess is interrupted."""
     def command():

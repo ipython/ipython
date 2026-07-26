@@ -432,7 +432,7 @@ class Pdb(OldPdb):
         """
         # The f_locals dictionary is updated from the actual frame
         # locals whenever the .f_locals accessor is called, so we
-        # avoid calling it here to preserve self.curframe_locals.
+        # avoid calling it here to preserve self._curframe_locals.
         # Furthermore, there is no good reason to hide the current frame.
         ip_hide = [self._hidden_predicate(s[0]) for s in stack]
         ip_start = [i for i, s in enumerate(ip_hide) if s == "__ipython_bottom__"]
@@ -659,6 +659,21 @@ class Pdb(OldPdb):
             # 3.13 and 3.12 don't need any changes.
             super()._pdbcmd_print_frame_status(arg) # type: ignore[misc]
 
+    @property
+    def _curframe_locals(self):
+        """Locals of the frame the debugger currently points at.
+
+        On Python 3.13+, ``frame.f_locals`` is a write-through proxy (PEP 667)
+        which pdb no longer caches, and ``Pdb.curframe_locals`` is deprecated
+        in 3.14 in favor of ``curframe.f_locals``. On older versions
+        ``curframe_locals`` is a snapshot which must be reused, see
+        `_get_frame_locals`.
+        """
+        assert self.curframe is not None
+        if sys.version_info >= (3, 13):
+            return self.curframe.f_locals
+        return self.curframe_locals
+
     def _get_frame_locals(self, frame):
         """ "
         Accessing f_local of current frame reset the namespace, so we want to avoid
@@ -673,11 +688,11 @@ class Pdb(OldPdb):
         ipdb> foo
         "old"
 
-        So if frame is self.current_frame we instead return self.curframe_locals
+        So if frame is self.current_frame we instead return self._curframe_locals
 
         """
         if frame is self.curframe:
-            return self.curframe_locals
+            return self._curframe_locals
         else:
             return frame.f_locals
 
@@ -1000,7 +1015,7 @@ class Pdb(OldPdb):
         sys.settrace(None)
         assert self.curframe is not None
         globals = self.curframe.f_globals
-        locals = self.curframe_locals
+        locals = self._curframe_locals
         p = self.__class__(
             completekey=self.completekey, stdin=self.stdin, stdout=self.stdout
         )
@@ -1018,7 +1033,7 @@ class Pdb(OldPdb):
         The debugger interface to %pdef"""
         assert self.curframe is not None
         namespaces = [
-            ("Locals", self.curframe_locals),
+            ("Locals", self._curframe_locals),
             ("Globals", self.curframe.f_globals),
         ]
         self.shell.find_line_magic("pdef")(arg, namespaces=namespaces)
@@ -1029,7 +1044,7 @@ class Pdb(OldPdb):
         The debugger interface to %pdoc."""
         assert self.curframe is not None
         namespaces = [
-            ("Locals", self.curframe_locals),
+            ("Locals", self._curframe_locals),
             ("Globals", self.curframe.f_globals),
         ]
         self.shell.find_line_magic("pdoc")(arg, namespaces=namespaces)
@@ -1041,7 +1056,7 @@ class Pdb(OldPdb):
         """
         assert self.curframe is not None
         namespaces = [
-            ("Locals", self.curframe_locals),
+            ("Locals", self._curframe_locals),
             ("Globals", self.curframe.f_globals),
         ]
         self.shell.find_line_magic("pfile")(arg, namespaces=namespaces)
@@ -1052,7 +1067,7 @@ class Pdb(OldPdb):
         The debugger interface to %pinfo, i.e., obj?."""
         assert self.curframe is not None
         namespaces = [
-            ("Locals", self.curframe_locals),
+            ("Locals", self._curframe_locals),
             ("Globals", self.curframe.f_globals),
         ]
         self.shell.find_line_magic("pinfo")(arg, namespaces=namespaces)
@@ -1063,7 +1078,7 @@ class Pdb(OldPdb):
         The debugger interface to %pinfo2, i.e., obj??."""
         assert self.curframe is not None
         namespaces = [
-            ("Locals", self.curframe_locals),
+            ("Locals", self._curframe_locals),
             ("Globals", self.curframe.f_globals),
         ]
         self.shell.find_line_magic("pinfo2")(arg, namespaces=namespaces)
@@ -1072,7 +1087,7 @@ class Pdb(OldPdb):
         """Print (or run through pager) the source code for an object."""
         assert self.curframe is not None
         namespaces = [
-            ("Locals", self.curframe_locals),
+            ("Locals", self._curframe_locals),
             ("Globals", self.curframe.f_globals),
         ]
         self.shell.find_line_magic("psource")(arg, namespaces=namespaces)

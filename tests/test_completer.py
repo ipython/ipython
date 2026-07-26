@@ -438,6 +438,30 @@ def test_local_file_completions():
             comp = {prefix + s for s in suffixes}
             assert comp.issubset(set(c)), f"completes in {name}"
 
+def test_file_completions_only_in_path_contexts():
+    ip = get_ipython()
+
+    def path_matches(text):
+        with provisionalcompleter():
+            return [
+                completion.text
+                for completion in ip.Completer.completions(text, len(text))
+                if completion.type == "path"
+            ]
+
+    with TemporaryWorkingDirectory():
+        open("alpha_path_marker", "w", encoding="utf-8").close()
+        open("foo_path_marker", "w", encoding="utf-8").close()
+
+        assert path_matches("f(x=") == []
+        assert path_matches("# alpha") == []
+        assert path_matches("foo != alpha") == []
+        assert "./foo_path_marker" in path_matches("./foo")
+        assert "alpha_path_marker" in path_matches('f("alpha')
+        assert "alpha_path_marker" in path_matches("!cat alpha")
+        assert "alpha_path_marker" in path_matches("%ls alpha")
+        assert "alpha_path_marker" in path_matches("files = ! cat alpha")
+
 def test_quoted_file_completions():
     ip = get_ipython()
 
@@ -767,6 +791,11 @@ def test_omit__names():
 def test_limit_to__all__False_ok():
     """
     Limit to all is deprecated, once we remove it this test can go away.
+
+    ``limit_to__all__`` has since been removed from ``IPCompleter``, so
+    setting it now triggers traitlets' "not recognized" warning; that is
+    expected here since the point of the test is to make sure the (now
+    unknown) option doesn't break completion.
     """
     ip = get_ipython()
     c = ip.Completer
@@ -775,7 +804,8 @@ def test_limit_to__all__False_ok():
     ip.ex("d=D()")
     cfg = Config()
     cfg.IPCompleter.limit_to__all__ = False
-    c.update_config(cfg)
+    with pytest.warns(UserWarning, match="limit_to__all__.*not recognized"):
+        c.update_config(cfg)
     s, matches = c.complete("d.")
     assert ".x" in matches
 

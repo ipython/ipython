@@ -1029,7 +1029,13 @@ def test_notebook_export_json():
 
     # Check if notebook is trusted
     notary = sign.NotebookNotary(algorithm="sha384")
-    is_trusted = notary.check_signature(nb)
+    try:
+        is_trusted = notary.check_signature(nb)
+    finally:
+        # The signature store holds an sqlite connection; closing it here keeps
+        # it from being garbage collected open later on, which would raise a
+        # ResourceWarning in whatever test happens to be running then.
+        notary.store.close()
     assert is_trusted, "Exported notebook should be trusted"
 
 
