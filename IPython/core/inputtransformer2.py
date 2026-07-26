@@ -45,9 +45,9 @@ def leading_comment_lines(lines):
     them before detecting the magic.
     """
     for i, line in enumerate(lines):
-        if not line.strip() or line.lstrip().startswith('#'):
+        if not line.strip() or line.lstrip().startswith("#"):
             continue
-        if line.startswith('%%'):
+        if line.startswith("%%"):
             return lines[i:]
         break
     return lines
