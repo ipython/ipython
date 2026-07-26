@@ -181,10 +181,21 @@ class BasicMagics(Magics):
                 magic_escapes['cell'], name,
                 magic_escapes['cell'], target, params_str))
 
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument(
+        "-j", "--json", action="store_true", help="Return the magic list as JSON."
+    )
     @line_magic
     def lsmagic(self, parameter_s=''):
-        """List currently available magic functions."""
-        return MagicsDisplay(self.shell.magics_manager, ignore=[])
+        """List currently available magic functions.
+
+        Use ``--json`` to return a JSON-compatible dictionary instead of text.
+        """
+        args = magic_arguments.parse_argstring(self.lsmagic, parameter_s)
+        display = MagicsDisplay(self.shell.magics_manager, ignore=[])
+        if args.json:
+            return display._jsonable()
+        return str(display)
 
     def _magic_docs(self, brief=False, rest=False):
         """Return docstrings from magic functions."""
