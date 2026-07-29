@@ -191,11 +191,14 @@ def test_recursive_FileLinks():
 def test_escaped_names_FileLinks():
     """FileLinks: html metacharacters in file names are escaped"""
     td = mkdtemp()
-    with open(pjoin(td, "a'><script>.txt"), "w"):
+    # links are emitted as href='...', so the apostrophe is what breaks out of
+    # the attribute; "<" and ">" are not usable as they are invalid on windows
+    name = "a' onmouseover='alert(1)&.txt"
+    with open(pjoin(td, name), "w"):
         pass
     actual = display.FileLinks(td)._repr_html_()
-    assert "a&#x27;&gt;&lt;script&gt;.txt" in actual
-    assert "a'><script>.txt" not in actual
+    assert "a&#x27; onmouseover=&#x27;alert(1)&amp;.txt" in actual
+    assert name not in actual
 
 
 def test_audio_from_file():
