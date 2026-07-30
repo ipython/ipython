@@ -2975,8 +2975,18 @@ class IPCompleter(Completer):
         argMatches = []
         try:
             callableObj = '.'.join(ids[::-1])
-            namedArgs = self._default_arguments(eval(callableObj,
-                                                    self.namespace))
+            namedArgs = self._default_arguments(
+                guarded_eval(
+                    callableObj,
+                    EvaluationContext(
+                        globals=self.global_namespace,
+                        locals=self.namespace,
+                        evaluation=self.evaluation,
+                        auto_import=self._auto_import,
+                        policy_overrides=self.policy_overrides,
+                    ),
+                )
+            )
 
             # Remove used named arguments from the list, no need to show twice
             for namedArg in set(namedArgs) - usedNamedArgs:
