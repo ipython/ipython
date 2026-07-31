@@ -14,12 +14,12 @@ This release contains two security-hardening fixes — HTML-attribute escaping i
 the display objects and closing an arbitrary-code-execution path in completion —
 a new ``cell_meta`` field on
 :class:`~IPython.core.interactiveshell.ExecutionInfo`, several completion, autoreload,
-and path-handling fixes, and two backwards-incompatible changes (``%lsmagic``
+and path-handling fixes, and two backwards-incompatible changes (:magic:`lsmagic`
 default output and the removal of long-deprecated APIs). It also includes a
 large amount of internal typing, test, and CI modernization.
 
 - :ghpull:`15337` Resolve attribute annotations under the policy in :func:`~IPython.core.guarded_eval.eval_node`
-- :ghpull:`15335` Make ``%lsmagic`` return plain text by default
+- :ghpull:`15335` Make :magic:`lsmagic` return plain text by default
 - :ghpull:`15334` Escape URLs and file names interpolated into display HTML attributes
 - :ghpull:`15332` Add yakuake to the list of Kitty-compatible terminals
 - :ghpull:`15330` Add version information to deprecation warnings
@@ -99,7 +99,7 @@ prefer to always see full completion paths (:ghpull:`15285`).
 Autoreload and Embedded Shells
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- ``%autoreload`` now also refreshes ``__kwdefaults__``, ``__annotations__``,
+- :magic:`autoreload` now also refreshes ``__kwdefaults__``, ``__annotations__``,
   and ``__type_params__`` when reloading functions, keeping reloaded objects
   consistent with the edited source (:ghpull:`15274`).
 - Local variables of the calling frame are now visible to nested scopes (such
@@ -142,7 +142,7 @@ Other Fixes
 Backwards incompatible changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``%lsmagic`` now returns plain text by default so that frontends render its
+:magic:`lsmagic` now returns plain text by default so that frontends render its
 human-readable output consistently. Use ``%lsmagic --json`` to retrieve the
 machine-readable mapping of registered magics (:ghpull:`15335`).
 
@@ -202,10 +202,10 @@ Summary
 
 This release adds a new ``%xmode Doctest`` (:ghpull:`15185`) traceback mode and a number of
 robustness fixes around startup, history storage, the debugger, and the Sphinx
-directive. It also contains one backwards-incompatible change to ``%run`` glob
+directive. It also contains one backwards-incompatible change to :magic:`run` glob
 expansion and one deprecation.
 
-- :ghpull:`15220` Fix ``%debug`` and ipdb with Python 3.15
+- :ghpull:`15220` Fix :magic:`debug` and ipdb with Python 3.15
 - :ghpull:`15219` Add ``exception`` as an alias for the ``exceptions`` pdb command
 - :ghpull:`15236` Hide ``execfile`` internals in debugger backtraces
 - :ghissue:`15072`/:ghpull:`15246` Fix oinspect ``TypeError`` with objects using a generic ``__getattr__``
@@ -214,14 +214,14 @@ expansion and one deprecation.
 - :ghissue:`15068`/:ghpull:`15255` Deprecate ``IPython.utils.generics.inspect_object``
 
 
-- :ghpull:`15242` Use ``print_stack_entry`` to print frames on Python 3.14
+- :ghpull:`15242` Use :meth:`~IPython.core.debugger.Pdb.print_stack_entry` to print frames on Python 3.14
 - :ghpull:`15247` Avoid ``psutil`` requirement on Cygwin
 - :ghpull:`15252` Narrow bare ``except:`` clauses in oinspect and interactiveshell
 - :ghpull:`15253` Remove Python 2 references and fix links in the documentation
 - :ghpull:`15254` Remove stale TODO comment in ``DisplayObject.reload``
 - :ghissue:`15100` Fix test failures when the IPython source path contains spaces
 - :ghissue:`15193` Honor PEP 263 coding cookies when reading sources in autoreload
-- :ghissue:`12726` Quoted arguments to ``%run`` no longer undergo glob expansion
+- :ghissue:`12726` Quoted arguments to :magic:`run` no longer undergo glob expansion
 - :ghissue:`11424` Strip ANSI escape sequences from Sphinx directive output
 - :ghissue:`14538` Hide ``execfile`` frames in debugger backtraces
 
@@ -267,8 +267,8 @@ The connections are now closed before any file shuffling (:ghissue:`15241`).
 Debugger Fixes
 ~~~~~~~~~~~~~~
 
-- ``%debug`` and ipdb work again under Python 3.15, and frames are printed with
-  ``print_stack_entry`` on Python 3.14 (:ghpull:`15220`, :ghpull:`15242`).
+- :magic:`debug` and ipdb work again under Python 3.15, and frames are printed with
+  :meth:`~IPython.core.debugger.Pdb.print_stack_entry` on Python 3.14 (:ghpull:`15220`, :ghpull:`15242`).
 - ``execfile`` internals are now marked as the ``__ipython_bottom__`` traceback
   boundary, so the file runner and the frames above it are hidden as IPython
   internals while user script frames stay visible (:ghpull:`15236`,
@@ -308,7 +308,7 @@ is also now skipped inside excluded ``only`` blocks (:ghpull:`15249`).
 Backwards incompatible changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Wrapping a ``%run`` argument in single or double quotes now suppresses glob
+Wrapping a :magic:`run` argument in single or double quotes now suppresses glob
 expansion of that argument, matching real shells. Previously quoting was
 documented as *not* suppressing expansion, which was surprising. For example
 with ``foo.txt`` and ``bar.txt`` in the working directory::
@@ -326,7 +326,7 @@ Deprecations
 
 ``IPython.utils.generics.inspect_object`` is deprecated since IPython 9.15 and
 will be removed in a future version. It is no longer used within IPython, so
-registering handlers on it has no effect. ``complete_object`` is unaffected
+registering handlers on it has no effect. :func:`~IPython.utils.generics.complete_object` is unaffected
 (:ghissue:`15068`).
 
 
@@ -358,12 +358,12 @@ support, and a number of documentation improvements.
 - :ghpull:`15190` Avoid ``psutil`` requirement on emscripten
 - :ghpull:`15206` Accept singular pdb exception command
 - :ghpull:`15203` Fix incorrect ``Configuration`` type import
-- :ghpull:`15179` Copyedit ``prompt_line_number_format`` description
+- :ghpull:`15179` Copyedit :std:configtrait:`prompt_line_number_format <TerminalInteractiveShell.prompt_line_number_format>` description
 - :ghpull:`15209` Fix typos in user-facing documentation
 - :ghpull:`15211` Fix duplicated words in ``usage.py`` and ``oinspect.py`` docstrings
 - :ghpull:`15215` Fix terminal title config description
 - :ghpull:`15218` Fix broken 'Edit on GitHub' link for auto-generated API docs
-- :ghpull:`15224` Fix docstring formatting for ``prompt_line_number_format`` help text
+- :ghpull:`15224` Fix docstring formatting for :std:configtrait:`prompt_line_number_format <TerminalInteractiveShell.prompt_line_number_format>` help text
 
 
 SQLite History Fallback Fix
@@ -492,7 +492,7 @@ Python 3.15 compatibility, and type annotation additions.
 - :ghpull:`15166` Interleave fast path when rendering large tracebacks
 - :ghpull:`15165` Include function names when using the fast-traceback path
 - :ghpull:`15163` Fix expected length in ``test_unicode_range`` for Python 3.15 alpha 7
-- :ghpull:`15157` Clarify ``%xmode`` docstring with mode descriptions
+- :ghpull:`15157` Clarify :magic:`xmode` docstring with mode descriptions
 - :ghpull:`15152` Use ``weakref.finalize`` to close SQLite connections
 - :ghpull:`15146` Add runtime type annotations to ``IPython.utils`` via MonkeyType
 - :ghpull:`15164` Add return type hint in ``alias.py``
@@ -535,7 +535,7 @@ This release includes a new shell error-handling config option, a reproducible
 banner for builds, history thread management improvements, autoreload encoding
 fixes, Python 3.11 deprecation notices, and various type annotation improvements.
 
-- :ghpull:`15073` Add ``system_raise_on_error`` config option for ``!`` shell operator
+- :ghpull:`15073` Add :std:configtrait:`system_raise_on_error <InteractiveShell.system_raise_on_error>` config option for ``!`` shell operator
 - :ghpull:`15121` Start dropping Python 3.11
 - :ghpull:`15122` Fix encoding to utf8 for autoreload
 - :ghpull:`15130` Stricter config + add typing to ``IPython/core/magic.py``
@@ -550,7 +550,7 @@ Anthropicl; GitHub Copilot)
 New ``system_raise_on_error`` Config Option
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A new ``system_raise_on_error`` Bool traitlet configuration option (default:
+A new :std:configtrait:`system_raise_on_error <InteractiveShell.system_raise_on_error>` Bool traitlet configuration option (default:
 ``False``) has been added. When set to ``True``, shell commands executed via
 the ``!`` operator will raise :exc:`subprocess.CalledProcessError` if they
 return a non-zero exit status. This makes it easier to write robust IPython
@@ -611,7 +611,7 @@ This release includes improvements to history management during forking and form
 History Thread Management Improvements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The `HistorySavingThread` is now properly stopped before process forking,
+The :class:`~IPython.core.history.HistorySavingThread` is now properly stopped before process forking,
 preventing threading issues in child processes. This ensures that history
 operations work correctly when IPython is used in applications that perform
 process forking.
@@ -814,23 +814,23 @@ As usual, you can find the full list of PRs on GitHub under `the 9.7
 IPython 9.6
 -----------
 
-This version brings improvements to tab completion, ``%notebook`` magic, module ignoring functionality to debugger.
+This version brings improvements to tab completion, :magic:`notebook` magic, module ignoring functionality to debugger.
 
 - :ghpull:`14973` Add module ignoring functionality to debugger
 - :ghpull:`14982` Extract code from line magics for attribute completion
-- :ghpull:`14998` Fix matplotlib plots displaying in wrong cells during ``%notebook`` export
+- :ghpull:`14998` Fix matplotlib plots displaying in wrong cells during :magic:`notebook` export
 - :ghpull:`14996` Respect ``DisplayFormatter.active_types`` trait configuration
-- :ghpull:`15001` Fix ``%notebook`` magic creating multiple display_data outputs for single widgets
-- :ghpull:`14997` Make ``%notebook`` magic notarise exported notebooks (mark as trusted)
+- :ghpull:`15001` Fix :magic:`notebook` magic creating multiple display_data outputs for single widgets
+- :ghpull:`14997` Make :magic:`notebook` magic notarise exported notebooks (mark as trusted)
 - :ghpull:`14993` Type-guided partial evaluation for completion of uninitialized variables
 - :ghpull:`14978` deduperreload: patch NULL for empty closure rather than None
 - :ghpull:`14994` Bump minimum version (spec-0) and whitespace update
 
-The ``%notebook`` magic can now reliably export plots generated by ``matplotlib``, whether with the default ``inline`` or the interactive ``ipympl`` backend.
+The :magic:`notebook` magic can now reliably export plots generated by ``matplotlib``, whether with the default ``inline`` or the interactive ``ipympl`` backend.
 For the plots to display when using the ``inline`` backend the ``c.DisplayFormatter.active_types`` needs to include ``image/png`` (or another image media type, depending on the backend configuration).
 
 Tab completion now works on multi-line buffers with unevaluated code even when jedi is disabled.
-Additionally, completion works when writing code as an argument to ``%timeit`` and ``%debug``.
+Additionally, completion works when writing code as an argument to :magic:`timeit` and :magic:`debug`.
 
 As usual, you can find the full list of PRs on GitHub under `the 9.6
 <https://github.com/ipython/ipython/milestone/154?closed=1>`__ milestone.
@@ -841,20 +841,20 @@ As usual, you can find the full list of PRs on GitHub under `the 9.6
 IPython 9.5
 -----------
 
-Featuring improvements for numerous magics (``%autoreload``, ``%whos``, ``%%script``, ``%%notebook``), a streaming performance regression fix, completer policy overrides improvements, and initial support for Python 3.14.
+Featuring improvements for numerous magics (:magic:`autoreload`, :magic:`whos`, :cellmagic:`script`, ``%%notebook``), a streaming performance regression fix, completer policy overrides improvements, and initial support for Python 3.14.
 
-- :ghpull:`14938` Fix printing long strings in ``%whos`` magic command
+- :ghpull:`14938` Fix printing long strings in :magic:`whos` magic command
 - :ghpull:`14941` Fix performance of streaming long text
 - :ghpull:`14943` Simplify overriding selective evaluation policy settings for modules
-- :ghpull:`14955` Populate notebook metadata when exporting with ``%notebook`` magic
+- :ghpull:`14955` Populate notebook metadata when exporting with :magic:`notebook` magic
 - :ghpull:`14960` Better handling in deduperreload for patching functions with freevars
 - :ghpull:`14964` Fix traceback logic for non-SyntaxError exceptions in plain mode
 - :ghpull:`14966` Do not warn repeatedly if policy overrides are not applicable
 - :ghpull:`14967` Support Python 3.14.0rc2, test on CI
 - :ghpull:`14969` Fix truncated output in ``%script`` magic
-- :ghpull:`14970` Fix exceptions in ``%whos`` magic command
+- :ghpull:`14970` Fix exceptions in :magic:`whos` magic command
 
-The ``%notebook`` magic now stores the language and kernel information in notebook metadata, allowing users to quickly open the exported notebook with syntax highlighting and an appropriate kernel.
+The :magic:`notebook` magic now stores the language and kernel information in notebook metadata, allowing users to quickly open the exported notebook with syntax highlighting and an appropriate kernel.
 
 The completer :std:configtrait:`Completer.policy_overrides` traitlet handling was improved.
 It no longer repeatedly warns on each completion after switching away to a policy that does not support previously specified overrides.
@@ -871,9 +871,9 @@ The specification now also accepts dotted strings (rather than requiring tuples 
 
 A number of recent regressions were fixed:
 
-- ``%autoreload`` now again shows the correct module name in traceback
+- :magic:`autoreload` now again shows the correct module name in traceback
 - standard output/error streaming of long text/logs is now as fast as in IPython 9.0
-- in the ``%whos`` magic handling of long strings and class objects that implement ``__len__`` was fixed.
+- in the :magic:`whos` magic handling of long strings and class objects that implement ``__len__`` was fixed.
 
 As usual, you can find the full list of PRs on GitHub under `the 9.5
 <https://github.com/ipython/ipython/milestone/153?closed=1>`__ milestone.
@@ -884,21 +884,21 @@ As usual, you can find the full list of PRs on GitHub under `the 9.5
 IPython 9.4
 -----------
 
-Featuring ``%autoreload``, ``%whos``, ``%%script``, ``%%time`` magic improvements, along with a fix for use of list comprehensions and generators in the interactive debugger (and ipdb).
+Featuring :magic:`autoreload`, :magic:`whos`, :cellmagic:`script`, ``%%time`` magic improvements, along with a fix for use of list comprehensions and generators in the interactive debugger (and ipdb).
 
-- :ghpull:`14922` Improved reloading of decorated functions when using ``%autoreload``
+- :ghpull:`14922` Improved reloading of decorated functions when using :magic:`autoreload`
 - :ghpull:`14872` Do not always import all variables with ``%autoreload 3``
-- :ghpull:`14906` Changed behaviour of ``%time`` magic to always interrupt execution on exception and always show execution time
-- :ghpull:`14926` Support data frames, series, and objects with ``__len__`` in the ``%whos`` magic
+- :ghpull:`14906` Changed behaviour of :magic:`time` magic to always interrupt execution on exception and always show execution time
+- :ghpull:`14926` Support data frames, series, and objects with ``__len__`` in the :magic:`whos` magic
 - :ghpull:`14933` List comprehensions and generators now work reliably in debugger on all supported Python versions
 - :ghpull:`14931` Fix streaming multi-byte Unicode characters in the ``%script`` magic and its derivatives
 
-The ``%time`` magic no longer swallows exceptions raised by the measured code, and always prints the time of execution. If you wish the execution to continue after measuring time to execute code that is meant to raise an exception, pass the new ``--no-raise-error`` flag.
+The :magic:`time` magic no longer swallows exceptions raised by the measured code, and always prints the time of execution. If you wish the execution to continue after measuring time to execute code that is meant to raise an exception, pass the new ``--no-raise-error`` flag.
 The ``--no-raise-error`` flag does not affect ``KeyboardInterrupt`` as this exception is used to signal intended interruption of execution flow.
 
 Previously the debugger (ipdb) evaluation of list comprehensions and generators could fail with ``NameError`` due to generator implementation detail in CPython. This was recently fixed in Python 3.13. Because IPython is often used for interactive debugging, this release includes a backport of that fix, providing users who cannot yet update from Python 3.11 or 3.12 with a smoother debugging experience.
 
-The ``%autoreload`` magic is now more reliable. The behaviour around decorators has been improved and `%autoreload 3` no longer imports all symbols when reloading the module, however, the heuristic used to determine which symbols to reload can sometimes lead to addition of imports from non-evaluated code branches, see `issue #14934 <https://github.com/ipython/ipython/issues/14934>`__.
+The :magic:`autoreload` magic is now more reliable. The behaviour around decorators has been improved and `%autoreload 3` no longer imports all symbols when reloading the module, however, the heuristic used to determine which symbols to reload can sometimes lead to addition of imports from non-evaluated code branches, see `issue #14934 <https://github.com/ipython/ipython/issues/14934>`__.
 
 
 As usual, you can find the full list of PRs on GitHub under `the 9.4
@@ -959,13 +959,13 @@ As usual, you can find the full list of PRs on GitHub under `the 9.2
 IPython 9.1
 -----------
 
-This is a small release that introduces enhancements to ``%notebook`` and ``%%timeit`` magics,
+This is a small release that introduces enhancements to :magic:`notebook` and ``%%timeit`` magics,
 and a number of bug fixes related to colors/formatting, performance, and completion.
 
 ``%notebook`` saves outputs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``%notebook`` magic can be used to create a Jupyter notebook from the
+The :magic:`notebook` magic can be used to create a Jupyter notebook from the
 commands executed in the current IPython session (since the interpreter startup).
 
 Prior to IPython 9.1, the resulting notebook did not include the outputs,
