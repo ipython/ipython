@@ -233,7 +233,7 @@ def arg_split_with_quotes(
     if that token had any single- or double-quote characters in ``commandline``.
 
     Useful for callers like ``%run`` that want to honor shell quoting when
-    deciding wether to apply further expansion (glob, tilde) to a token.
+    deciding whether to apply further expansion (glob, tilde) to a token.
 
     Detection is shlex-based on both passes so the quote semantics are the
     same on Posix and Windows. If ``strict`` is False, malformed input (e.g.

@@ -174,7 +174,7 @@ def _tokens_filename(
 
     Parameters
     ----------
-    em: wether bold or not
+    em: whether bold or not
     file : str
     """
     assert file is None or isinstance(file, str)
