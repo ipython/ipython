@@ -2,6 +2,196 @@
  9.x Series
 ============
 
+.. _version 9.16:
+
+IPython 9.16
+------------
+
+Summary
+~~~~~~~
+
+This release contains two security-hardening fixes — HTML-attribute escaping in
+the display objects and closing an arbitrary-code-execution path in completion —
+a new ``cell_meta`` field on
+:class:`~IPython.core.interactiveshell.ExecutionInfo`, several completion, autoreload,
+and path-handling fixes, and two backwards-incompatible changes (``%lsmagic``
+default output and the removal of long-deprecated APIs). It also includes a
+large amount of internal typing, test, and CI modernization.
+
+- :ghpull:`15337` Resolve attribute annotations under the policy in :func:`~IPython.core.guarded_eval.eval_node`
+- :ghpull:`15335` Make ``%lsmagic`` return plain text by default
+- :ghpull:`15334` Escape URLs and file names interpolated into display HTML attributes
+- :ghpull:`15332` Add yakuake to the list of Kitty-compatible terminals
+- :ghpull:`15330` Add version information to deprecation warnings
+- :ghpull:`15317` Only substitute ``~`` in :func:`~IPython.utils.path.compress_user` on a path-component boundary
+- :ghpull:`15314` Refactor banner property logic
+- :ghpull:`15310` Deprecation cleanup and decorator-dependency removal
+- :ghpull:`15289` Make caller locals visible to nested scopes in embedded shells
+- :ghpull:`15288` Limit file completions to path contexts
+- :ghpull:`15287` Centralize image format handling
+- :ghpull:`15285` Disable path elision in tab-completion with ``min_elide=0``
+- :ghpull:`15276` Make :class:`~IPython.display.Image` with ``retina=True`` work with WebP
+- :ghpull:`15275` Fix memory leak and error handling in the LLM autosuggester
+- :ghpull:`15274` Reload ``__kwdefaults__``, ``__annotations__``, and ``__type_params__`` in autoreload
+- :ghpull:`15273` Close the history database during shell shutdown
+- :ghpull:`15266` Add test covering ``%%timeit`` cell magic output format with multiline code
+- :ghpull:`15260` Fix doctest prompt stripping regression
+- :ghpull:`15071` Add ``cell_meta`` to :class:`~IPython.core.interactiveshell.ExecutionInfo` and pass it through :meth:`~IPython.core.interactiveshell.InteractiveShell.run_cell`
+
+In addition, this release lands a broad sweep of internal maintenance: strict
+``mypy`` type checking and many new annotations, ``pyupgrade``/modernized type
+annotations, additional ``ruff`` rules, narrowed bare ``except:`` clauses,
+removal of the deprecated ``IPython.utils.py3compat`` module, new test coverage,
+and a number of test-suite resource-leak and CI fixes.
+
+
+Security Hardening
+~~~~~~~~~~~~~~~~~~~
+
+Two fixes close paths that could execute unintended code or inject markup:
+
+- Values passed to the display objects were interpolated unescaped into quoted
+  HTML attributes, so a quote character could close the attribute and have the
+  remainder parsed as markup. :class:`~IPython.display.Image` and
+  :class:`~IPython.display.Video` (``src``), :class:`~IPython.display.IFrame`
+  and its :class:`~IPython.display.YouTubeVideo`/:class:`~IPython.display.VimeoVideo`/:class:`~IPython.display.ScribdDocument`
+  subclasses (``src``, ``width``, ``height``, reachable through the id argument),
+  :class:`~IPython.display.Audio` (url and ``element_id``), and the
+  :class:`~IPython.display.FileLinks` formatter (names read off disk) now escape
+  these values. For example ``YouTubeVideo('abc"><script>')`` no longer closes
+  the iframe and injects markup (:ghpull:`15334`).
+
+- The attribute-completion branch in :func:`~IPython.core.guarded_eval.eval_node`
+  fell back to :func:`typing.get_type_hints` after the completion policy had
+  already refused an attribute. That call resolves stringized annotations with
+  :func:`eval`, so completing ``obj.attr`` could run whatever an annotation
+  contained under the default ``limited`` policy. Annotations are now collected
+  with :func:`inspect.get_annotations` (``eval_str=False``) and resolved through
+  :func:`~IPython.core.guarded_eval.eval_node`, routing them through the same
+  policy checks as the rest of the input (:ghpull:`15337`).
+
+
+``cell_meta`` in ``ExecutionInfo``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``cell_meta`` field is now part of the
+:class:`~IPython.core.interactiveshell.ExecutionInfo` object passed to IPython
+extensions in the ``pre_run_cell`` and ``post_run_cell`` callbacks, letting
+extensions read per-cell metadata forwarded through
+:meth:`~IPython.core.interactiveshell.InteractiveShell.run_cell`
+(:ghpull:`15071`).
+
+
+Completion Improvements
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+File-name completions are now limited to contexts where a path is expected:
+string literals, shell and magic contexts, and explicit path-looking tokens.
+Direct path completion is preserved for prefixes such as ``./``, ``../``, ``~``,
+absolute paths, and Windows drive paths, and ``name = !command`` shell
+assignment is still recognized (:ghpull:`15288`, fixes :ghissue:`14501`).
+
+Setting ``c.TerminalInteractiveShell.min_elide = 0`` now completely disables
+filename abbreviation (path elision) in tab-completion output, for users who
+prefer to always see full completion paths (:ghpull:`15285`).
+
+
+Autoreload and Embedded Shells
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- ``%autoreload`` now also refreshes ``__kwdefaults__``, ``__annotations__``,
+  and ``__type_params__`` when reloading functions, keeping reloaded objects
+  consistent with the edited source (:ghpull:`15274`).
+- Local variables of the calling frame are now visible to nested scopes (such
+  as comprehensions and nested functions) in embedded shells (:ghpull:`15289`).
+
+
+Doctest Prompt Stripping Regression
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A regression introduced in IPython 9.10 caused doctest prompts (``>>>`` and
+``...``) to stop being stripped inside multiline strings, after the input
+transformer's regex was tightened from ``\s`` to ``[ \t]`` to avoid eating
+newlines on bare continuation lines. The prompt stripper now strips leading
+PS1/PS2 prompts inside multiline strings only when they agree with the
+indentation of the outer stripped prompts, so genuine ``>>>``/``...`` text
+inside a multiline string is preserved (:ghpull:`15260`, fixes
+:ghissue:`15259`).
+
+
+Other Fixes
+~~~~~~~~~~~
+
+- :func:`~IPython.utils.path.compress_user` — the reverse of
+  :func:`os.path.expanduser` used when
+  displaying paths — tested ``path.startswith(home)`` with no path-component
+  boundary, so a path merely sharing a string prefix with ``$HOME`` (for example
+  ``/home/alice-backup/...`` when ``$HOME`` is ``/home/alice``) was rewritten
+  into a different, nonexistent ``~``-path. The substitution now only happens on
+  a path separator boundary (:ghpull:`15317`).
+- :class:`~IPython.display.Image` with ``retina=True`` now works with WebP
+  images (:ghpull:`15276`).
+- A memory leak in the LLM autosuggester was fixed and its errors are now
+  handled gracefully (:ghpull:`15275`).
+- The history database is now closed during shell shutdown, avoiding a leaked
+  connection (:ghpull:`15273`).
+- ``yakuake`` is now recognized as a Kitty-graphics-compatible terminal
+  (:ghpull:`15332`).
+
+
+Backwards incompatible changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``%lsmagic`` now returns plain text by default so that frontends render its
+human-readable output consistently. Use ``%lsmagic --json`` to retrieve the
+machine-readable mapping of registered magics (:ghpull:`15335`).
+
+A number of APIs that had been emitting deprecation warnings for several years
+have been removed (:ghpull:`15310`):
+
+- ``IPCompleter.limit_to__all__`` configuration option (deprecated since
+  IPython 5.0). Completion on ``object.<tab>`` now always uses :func:`dir`-based
+  discovery, regardless of ``__all__``.
+- ``IPCompleter.python_matches`` method (deprecated since IPython 8.27). Use
+  :meth:`~IPython.core.completer.IPCompleter.python_matcher` instead.
+- ``OInfo.get()`` (deprecated since IPython 8.13). Access the dataclass fields
+  directly, e.g. ``oinfo.found`` instead of ``oinfo.get('found')``.
+- The module-level ``backends`` and ``backend2gui`` attributes of
+  :mod:`IPython.core.pylabtools` (deprecated since IPython 8.24). Matplotlib
+  backends are resolved by Matplotlib itself since 3.9.
+- :meth:`~IPython.core.interactiveshell.InteractiveShell.run_cell_async` and
+  :meth:`~IPython.core.interactiveshell.InteractiveShell.should_run_async` no
+  longer call :meth:`~IPython.core.interactiveshell.InteractiveShell.transform_cell`
+  automatically when ``transformed_cell`` is not passed (this fallback had
+  emitted a :exc:`DeprecationWarning` since IPython 7.17); they now raise a
+  :exc:`TypeError`. Run
+  :meth:`~IPython.core.interactiveshell.InteractiveShell.transform_cell`
+  yourself and pass the result via the ``transformed_cell`` keyword argument (as
+  ipykernel 6.0 and newer already do).
+  :meth:`~IPython.core.interactiveshell.InteractiveShell.run_cell` is unaffected.
+
+The deprecated ``IPython.utils.py3compat`` module has also been removed, and its
+utilities inlined at their call sites (:ghpull:`15292`).
+
+
+Deprecations
+~~~~~~~~~~~~
+
+Deprecation warnings emitted by IPython now include the version in which the
+feature was deprecated, making it easier to tell how long a warning has been
+outstanding (:ghpull:`15330`).
+
+
+Thanks
+~~~~~~
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
+work on IPython.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.16
+<https://github.com/ipython/ipython/milestone/168?closed=1>`__ milestone.
+
+
 .. _version 9.15:
 
 IPython 9.15
