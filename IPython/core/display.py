@@ -1065,7 +1065,7 @@ class Image(DisplayObject):
             if self.alt:
                 alt = ' alt="%s"' % html.escape(self.alt)
             return '<img src="{url}"{width}{height}{klass}{alt}/>'.format(
-                url=self.url,
+                url=html.escape(self.url or ""),
                 width=width,
                 height=height,
                 klass=klass,
@@ -1228,7 +1228,7 @@ class Video(DisplayObject):
             url = self.url if self.url is not None else self.filename
             output = """<video src="{}" {} {} {}>
       Your browser does not support the <code>video</code> element.
-    </video>""".format(url, self.html_attributes, width, height)
+    </video>""".format(html.escape(url or ""), self.html_attributes, width, height)
             return output
 
         # Embedded videos are base64-encoded.

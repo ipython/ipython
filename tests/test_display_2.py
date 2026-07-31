@@ -565,6 +565,36 @@ def test_image_alt_tag():
     assert md["alt"] == "an image"
 
 
+def test_image_url_escaping():
+    """Image: a quote in the url does not break out of the src attribute"""
+    img = display.Image(url='http://example.com/i.png" onerror="alert(1)')
+    assert (
+        '<img src="http://example.com/i.png&quot; onerror=&quot;alert(1)"/>'
+        == img._repr_html_()
+    )
+
+
+def test_video_url_escaping():
+    """Video: a quote in the url does not break out of the src attribute"""
+    v = display.Video('http://example.com/v.mp4" onerror="alert(1)')
+    assert (
+        'src="http://example.com/v.mp4&quot; onerror=&quot;alert(1)"'
+        in v._repr_html_()
+    )
+
+
+def test_iframe_escaping():
+    """IFrame: quotes in src, width and height stay inside their attributes"""
+    html = display.IFrame('http://example.com/?a=1"><script>', 400, 300)._repr_html_()
+    assert 'src="http://example.com/?a=1&quot;&gt;&lt;script&gt;"' in html
+
+    html = display.YouTubeVideo('abc"><script>')._repr_html_()
+    assert '"><script>' not in html
+
+    html = display.IFrame("http://example.com", '400" onload="alert(1)', 300)
+    assert 'width="400&quot; onload=&quot;alert(1)"' in html._repr_html_()
+
+
 def test_image_bad_filename_raises_proper_exception():
     with pytest.raises(FileNotFoundError):
         display.Image("/this/file/does/not/exist/")._repr_png_()

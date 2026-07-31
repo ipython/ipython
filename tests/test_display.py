@@ -188,9 +188,36 @@ def test_recursive_FileLinks():
         assert len(actual) == 2, actual
 
 
+def test_escaped_names_FileLinks():
+    """FileLinks: html metacharacters in file names are escaped"""
+    td = mkdtemp()
+    # links are emitted as href='...', so the apostrophe is what breaks out of
+    # the attribute; "<" and ">" are not usable as they are invalid on windows
+    name = "a' onmouseover='alert(1)&.txt"
+    with open(pjoin(td, name), "w"):
+        pass
+    actual = display.FileLinks(td)._repr_html_()
+    assert "a&#x27; onmouseover=&#x27;alert(1)&amp;.txt" in actual
+    assert name not in actual
+
+
 def test_audio_from_file():
     path = pjoin(dirname(__file__), "test.wav")
     display.Audio(filename=path)
+
+
+def test_escaped_url_Audio():
+    """Audio: quotes in url and element_id do not break out of the attribute"""
+    audio = display.Audio(url='http://example.com/a.wav" onerror="alert(1)')
+    assert (
+        'src="http://example.com/a.wav&quot; onerror=&quot;alert(1)"'
+        in audio._repr_html_()
+    )
+
+    audio = display.Audio(
+        url="http://example.com/a.wav", element_id='x" onload="alert(1)'
+    )
+    assert 'id="x&quot; onload=&quot;alert(1)"' in audio._repr_html_()
 
 
 @skipif_not_numpy

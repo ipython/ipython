@@ -240,7 +240,7 @@ class Audio(DisplayObject):
             return """data:{type};base64,{base64}""".format(type=self.mimetype,
                                                             base64=data)
         elif self.url is not None:
-            return self.url
+            return html_escape(self.url)
         else:
             return ""
 
@@ -252,7 +252,7 @@ class Audio(DisplayObject):
 
     def element_id_attr(self):
         if (self.element_id):
-            return f'id="{self.element_id}"'
+            return f'id="{html_escape(self.element_id)}"'
         else:
             return ''
 
@@ -292,9 +292,9 @@ class IFrame:
         else:
             params = ""
         return self.iframe.format(
-            src=self.src,
-            width=self.width,
-            height=self.height,
+            src=html_escape(self.src),
+            width=html_escape(str(self.width)),
+            height=html_escape(str(self.height)),
             params=params,
             extras=" ".join(self.extras),
         )
@@ -513,7 +513,12 @@ class FileLinks(FileLink):
         self.recursive = recursive
 
     def _get_display_formatter(
-        self, dirname_output_format, fname_output_format, fp_format, fp_cleaner=None
+        self,
+        dirname_output_format,
+        fname_output_format,
+        fp_format,
+        fp_cleaner=None,
+        escape_names=False,
     ):
         """generate built-in formatter function
 
@@ -531,7 +536,11 @@ class FileLinks(FileLink):
         fp_format: string to use for formatting filepaths, must contain
          exactly two "%s" and the dirname will be substituted for the first
          and fname will be substituted for the second
+        escape_names: whether directory and file names must be HTML-escaped
+         before being substituted, as they are for the notebook formatter
         """
+        escape = html_escape if escape_names else str
+
         def f(dirname, fnames, included_suffixes=None):
             result = []
             # begin by figuring out which filenames, if any,
@@ -550,18 +559,18 @@ class FileLinks(FileLink):
             else:
                 # otherwise print the formatted directory name followed by
                 # the formatted filenames
-                dirname_output_line = dirname_output_format % dirname
+                dirname_output_line = dirname_output_format % escape(dirname)
                 result.append(dirname_output_line)
                 for fname in display_fnames:
-                    fp = fp_format % (dirname,fname)
+                    fp = fp_format % (escape(dirname), escape(fname))
                     if fp_cleaner is not None:
                         fp = fp_cleaner(fp)
                     try:
                         # output can include both a filepath and a filename...
-                        fname_output_line = fname_output_format % (fp, fname)
+                        fname_output_line = fname_output_format % (fp, escape(fname))
                     except TypeError:
                         # ... or just a single filepath
-                        fname_output_line = fname_output_format % fname
+                        fname_output_line = fname_output_format % escape(fname)
                     result.append(fname_output_line)
             return result
         return f
@@ -586,10 +595,13 @@ class FileLinks(FileLink):
         else:
             fp_cleaner = None
 
-        return self._get_display_formatter(dirname_output_format,
-                                           fname_output_format,
-                                           fp_format,
-                                           fp_cleaner)
+        return self._get_display_formatter(
+            dirname_output_format,
+            fname_output_format,
+            fp_format,
+            fp_cleaner,
+            escape_names=True,
+        )
 
     def _get_terminal_display_formatter(self,
                                         spacer="  "):
