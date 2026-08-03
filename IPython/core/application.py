@@ -13,7 +13,6 @@ object and then create the configurable objects, passing the config to them.
 
 import atexit
 from copy import deepcopy
-import logging
 import os
 import shutil
 import sys
@@ -30,6 +29,15 @@ from traitlets import (
     List, Unicode, Type, Bool, Set, Instance, Undefined,
     default, observe,
 )
+
+# Values of `logging.DEBUG` and `logging.CRITICAL`, inlined so that this
+# module -- which is on the IPython startup path -- does not have to import
+# `logging` just to spell two integers. The `logging` levels are part of its
+# documented public API and cannot change; `tests/test_application.py`
+# asserts these copies do not drift from it.
+LOGGING_DEBUG = 10
+LOGGING_CRITICAL = 50
+
 
 if os.name == "nt":
     # %PROGRAMDATA% is not safe by default, require opt-in to trust it
@@ -86,11 +94,11 @@ if isinstance(Application.flags, dict):
 base_flags.update(
     dict(
         debug=(
-            {"Application": {"log_level": logging.DEBUG}},
+            {"Application": {"log_level": LOGGING_DEBUG}},
             "set log level to logging.DEBUG (maximize logging output)",
         ),
         quiet=(
-            {"Application": {"log_level": logging.CRITICAL}},
+            {"Application": {"log_level": LOGGING_CRITICAL}},
             "set log level to logging.CRITICAL (minimize logging output)",
         ),
         init=(
