@@ -1,6 +1,7 @@
 from IPython.core.tips import _tips
 
 import importlib
+import importlib.util
 import os
 import sys
 import types
@@ -32,7 +33,8 @@ def test_pick_tip_random_day(monkeypatch):
     monkeypatch.setattr(
         tips_mod, "datetime", types.SimpleNamespace(now=lambda: datetime(2025, 6, 15))
     )
-    monkeypatch.setattr(tips_mod, "choice", lambda seq: seq[0])
+    # pick_tip imports `choice` when it runs, so patch it in random
+    monkeypatch.setattr("random.choice", lambda seq: seq[0])
     assert tips_mod.pick_tip() == tips_mod._tips["random"][0]
 
 
@@ -61,10 +63,36 @@ def test_unicode_tips_on_non_windows():
 
 
 def test_argcomplete_tip_added_when_available(monkeypatch):
+    # tips looks argcomplete up with find_spec rather than importing it, so
+    # pretend the module is on sys.path without providing one
+    real_find_spec = importlib.util.find_spec
+
+    def fake_find_spec(name, *args, **kwargs):
+        if name == "argcomplete":
+            return types.SimpleNamespace(name=name)
+        return real_find_spec(name, *args, **kwargs)
+
     try:
         with monkeypatch.context() as m:
-            m.setitem(sys.modules, "argcomplete", types.ModuleType("argcomplete"))
+            m.setattr(importlib.util, "find_spec", fake_find_spec)
             mod = importlib.reload(tips_mod)
             assert any("argcomplete" in tip for tip in mod._tips["random"])
+    finally:
+        importlib.reload(tips_mod)
+
+
+def test_argcomplete_tip_absent_when_unavailable(monkeypatch):
+    real_find_spec = importlib.util.find_spec
+
+    def fake_find_spec(name, *args, **kwargs):
+        if name == "argcomplete":
+            return None
+        return real_find_spec(name, *args, **kwargs)
+
+    try:
+        with monkeypatch.context() as m:
+            m.setattr(importlib.util, "find_spec", fake_find_spec)
+            mod = importlib.reload(tips_mod)
+            assert not any("argcomplete" in tip for tip in mod._tips["random"])
     finally:
         importlib.reload(tips_mod)

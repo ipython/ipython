@@ -1,8 +1,8 @@
 from __future__ import annotations
 from datetime import datetime
+import importlib.util
 import os
 import sys
-from random import choice
 from typing import Any
 
 _tips: Any = {
@@ -114,15 +114,14 @@ if sys.version_info < (3, 12):
         "IPython support for Python versions outside of SPEC-0 is funded by the D. E. Shaw group: https://deshaw.com"
     )
 
-# Check if argcomplete is installed and add tip
-try:
-    import argcomplete
-
+# Check if argcomplete is installed and add tip.
+# `find_spec` only looks the module up on sys.path; actually importing
+# argcomplete costs ~3 ms and 8 modules on every IPython startup, just to
+# decide whether one tip out of many is eligible to be shown.
+if importlib.util.find_spec("argcomplete") is not None:
     _tips["random"].append(
         "Run `activate-global-python-argcomplete` from your shell to enable CLI completion for IPython"
     )
-except ModuleNotFoundError:
-    pass
 
 
 def pick_tip() -> str:
@@ -132,4 +131,5 @@ def pick_tip() -> str:
     if (month, day) in _tips["every_year"]:
         return _tips["every_year"][(month, day)]
 
+    from random import choice
     return choice(_tips["random"])
