@@ -269,6 +269,19 @@ def _get_jedi() -> ModuleType:
     import jedi.api.helpers
 
     jedi.settings.case_insensitive_completion = False
+
+    # parso, which jedi parses with, logs copiously at DEBUG level; without
+    # this those records reach the user's session whenever IPython runs with
+    # a debug log level. This lived at the top of `IPython.core.logger` --
+    # a module about `%logstart` session transcripts, nothing to do with
+    # jedi -- where it worked only because that module happened to be
+    # imported eagerly at startup. Configure it where jedi itself is
+    # configured instead, which is still before any parso record can be
+    # emitted, since parso is only reached through jedi.
+    import logging
+
+    logging.getLogger("parso").setLevel(logging.WARNING)
+
     return jedi
 
 
