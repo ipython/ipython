@@ -48,9 +48,6 @@ from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace, typestr2type
 from IPython.utils.decorators import undoc
 
-from pygments import highlight
-from pygments.lexers import PythonLexer
-from pygments.formatters import HtmlFormatter
 
 HOOK_NAME = "__custom_documentations__"
 
@@ -69,6 +66,13 @@ class OInfo:
     obj: Any
 
 def pylight(code):
+    # `pygments.lexers` and `pygments.formatters` pull in the pygments plugin
+    # machinery (importlib.metadata, zipfile); only HTML-formatted docstrings
+    # need them, so keep them out of `import IPython.core.oinspect`
+    from pygments import highlight
+    from pygments.formatters import HtmlFormatter
+    from pygments.lexers import PythonLexer
+
     return highlight(code, PythonLexer(), HtmlFormatter(noclasses=True))
 
 # builtin docstrings to ignore
