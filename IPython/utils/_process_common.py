@@ -14,12 +14,16 @@ of subprocess utilities, and it contains tools that are common to all of them.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import annotations
+
 import os
 import shlex
-import subprocess
 import sys
-from typing import IO, TypeVar
+from typing import IO, TYPE_CHECKING, TypeVar
 from collections.abc import Callable
+
+if TYPE_CHECKING:
+    import subprocess
 
 _T = TypeVar("_T")
 
@@ -48,7 +52,7 @@ def read_no_interrupt(stream: IO[bytes]) -> bytes | None:
 def process_handler(
     cmd: str | list[str],
     callback: Callable[[subprocess.Popen[bytes]], _T],
-    stderr: int = subprocess.PIPE,
+    stderr: int | None = None,
 ) -> _T | None:
     """Open a command in a shell subprocess and execute a callback.
 
@@ -73,6 +77,11 @@ def process_handler(
     -------
     The return value of the provided callback is returned.
     """
+    import subprocess
+
+    if stderr is None:
+        stderr = subprocess.PIPE
+
     sys.stdout.flush()
     sys.stderr.flush()
     # On win32, close_fds can't be true when using pipes for stdin/out/err
@@ -137,6 +146,8 @@ def getoutput(cmd: str | list[str]) -> str:
     file descriptors (so the order of the information in this string is the
     correct order as would be seen if running the command in a terminal).
     """
+    import subprocess
+
     out = process_handler(cmd, lambda p: p.communicate()[0], subprocess.STDOUT)
     if out is None:
         return ''
