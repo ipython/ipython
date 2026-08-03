@@ -66,7 +66,6 @@ Inheritance diagram:
 
 import abc
 import sys
-import traceback
 import warnings
 from io import StringIO
 
@@ -286,6 +285,7 @@ def catch_format_error(method):
             if ip is not None:
                 ip.showtraceback(exc_info)
             else:
+                import traceback
                 traceback.print_exception(*exc_info)
             return self._check_return(None, args[0])
         return self._check_return(r, args[0])

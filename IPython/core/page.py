@@ -22,7 +22,6 @@ from io import UnsupportedOperation
 from pathlib import Path
 
 from IPython.core.getipython import get_ipython
-from IPython.display import display
 from IPython.core.error import TryNext
 from IPython.utils.data import chop
 from IPython.utils.terminal import get_terminal_size
@@ -36,6 +35,7 @@ def display_page(strng, start=0, screen_lines=25):
         if start:
             strng = '\n'.join(strng.splitlines()[start:])
         data = { 'text/plain': strng }
+    from IPython.display import display
     display(data, raw=True)
 
 
