@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import inspect
 import linecache
 import sys
 from collections.abc import Sequence
@@ -163,6 +162,7 @@ class DocTB(TBTools):
         indent: str = " " * INDENT_SIZE
 
         assert isinstance(frame_info.lineno, int)
+        import inspect
         args, varargs, varkw, locals_ = inspect.getargvalues(frame_info.frame)
         if frame_info.executing is not None:
             func = frame_info.executing.code_qualname()
@@ -369,6 +369,7 @@ class DocTB(TBTools):
         tbs = []
         while cf is not None:
             try:
+                import inspect
                 mod = inspect.getmodule(cf.tb_frame)
                 if mod is not None:
                     mod_name = mod.__name__
