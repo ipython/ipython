@@ -12,7 +12,6 @@ from collections.abc import Callable
 from pygments.token import Token
 
 from IPython.core.getipython import get_ipython
-from IPython.utils import path as util_path
 from IPython.utils.PyColorize import Theme, TokenStream, theme_table
 
 if TYPE_CHECKING:
@@ -206,6 +205,7 @@ def _tokens_filename(
             ]
     else:
         file_str = file or ""
+        from IPython.utils import path as util_path
         name = util_path.compress_user(file_str)
         if lineno is None:
             return [

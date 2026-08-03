@@ -27,7 +27,6 @@ from pathlib import Path
 from IPython.core.error import TryNext, StdinNotImplementedError, UsageError
 from IPython.core.macro import Macro
 from IPython.core.magic import Magics, magics_class, line_magic
-from IPython.core.oinspect import find_file, find_source_lines
 from IPython.core.release import version
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.contexts import preserve_keys
@@ -418,6 +417,7 @@ class CodeMagics(Magics):
     @staticmethod
     def _find_edit_target(shell, args, opts, last_call):
         """Utility method used by magic_edit to find what to edit."""
+        from IPython.core.oinspect import find_file, find_source_lines
 
         def make_filename(arg):
             "Make a filename from the given args"

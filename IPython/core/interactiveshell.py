@@ -35,6 +35,7 @@ from logging import error
 from pathlib import Path
 from typing import Any as AnyType
 from typing import Literal
+from typing import TYPE_CHECKING
 from collections.abc import Sequence
 from warnings import warn
 import textwrap
@@ -61,7 +62,7 @@ from traitlets.config.configurable import SingletonConfigurable
 from traitlets.utils.importstring import import_item
 
 import IPython.core.hooks
-from IPython.core import magic, oinspect, page, prefilter, ultratb
+from IPython.core import magic, page, prefilter, ultratb
 from IPython.core.alias import Alias, AliasManager
 from IPython.core.autocall import ExitAutocall
 from IPython.core.builtin_trap import BuiltinTrap
@@ -94,7 +95,10 @@ from IPython.utils.process import get_output_error_code, getoutput, system
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import DollarFormatter, LSString, SList, format_screen
-from IPython.core.oinspect import OInfo
+
+if TYPE_CHECKING:
+    from IPython.core import oinspect
+    from IPython.core.oinspect import OInfo
 
 
 def sphinxify(oinfo):
@@ -356,7 +360,7 @@ class InteractiveShell(SingletonConfigurable):
     _user_ns: dict
     _sys_modules_keys: set[str]
 
-    inspector: oinspect.Inspector
+    inspector: "oinspect.Inspector"
 
     ast_transformers: List[ast.NodeTransformer] = List(
         [],
@@ -456,7 +460,9 @@ class InteractiveShell(SingletonConfigurable):
     display_pub_class = Type(DisplayPublisher)
     compiler_class = Type(CachingCompiler)
     inspector_class = Type(
-        oinspect.Inspector, help="Class to use to instantiate the shell inspector"
+        klass="IPython.core.oinspect.Inspector",
+        default_value="IPython.core.oinspect.Inspector",
+        help="Class to use to instantiate the shell inspector",
     ).tag(config=True)
 
     sphinxify_docstring = Bool(False, help=
@@ -1711,7 +1717,7 @@ class InteractiveShell(SingletonConfigurable):
 
     def _ofind(
         self, oname: str, namespaces: Sequence[tuple[str, AnyType]] | None = None
-    ) -> OInfo:
+    ) -> "OInfo":
         """Find an object in the available namespaces.
 
 
@@ -1727,6 +1733,8 @@ class InteractiveShell(SingletonConfigurable):
 
         Has special code to detect magic functions.
         """
+        from IPython.core.oinspect import OInfo
+
         oname = oname.strip()
         parts_ok, parts = self._find_parts(oname)
 
@@ -1873,7 +1881,7 @@ class InteractiveShell(SingletonConfigurable):
         # Nothing helped, fall back.
         return getattr(obj, attrname)
 
-    def _object_find(self, oname, namespaces=None) -> OInfo:
+    def _object_find(self, oname, namespaces=None) -> "OInfo":
         """Find an object and return a struct with info about it."""
         return self._ofind(oname, namespaces)
 
@@ -1882,7 +1890,9 @@ class InteractiveShell(SingletonConfigurable):
 
         This function is meant to be called by pdef, pdoc & friends.
         """
-        info: OInfo = self._object_find(oname, namespaces)
+        from IPython.core import oinspect
+
+        info = self._object_find(oname, namespaces)
         if self.sphinxify_docstring:
             try:
                 docformat = sphinxify(self.object_inspect(oname))
@@ -1914,6 +1924,8 @@ class InteractiveShell(SingletonConfigurable):
 
     def object_inspect(self, oname, detail_level=0):
         """Get object info about oname"""
+        from IPython.core import oinspect
+
         with self.builtin_trap:
             info = self._object_find(oname)
             if info.found:
