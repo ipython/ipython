@@ -20,7 +20,6 @@ from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.patch_stdout import patch_stdout
 
 
-import pygments.lexers as pygments_lexers
 import os
 import sys
 import traceback
@@ -215,6 +214,10 @@ class _LazyPygmentsLexer:
 
     def lex_document(self, document):
         if self._lexer is None:
+            # `pygments.lexers` is the expensive part: it pulls in the pygments
+            # plugin machinery, and with it importlib.metadata and zipfile
+            import pygments.lexers as pygments_lexers
+
             cls = getattr(pygments_lexers, self._pygments_cls_name)
             self._lexer = PygmentsLexer(cls)
         return self._lexer.lex_document(document)
