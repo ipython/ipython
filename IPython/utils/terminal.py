@@ -58,7 +58,7 @@ def toggle_set_term_title(val: bool):
     ignore_termtitle = not(val)
 
 
-def _set_term_title(*args,**kw):
+def _set_term_title(title: str) -> None:
     """Dummy no-op."""
     pass
 
@@ -70,7 +70,7 @@ def _restore_term_title():
 _xterm_term_title_saved = False
 
 
-def _set_term_title_xterm(title):
+def _set_term_title_xterm(title: str) -> None:
     """ Change virtual terminal title in xterm-workalikes """
     global _xterm_term_title_saved
     # Only save the title the first time we set, otherwise restore will only
@@ -107,12 +107,12 @@ elif sys.platform == 'win32':
     SetConsoleTitleW = ctypes.windll.kernel32.SetConsoleTitleW
     SetConsoleTitleW.argtypes = [ctypes.c_wchar_p]
 
-    def _set_term_title(title):
+    def _set_term_title(title: str) -> None:
         """Set terminal title using ctypes to access the Win32 APIs."""
         SetConsoleTitleW(title)
 
 
-def set_term_title(title):
+def set_term_title(title: str) -> None:
     """Set terminal title using the necessary platform-dependent calls."""
     if ignore_termtitle:
         return
