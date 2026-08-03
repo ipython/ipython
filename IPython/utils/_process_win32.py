@@ -158,7 +158,7 @@ def getoutput(cmd: str) -> str:
 
 
 try:
-    windll = ctypes.windll  # type: ignore [attr-defined]
+    windll = ctypes.windll  # type: ignore[attr-defined, unused-ignore]
     CommandLineToArgvW = windll.shell32.CommandLineToArgvW
     CommandLineToArgvW.argtypes = [LPCWSTR, POINTER(c_int)]
     CommandLineToArgvW.restype = POINTER(LPCWSTR)
