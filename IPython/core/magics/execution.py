@@ -7,7 +7,6 @@
 import ast
 import bdb
 import builtins as builtin_mod
-import cProfile as profile
 import gc
 import itertools
 import math
@@ -325,6 +324,7 @@ class ExecutionMagics(Magics):
             A dictionary for Python namespace (e.g., `self.shell.user_ns`).
 
         """
+        import cProfile as profile
         import pstats
 
         # Fill default values for unspecified options:
