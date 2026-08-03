@@ -35,6 +35,15 @@ from IPython.core.magic import (
     register_line_magic,
 )
 from IPython.core.magics import code, execution, logging, osm, script
+
+try:
+    # cProfile is stdlib but wraps the optional `_lsprof` extension, so an
+    # interpreter can be built without a working profiler
+    import cProfile  # noqa: F401
+
+    HAS_PROFILER = True
+except ImportError:
+    HAS_PROFILER = False
 from IPython.core.history import HistoryOutput
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
@@ -945,7 +954,7 @@ def test_timeit_raise_on_interrupt():
         thread.join()
 
 
-@dec.skipif(execution.profile is None)
+@dec.skipif(not HAS_PROFILER)
 def test_prun_special_syntax():
     "Test %%prun with IPython special syntax"
 
@@ -962,7 +971,7 @@ def test_prun_special_syntax():
     assert _ip.user_ns["lmagic_out"] == "my line2"
 
 
-@dec.skipif(execution.profile is None)
+@dec.skipif(not HAS_PROFILER)
 def test_prun_quotes():
     "Test that prun does not clobber string escapes (GH #1302)"
     _ip.run_line_magic("prun", r"-q x = '\t'")
