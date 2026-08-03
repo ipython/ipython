@@ -192,8 +192,6 @@ import string
 import sys
 import tokenize
 import time
-import unicodedata
-import uuid
 import warnings
 from ast import literal_eval
 from collections import defaultdict
@@ -210,18 +208,12 @@ from typing import (
 )
 from collections.abc import Iterable, Iterator, Sequence, Sized
 
-from IPython.core.guarded_eval import (
-    guarded_eval,
-    EvaluationContext,
-    _validate_policy_overrides,
-)
 from IPython.core.error import TryNext, UsageError
 from IPython.core.inputtransformer2 import (
     ESC_MAGIC,
     SystemAssign,
     make_tokens_by_line,
 )
-from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import generics
 from IPython.utils.PyColorize import theme_table
@@ -1077,12 +1069,16 @@ class Completer(Configurable):
 
     @observe("evaluation")
     def _evaluation_changed(self, _change):
+        from IPython.core.guarded_eval import _validate_policy_overrides
+
         _validate_policy_overrides(
             policy_name=self.evaluation, policy_overrides=self.policy_overrides
         )
 
     @observe("policy_overrides")
     def _policy_overrides_changed(self, _change):
+        from IPython.core.guarded_eval import _validate_policy_overrides
+
         _validate_policy_overrides(
             policy_name=self.evaluation, policy_overrides=self.policy_overrides
         )
@@ -1162,6 +1158,8 @@ class Completer(Configurable):
         defined in self.namespace or self.global_namespace that match.
 
         """
+        from IPython.core.guarded_eval import EvaluationContext, guarded_eval
+
         matches = []
         match_append = matches.append
         n = len(text)
@@ -1387,6 +1385,8 @@ class Completer(Configurable):
         return ""
 
     def _evaluate_expr(self, expr):
+        from IPython.core.guarded_eval import EvaluationContext, guarded_eval
+
         obj = not_found
         done = False
         while not done and expr:
@@ -1779,6 +1779,8 @@ def back_unicode_name_matches(text: str) -> tuple[str, Sequence[str]]:
     - a sequence (of 1), name for the match Unicode character, preceded by
         backslash, or empty if no match.
     """
+    import unicodedata
+
     if len(text)<2:
         return '', ()
     maybe_slash = text[-2]
@@ -1804,6 +1806,8 @@ def back_latex_name_matcher(context: CompletionContext) -> SimpleMatcherResult:
 
     This does ``\\ℵ`` -> ``\\aleph``
     """
+    from IPython.core.latex_symbols import reverse_latex_symbol
+
 
     text = context.text_until_cursor
     no_match = {
@@ -3038,6 +3042,7 @@ class IPCompleter(Completer):
         .. deprecated:: 8.6
             You can use :meth:`dict_key_matcher` instead.
         """
+        from IPython.core.guarded_eval import EvaluationContext, guarded_eval
 
         # Short-circuit on closed dictionary (regular expression would
         # not match anyway, but would take quite a while).
@@ -3161,6 +3166,8 @@ class IPCompleter(Completer):
         Works only on valid python 3 identifier, or on combining characters that
         will combine to form a valid identifier.
         """
+        import unicodedata
+
 
         text = context.text_until_cursor
 
@@ -3202,6 +3209,8 @@ class IPCompleter(Completer):
         .. deprecated:: 8.6
             You can use :meth:`latex_name_matcher` instead.
         """
+        from IPython.core.latex_symbols import latex_symbols
+
         slashpos = text.rfind('\\')
         if slashpos > -1:
             s = text[slashpos:]
@@ -3329,6 +3338,8 @@ class IPCompleter(Completer):
             completions are coming from different sources this function does not
             ensure that each completion object will only be present once.
         """
+        import uuid
+
         warnings.warn("_complete is a provisional API (as of IPython 6.0). "
                       "It may change without warnings. "
                       "Use in corresponding context manager.",
@@ -3845,6 +3856,8 @@ class IPCompleter(Completer):
 
         The list is lazily initialized on first access.
         """
+        import unicodedata
+
         if self._unicode_names is None:
             names = []
             for c in range(0,0x10FFFF + 1):
@@ -3858,6 +3871,8 @@ class IPCompleter(Completer):
 
 
 def _unicode_name_compute(ranges: list[tuple[int, int]]) -> list[str]:
+    import unicodedata
+
     names = []
     for start,stop in ranges:
         for c in range(start, stop) :
