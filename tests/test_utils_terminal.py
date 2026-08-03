@@ -133,7 +133,8 @@ def test_get_terminal_size_from_environment(monkeypatch):
 
 
 def test_get_terminal_size_defaults(monkeypatch):
-    # shutil.get_terminal_size falls back to the passed default values
-    monkeypatch.setattr(terminal, "_get_terminal_size", lambda fallback: fallback)
+    # shutil.get_terminal_size falls back to the passed default values.
+    # get_terminal_size imports it when it runs, so patch it in shutil.
+    monkeypatch.setattr("shutil.get_terminal_size", lambda fallback: fallback)
     assert terminal.get_terminal_size() == (80, 25)
     assert terminal.get_terminal_size(100, 50) == (100, 50)

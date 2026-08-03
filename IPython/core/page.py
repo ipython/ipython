@@ -17,8 +17,6 @@ import os
 import io
 import re
 import sys
-import tempfile
-import subprocess
 
 from io import UnsupportedOperation
 from pathlib import Path
@@ -27,7 +25,6 @@ from IPython.core.getipython import get_ipython
 from IPython.display import display
 from IPython.core.error import TryNext
 from IPython.utils.data import chop
-from IPython.utils.process import system
 from IPython.utils.terminal import get_terminal_size
 
 
@@ -193,6 +190,7 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None) -> None:
                 # The default WinXP 'type' command is failing on complex strings.
                 retval = 1
             else:
+                import tempfile
                 fd, tmpname = tempfile.mkstemp('.txt')
                 tmppath = Path(tmpname)
                 try:
@@ -211,6 +209,7 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None) -> None:
             try:
                 retval = None
                 # Emulate os.popen, but redirect stderr
+                import subprocess
                 proc = subprocess.Popen(
                     pager_cmd,
                     shell=True,
@@ -272,6 +271,7 @@ def page_file(fname, start=0, pager_cmd=None):
     try:
         if os.environ['TERM'] in ['emacs','dumb']:
             raise OSError
+        from IPython.utils.process import system
         system(pager_cmd + ' ' + fname)
     except Exception:
         try:
