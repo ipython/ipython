@@ -9,7 +9,6 @@ import bdb
 import builtins as builtin_mod
 import gc
 import itertools
-import math
 import os
 import re
 import shlex
@@ -89,10 +88,12 @@ class TimeitResult:
 
     @property
     def average(self):
+        import math
         return math.fsum(self.timings) / len(self.timings)
 
     @property
     def stdev(self):
+        import math
         mean = self.average
         return (math.fsum([(x - mean) ** 2 for x in self.timings]) / len(self.timings)) ** 0.5
 
@@ -1706,6 +1707,7 @@ def _format_time(timespan, precision=3):
     scaling = [1, 1e3, 1e6, 1e9]
 
     if timespan > 0.0:
+        import math
         order = min(-int(math.floor(math.log10(timespan)) // 3), 3)
     else:
         order = 3
