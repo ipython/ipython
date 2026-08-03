@@ -1,9 +1,40 @@
 # Implements https://sw.kovidgoyal.net/kitty/graphics-protocol/
 
 from base64 import b64encode, b64decode
+import os
 import sys
+import warnings
+
+#: Set ``IPYTHON_KITTY_GRAPHICS`` to ``1``/``true`` or ``0``/``false`` to state
+#: outright whether the terminal speaks the kitty graphics protocol. Unset (or
+#: empty) autodetects. Forcing it also skips the detection itself, which walks
+#: the process tree and is the reason IPython imports psutil at startup.
+_FORCE_ENVVAR = "IPYTHON_KITTY_GRAPHICS"
+
+
+def _forced_kitty_graphics() -> bool | None:
+    """Whether the user has stated support explicitly; None to autodetect."""
+    value = os.environ.get(_FORCE_ENVVAR)
+    if value is None or value == "":
+        return None
+    if value.lower() in {"1", "true"}:
+        return True
+    if value.lower() in {"0", "false"}:
+        return False
+    warnings.warn(
+        f"Ignoring {_FORCE_ENVVAR}={value!r}: expected one of"
+        " '0', '1', 'false', 'true' or '' (autodetect).",
+        UserWarning,
+        stacklevel=2,
+    )
+    return None
+
 
 def _supports_kitty_graphics() -> bool:
+    forced = _forced_kitty_graphics()
+    if forced is not None:
+        return forced
+
     import platform
 
     if platform.system() not in ("Darwin", "Linux"):
