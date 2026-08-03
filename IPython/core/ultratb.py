@@ -58,6 +58,8 @@ Inheritance diagram:
    :parts: 3
 """
 
+from __future__ import annotations
+
 # *****************************************************************************
 # Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
 # Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -66,11 +68,9 @@ Inheritance diagram:
 # the file COPYING, distributed as part of this software.
 # *****************************************************************************
 
-import inspect
 import linecache
 import sys
 import time
-import traceback
 import types
 import warnings
 from collections.abc import Sequence
@@ -101,6 +101,7 @@ from .tbtools import (
 if TYPE_CHECKING:
     import stack_data
     from IPython.utils.PyColorize import TokenStream
+    import traceback
 
 # Globals
 # amount of space to put line numbers before verbose tracebacks
@@ -141,6 +142,7 @@ class ListTB(TBTools):
         self.ostream.write("\n")
 
     def _extract_tb(self, tb: TracebackType | None) -> traceback.StackSummary | None:
+        import traceback
         if tb:
             return traceback.extract_tb(tb)
         else:
@@ -566,6 +568,7 @@ class VerboseTB(TBTools):
 
     def format_record(self, frame_info: FrameInfo) -> str:
         """Format a single stack frame"""
+        import inspect
         import stack_data
         from IPython.utils.PyColorize import theme_table
 
@@ -868,6 +871,7 @@ class VerboseTB(TBTools):
         return [[head] + frames + formatted_exception]
 
     def get_records(self, etb: TracebackType, context: int, tb_offset: int) -> Any:
+        import inspect
         import stack_data
 
         from IPython.utils.PyColorize import theme_table

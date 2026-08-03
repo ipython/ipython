@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import functools
-import inspect
 import sys
 import types
 import warnings
@@ -336,6 +335,7 @@ class FrameInfo:
         if sd is None:
             try:
                 # return a list of source lines and a starting line number
+                import inspect
                 self.raw_lines = inspect.getsourcelines(frame)[0]
             except OSError:
                 self.raw_lines = [
