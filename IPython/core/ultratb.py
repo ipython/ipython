@@ -79,11 +79,9 @@ from typing import Any
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.token import Token
 
 from IPython.core.getipython import get_ipython
-from IPython.utils.PyColorize import Parser, TokenStream, theme_table
 from IPython.utils.terminal import get_terminal_size
 
 from .display_trap import DisplayTrap
@@ -102,6 +100,7 @@ from .tbtools import (
 
 if TYPE_CHECKING:
     import stack_data
+    from IPython.utils.PyColorize import TokenStream
 
 # Globals
 # amount of space to put line numbers before verbose tracebacks
@@ -181,6 +180,7 @@ class ListTB(TBTools):
         # (see the recursive self.structured_traceback() call below), and can
         # also be a pre-built list of frames per the docstring above; neither
         # is expressible in the public `TracebackType | None` signature.
+        from IPython.utils.PyColorize import theme_table
         if isinstance(etb, tuple):
             etb, chained_exc_ids = etb  # type: ignore[unreachable]
         else:
@@ -254,6 +254,7 @@ class ListTB(TBTools):
 
         Lifted almost verbatim from traceback.py
         """
+        from IPython.utils.PyColorize import theme_table
 
         output_list = []
         for ind, (filename, lineno, name, line) in enumerate(extracted_list):
@@ -304,6 +305,8 @@ class ListTB(TBTools):
 
         Also lifted nearly verbatim from traceback.py
         """
+        from IPython.utils.PyColorize import theme_table
+
         have_filedata = False
         output_list = []
         stype_tokens = [(Token.ExcName, etype.__name__)]
@@ -564,6 +567,7 @@ class VerboseTB(TBTools):
     def format_record(self, frame_info: FrameInfo) -> str:
         """Format a single stack frame"""
         import stack_data
+        from IPython.utils.PyColorize import theme_table
 
         assert isinstance(frame_info, FrameInfo)
 
@@ -667,6 +671,7 @@ class VerboseTB(TBTools):
                 ]
             )
 
+            from IPython.utils.PyColorize import Parser
             _line_format = Parser(theme_name=self._theme_name).format2
             assert isinstance(frame_info.code, types.CodeType)
             first_line: int = frame_info.code.co_firstlineno
@@ -718,6 +723,7 @@ class VerboseTB(TBTools):
 
     def prepare_header(self, etype: str, long_version: bool = False) -> str:
         width = min(75, get_terminal_size()[0])
+        from IPython.utils.PyColorize import theme_table
         if long_version:
             # Header with the exception type, python version, and date
             pyver = "Python " + sys.version.split()[0] + ": " + sys.executable
@@ -753,6 +759,8 @@ class VerboseTB(TBTools):
         return head
 
     def format_exception(self, etype, evalue):
+        from IPython.utils.PyColorize import theme_table
+
         # Get (safely) a string form of the exception info
         try:
             etype_str, evalue_str = map(str, (etype, evalue))
@@ -796,6 +804,8 @@ class VerboseTB(TBTools):
         (PEP 3134).
         """
         import stack_data
+
+        from IPython.utils.PyColorize import theme_table
 
         # some locals
         orig_etype = etype
@@ -860,6 +870,8 @@ class VerboseTB(TBTools):
     def get_records(self, etb: TracebackType, context: int, tb_offset: int) -> Any:
         import stack_data
 
+        from IPython.utils.PyColorize import theme_table
+
         assert etb is not None
         context = context - 1
         after = context // 2
@@ -869,6 +881,7 @@ class VerboseTB(TBTools):
             base_style = theme.as_pygments_style()
             tb_highlight = theme.extra_style.get(Token.TbHighlight, self.tb_highlight)
             style = stack_data.style_with_executing_node(base_style, tb_highlight)
+            from pygments.formatters.terminal256 import Terminal256Formatter
             formatter = Terminal256Formatter(style=style)
         else:
             formatter = None
@@ -952,6 +965,8 @@ class VerboseTB(TBTools):
         context: int = 5,
     ) -> list[str]:
         """Return a nice text document describing the traceback."""
+        from IPython.utils.PyColorize import theme_table
+
         formatted_exceptions: list[list[str]] = self.format_exception_as_a_whole(
             etype, evalue, etb, context, tb_offset
         )
