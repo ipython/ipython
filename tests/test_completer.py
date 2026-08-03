@@ -2829,7 +2829,6 @@ def test_completion_in_cli_context(line, expected, expected_after_assignment):
         ip.user_ns.pop("test_alias", None)
 
 
-@pytest.mark.xfail(reason="Completion context not yet supported")
 @pytest.mark.parametrize(
     "line, expected",
     [
