@@ -14,7 +14,6 @@ object and then create the configurable objects, passing the config to them.
 import atexit
 from copy import deepcopy
 import os
-import shutil
 import sys
 
 from pathlib import Path
@@ -313,6 +312,7 @@ class BaseIPythonApplication(Application):
                 get_ipython_package_dir(), "config", "profile", "README"
             )
             if not os.path.exists(readme) and os.path.exists(readme_src):
+                import shutil
                 shutil.copy(readme_src, readme)
             for d in ("extensions", "nbextensions"):
                 path = os.path.join(new, d)
