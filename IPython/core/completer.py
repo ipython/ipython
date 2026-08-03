@@ -2615,8 +2615,11 @@ class IPCompleter(Completer):
         if is_string and not is_in_expression:
             return self._CompletionContextType.GLOBAL
 
-        # If we're in a template string expression, handle specially
-        if is_string and is_in_expression:
+        # If we're in a template string expression, handle specially.
+        # Note that ``is_string`` may be False here for nested template strings
+        # (``f'{f'a.``) as the naive quote tracking sees the inner opening quote
+        # as closing the outer one; the recursion below sorts this out.
+        if is_in_expression:
             # Extract the expression part - look for the last { that isn't closed
             expr_start = line.rfind("{")
             if expr_start >= 0:
@@ -2631,11 +2634,118 @@ class IPCompleter(Completer):
             return self._CompletionContextType.GLOBAL
 
         # Handle all other attribute matches np.ran, d[0].k, (a,b).count, obj._private
-        chain_match = re.search(r".*(.+(?<!\s)\.(?:[a-zA-Z_]\w*)?)$", line)
-        if chain_match:
-            return self._CompletionContextType.ATTRIBUTE
+        # A trailing dot is only an attribute access if what precedes it is a
+        # valid Python expression; malformed input such as ``3a.`` or ``$).``
+        # is not, and falls back to global completion.
+        target = self._extract_attribute_target(line)
+        if target is not None:
+            try:
+                ast.parse(target, mode="eval")
+            except (SyntaxError, ValueError):
+                pass
+            else:
+                return self._CompletionContextType.ATTRIBUTE
 
         return self._CompletionContextType.GLOBAL
+
+    def _extract_attribute_target(self, line: str) -> str | None:
+        """Extract the expression a trailing ``.attr`` would be looked up on.
+
+        Scan *line* backwards from the last dot (which must be followed by at
+        most an identifier and nothing else) and return the primary expression
+        preceding it, or ``None`` if there is no trailing attribute access or
+        no plausible expression in front of it.
+        """
+        match = re.search(r"\.(?:[a-zA-Z_]\w*)?$", line)
+        if match is None:
+            return None
+        dot = match.start()
+        i = dot - 1
+        while i >= 0:
+            char = line[i]
+            if char in ")]":
+                # A call or subscript trailer, or a parenthesized/list atom;
+                # whatever precedes it may still be part of the expression.
+                i = self._skip_backwards_over_brackets(line, i)
+                if i is None:
+                    return None
+                continue
+            if char == "}":
+                # A dict/set display; nothing may precede it.
+                i = self._skip_backwards_over_brackets(line, i)
+                if i is None:
+                    return None
+                break
+            if char in "\"'":
+                # A string literal; nothing but its prefix may precede it.
+                i = self._skip_backwards_over_string(line, i)
+                if i is None:
+                    return None
+                break
+            if char.isalnum() or char == "_":
+                while i >= 0 and (line[i].isalnum() or line[i] == "_"):
+                    i -= 1
+                # a name or number may itself be an attribute of something else
+                if i >= 0 and line[i] == ".":
+                    i -= 1
+                    continue
+                break
+            # anything else (operator, bracket, whitespace, ...) ends the
+            # expression
+            break
+        return line[i + 1 : dot] or None
+
+    def _skip_backwards_over_brackets(self, line: str, i: int) -> int | None:
+        """Skip a bracketed group ending at index *i* (a closing bracket).
+
+        Return the index just before the matching opening bracket, or ``None``
+        if the brackets are unbalanced.
+        """
+        depth = 0
+        while i >= 0:
+            char = line[i]
+            if char in "\"'":
+                skipped = self._skip_backwards_over_string(line, i)
+                if skipped is None:
+                    return None
+                i = skipped
+                continue
+            if char in ")]}":
+                depth += 1
+            elif char in "([{":
+                depth -= 1
+                if depth == 0:
+                    return i - 1
+                if depth < 0:
+                    return None
+            i -= 1
+        return None
+
+    def _skip_backwards_over_string(self, line: str, i: int) -> int | None:
+        """Skip a string literal ending at index *i* (its closing quote).
+
+        Return the index just before the opening quote (and any string prefix),
+        or ``None`` if no opening quote was found.
+        """
+        quote = line[i]
+        j = i - 1
+        while j >= 0:
+            if line[j] == quote:
+                backslashes = 0
+                k = j - 1
+                while k >= 0 and line[k] == "\\":
+                    backslashes += 1
+                    k -= 1
+                if backslashes % 2 == 0:
+                    break
+            j -= 1
+        else:
+            return None
+        j -= 1
+        # skip any string prefix (r, b, u, f, t and combinations thereof)
+        while j >= 0 and line[j] in "bBrRuUfFtT":
+            j -= 1
+        return j
 
     def _is_completing_in_cli_context(self, text: str) -> bool:
         """
