@@ -33,7 +33,6 @@ from contextlib import contextmanager
 from io import open as io_open
 from logging import error
 from pathlib import Path
-from collections.abc import Callable
 from typing import Any as AnyType
 from typing import Literal
 from collections.abc import Sequence
@@ -67,7 +66,6 @@ from IPython.core.alias import Alias, AliasManager
 from IPython.core.autocall import ExitAutocall
 from IPython.core.builtin_trap import BuiltinTrap
 from IPython.core.compilerop import CachingCompiler
-from IPython.core.debugger import InterruptiblePdb
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.displayhook import DisplayHook
 from IPython.core.displaypub import DisplayPublisher
@@ -99,24 +97,22 @@ from IPython.utils.text import DollarFormatter, LSString, SList, format_screen
 from IPython.core.oinspect import OInfo
 
 
-sphinxify: Callable | None
-
-try:
+def sphinxify(oinfo):
+    # docrepr (and the sphinx it pulls in) is only needed for the
+    # provisional `sphinxify_docstring` feature, so import it lazily
+    # here instead of paying the cost on every `import IPython`.
     import docrepr.sphinxify as sphx
 
-    def sphinxify(oinfo):
-        wrapped_docstring = sphx.wrap_main_docstring(oinfo)
+    wrapped_docstring = sphx.wrap_main_docstring(oinfo)
 
-        def sphinxify_docstring(docstring):
-            with TemporaryDirectory() as dirname:
-                return {
-                    "text/html": sphx.sphinxify(wrapped_docstring, dirname),
-                    "text/plain": docstring,
-                }
+    def sphinxify_docstring(docstring):
+        with TemporaryDirectory() as dirname:
+            return {
+                "text/html": sphx.sphinxify(wrapped_docstring, dirname),
+                "text/plain": docstring,
+            }
 
-        return sphinxify_docstring
-except ImportError:
-    sphinxify = None
+    return sphinxify_docstring
 
 
 class ProvisionalWarning(DeprecationWarning):
@@ -1888,9 +1884,10 @@ class InteractiveShell(SingletonConfigurable):
         """
         info: OInfo = self._object_find(oname, namespaces)
         if self.sphinxify_docstring:
-            if sphinxify is None:
+            try:
+                docformat = sphinxify(self.object_inspect(oname))
+            except ImportError:
                 raise ImportError("Module ``docrepr`` required but missing")
-            docformat = sphinxify(self.object_inspect(oname))
         else:
             docformat = None
         if info.found or hasattr(info.parent, oinspect.HOOK_NAME):
@@ -1940,9 +1937,10 @@ class InteractiveShell(SingletonConfigurable):
             info = self._object_find(oname)
             if info.found:
                 if self.sphinxify_docstring:
-                    if sphinxify is None:
+                    try:
+                        docformat = sphinxify(self.object_inspect(oname))
+                    except ImportError:
                         raise ImportError("Module ``docrepr`` required but missing")
-                    docformat = sphinxify(self.object_inspect(oname))
                 else:
                     docformat = None
                 return self.inspector._get_info(
@@ -1969,7 +1967,14 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to exception handling and tracebacks (not debugging)
     #-------------------------------------------------------------------------
 
-    debugger_cls = InterruptiblePdb
+    @property
+    def debugger_cls(self):
+        # Deferred so that `pdb` (and everything it drags in) is only
+        # imported the first time a debugger is actually needed, rather
+        # than on every IPython startup.
+        from IPython.core.debugger import InterruptiblePdb
+
+        return InterruptiblePdb
 
     def init_traceback_handlers(self, custom_exceptions) -> None:
         # Syntax error handler.
@@ -1982,7 +1987,6 @@ class InteractiveShell(SingletonConfigurable):
             mode=self.xmode,
             theme_name=self.colors,
             tb_offset=1,
-            debugger_cls=self.debugger_cls,
         )
 
         # The instance will store a pointer to the system-wide exception hook,

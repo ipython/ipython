@@ -48,7 +48,6 @@ from prompt_toolkit.styles.pygments import style_from_pygments_cls, style_from_p
 from pygments.styles import get_style_by_name
 from pygments.style import Style
 
-from .debugger import TerminalPdb, Pdb
 from .magics import TerminalMagics
 from .pt_inputhooks import get_inputhook_name_and_func
 from .prompts import Prompts, ClassicPrompts, RichPromptDisplayHook
@@ -247,6 +246,11 @@ class TerminalInteractiveShell(InteractiveShell):
 
     @property
     def debugger_cls(self):
+        # Deferred: `.debugger` (and everything it drags in, including
+        # pdb and prompt_toolkit-based pieces) is only imported the first
+        # time a debugger class is actually needed.
+        from .debugger import TerminalPdb, Pdb
+
         return Pdb if self.simple_prompt else TerminalPdb
 
     confirm_exit = Bool(True,

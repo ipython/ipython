@@ -77,8 +77,8 @@ from collections.abc import Sequence
 from types import TracebackType
 from typing import Any
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 
-import stack_data
 from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.token import Token
 
@@ -99,6 +99,9 @@ from .tbtools import (
     get_line_number_of_frame,
     nullrepr,
 )
+
+if TYPE_CHECKING:
+    import stack_data
 
 # Globals
 # amount of space to put line numbers before verbose tracebacks
@@ -560,6 +563,8 @@ class VerboseTB(TBTools):
 
     def format_record(self, frame_info: FrameInfo) -> str:
         """Format a single stack frame"""
+        import stack_data
+
         assert isinstance(frame_info, FrameInfo)
 
         if isinstance(frame_info._sd, stack_data.RepeatedFrames):
@@ -790,6 +795,8 @@ class VerboseTB(TBTools):
         This may be called multiple times by Python 3 exception chaining
         (PEP 3134).
         """
+        import stack_data
+
         # some locals
         orig_etype = etype
         try:
@@ -851,6 +858,8 @@ class VerboseTB(TBTools):
         return [[head] + frames + formatted_exception]
 
     def get_records(self, etb: TracebackType, context: int, tb_offset: int) -> Any:
+        import stack_data
+
         assert etb is not None
         context = context - 1
         after = context // 2

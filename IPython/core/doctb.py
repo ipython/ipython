@@ -1,12 +1,13 @@
+from __future__ import annotations
+
 import inspect
 import linecache
 import sys
 from collections.abc import Sequence
 from types import TracebackType
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from collections.abc import Callable
 
-import stack_data
 from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.token import Token
 
@@ -22,6 +23,9 @@ from .tbtools import (
     get_line_number_of_frame,
     nullrepr,
 )
+
+if TYPE_CHECKING:
+    import stack_data
 
 INDENT_SIZE = 8
 
@@ -41,6 +45,8 @@ def _format_traceback_lines(
     ----------
     lines : list[Line | LineGap]
     """
+    import stack_data
+
     numbers_width = INDENT_SIZE - 1
     tokens: TokenStream = [(Token, "\n")]
 
@@ -136,6 +142,8 @@ class DocTB(TBTools):
 
     def format_record(self, frame_info: FrameInfo) -> str:
         """Format a single stack frame"""
+        import stack_data
+
         assert isinstance(frame_info, FrameInfo)
 
         if isinstance(frame_info._sd, stack_data.RepeatedFrames):
@@ -323,6 +331,8 @@ class DocTB(TBTools):
         return [[head] + frames + formatted_exception]
 
     def get_records(self, etb: TracebackType, context: int, tb_offset: int) -> Any:
+        import stack_data
+
         assert context == 1, context
         assert etb is not None
         context = context - 1
