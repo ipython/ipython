@@ -2,7 +2,6 @@
 
 Authors : MinRK, gregcaporaso, dannystaple
 """
-from html import escape as html_escape
 from os.path import exists, isfile, splitext, abspath, join, isdir
 from os import walk, sep, fsdecode
 
@@ -240,6 +239,8 @@ class Audio(DisplayObject):
             return """data:{type};base64,{base64}""".format(type=self.mimetype,
                                                             base64=data)
         elif self.url is not None:
+            from html import escape as html_escape
+
             return html_escape(self.url)
         else:
             return ""
@@ -252,6 +253,8 @@ class Audio(DisplayObject):
 
     def element_id_attr(self):
         if (self.element_id):
+            from html import escape as html_escape
+
             return f'id="{html_escape(self.element_id)}"'
         else:
             return ''
@@ -286,6 +289,8 @@ class IFrame:
 
     def _repr_html_(self):
         """return the embed iframe"""
+        from html import escape as html_escape
+
         if self.params:
             from urllib.parse import urlencode
             params = "?" + urlencode(self.params)
@@ -412,6 +417,8 @@ class FileLink:
         self.result_html_suffix = result_html_suffix
 
     def _format_path(self):
+        from html import escape as html_escape
+
         fp = ''.join([self.url_prefix, html_escape(self.path)])
         return ''.join([self.result_html_prefix,
                         self.html_link_str % \
@@ -539,7 +546,12 @@ class FileLinks(FileLink):
         escape_names: whether directory and file names must be HTML-escaped
          before being substituted, as they are for the notebook formatter
         """
-        escape = html_escape if escape_names else str
+        if escape_names:
+            from html import escape as html_escape
+
+            escape = html_escape
+        else:
+            escape = str
 
         def f(dirname, fnames, included_suffixes=None):
             result = []

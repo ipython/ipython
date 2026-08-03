@@ -60,21 +60,30 @@ def test_detect_screen_size():
 
 def test_display_page_string(monkeypatch):
     calls = []
-    monkeypatch.setattr(page, "display", lambda data, raw: calls.append((data, raw)))
+    # display_page imports display when it runs, so patch it at the source
+    monkeypatch.setattr(
+        "IPython.display.display", lambda data, raw: calls.append((data, raw))
+    )
     page.display_page("a\nb\nc", start=1)
     assert calls == [({"text/plain": "b\nc"}, True)]
 
 
 def test_display_page_string_no_start(monkeypatch):
     calls = []
-    monkeypatch.setattr(page, "display", lambda data, raw: calls.append((data, raw)))
+    # display_page imports display when it runs, so patch it at the source
+    monkeypatch.setattr(
+        "IPython.display.display", lambda data, raw: calls.append((data, raw))
+    )
     page.display_page("hello")
     assert calls == [({"text/plain": "hello"}, True)]
 
 
 def test_display_page_dict(monkeypatch):
     calls = []
-    monkeypatch.setattr(page, "display", lambda data, raw: calls.append((data, raw)))
+    # display_page imports display when it runs, so patch it at the source
+    monkeypatch.setattr(
+        "IPython.display.display", lambda data, raw: calls.append((data, raw))
+    )
     bundle = {"text/plain": "hi", "text/html": "<b>hi</b>"}
     page.display_page(bundle, start=3)
     # mime-bundles are passed through untouched; start is ignored
