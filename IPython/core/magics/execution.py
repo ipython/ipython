@@ -5,7 +5,6 @@
 
 
 import ast
-import bdb
 import builtins as builtin_mod
 import gc
 import itertools
@@ -46,7 +45,6 @@ from IPython.utils.ipstruct import Struct
 from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, shellglob
 from IPython.utils.process import arg_split_with_quotes
-from IPython.utils.timing import clock, clock2
 from IPython.core.magics.ast_mod import ReplaceCodeTransformer
 
 #-----------------------------------------------------------------------------
@@ -938,6 +936,7 @@ class ExecutionMagics(Magics):
 
         # reset Breakpoint state, which is moronically kept
         # in a class
+        import bdb
         bdb.Breakpoint.next = 1
         bdb.Breakpoint.bplist = {}
         bdb.Breakpoint.bpbynumber = [None]
@@ -1022,6 +1021,8 @@ class ExecutionMagics(Magics):
             Number of times to execute `run`.
 
         """
+        from IPython.utils.timing import clock2
+
         twall0 = time.perf_counter()
         if nruns == 1:
             t0 = clock2()
@@ -1138,6 +1139,8 @@ class ExecutionMagics(Magics):
         statement to import function or create variables. Generally, the bias
         does not matter as long as results from timeit.py are not mixed with
         those from ``%timeit``."""
+        from IPython.utils.timing import clock
+
 
         # TODO: port to magic_arguments as currently this is duplicated in IPCompleter._extract_code
         opts, stmt = self.parse_options(
@@ -1344,6 +1347,8 @@ class ExecutionMagics(Magics):
                 Wall time: 0.00 s
                 Compiler : 0.78 s
         """
+        from IPython.utils.timing import clock, clock2
+
         args, extra = magic_arguments.parse_argstring(self.time, line, partial=True)
         line = " ".join(extra)
 
