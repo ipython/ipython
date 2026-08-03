@@ -32,7 +32,6 @@ from collections.abc import Sequence
 from warnings import warn
 import textwrap
 
-from IPython.external.pickleshare import PickleShareDB
 
 from traitlets import (
     Any,
@@ -650,11 +649,6 @@ class InteractiveShell(SingletonConfigurable):
         self.save_sys_module_state()
         self.init_sys_modules()
 
-        # While we're trying to have each part of the code directly access what
-        # it needs without keeping redundant references to objects, we have too
-        # much legacy code that expects ip.db to exist.
-        self.db = PickleShareDB(os.path.join(self.profile_dir.location, 'db'))
-
         self.init_history()
         self.init_encoding()
         self.init_prefilter()
@@ -696,6 +690,27 @@ class InteractiveShell(SingletonConfigurable):
         # `ipykernel.kernelapp`.
         self.trio_runner = None
         self.showing_traceback = False
+
+    _db = None
+
+    @property
+    def db(self):
+        """A key/value store persisted in the profile directory.
+
+        Plenty of legacy code expects ``ip.db`` to exist, but a session that
+        never touches it should not pay for `pickleshare` (and `pickle`
+        underneath it) at startup, nor create the database directory, so it is
+        built on first access.
+        """
+        if self._db is None:
+            from IPython.external.pickleshare import PickleShareDB
+
+            self._db = PickleShareDB(os.path.join(self.profile_dir.location, "db"))
+        return self._db
+
+    @db.setter
+    def db(self, value):
+        self._db = value
 
     @property
     def user_ns(self):
