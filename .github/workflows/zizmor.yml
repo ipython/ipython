@@ -17,7 +17,7 @@ jobs:
       # Needed to upload the results to the code-scanning dashboard.
       security-events: write
     steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       with:
         persist-credentials: false
     - name: Install uv
@@ -30,7 +30,7 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Upload SARIF results
       if: always()
-      uses: github/codeql-action/upload-sarif@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v3
+      uses: github/codeql-action/upload-sarif@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4
       with:
         sarif_file: results.sarif
         category: zizmor
