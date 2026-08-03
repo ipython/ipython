@@ -45,6 +45,10 @@ from typing import cast
 from warnings import warn
 from weakref import ref, WeakSet
 
+from collections.abc import Callable, Iterator
+from weakref import ReferenceType
+
+
 if TYPE_CHECKING:
     import sqlite3
     from types import TracebackType
@@ -1216,9 +1220,6 @@ class HistoryManager(HistoryAccessor):
 if hasattr(os, "register_at_fork"):
     os.register_at_fork(before=HistoryManager._stop_thread)
 
-
-from collections.abc import Callable, Iterator
-from weakref import ReferenceType
 
 
 @contextmanager
