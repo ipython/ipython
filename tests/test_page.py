@@ -285,7 +285,8 @@ def test_pager_page_broken_pipe(page_mod, monkeypatch):
     def raise_broken_pipe(*args, **kwargs):
         raise OSError(32, "Broken pipe")
 
-    monkeypatch.setattr(page_mod.subprocess, "Popen", raise_broken_pipe)
+    # pager_page imports subprocess when it runs, so patch it at the source
+    monkeypatch.setattr("subprocess.Popen", raise_broken_pipe)
     text = "\n".join("line %d" % i for i in range(50))
     page_mod.pager_page(text, screen_lines=10, pager_cmd="cat > /dev/null")
     assert dumb_calls == []
@@ -302,7 +303,8 @@ def test_pager_page_oserror_falls_back(page_mod, monkeypatch):
     def raise_oserror(*args, **kwargs):
         raise OSError("no such pager")
 
-    monkeypatch.setattr(page_mod.subprocess, "Popen", raise_oserror)
+    # pager_page imports subprocess when it runs, so patch it at the source
+    monkeypatch.setattr("subprocess.Popen", raise_oserror)
     text = "\n".join("line %d" % i for i in range(50))
     page_mod.pager_page(text, screen_lines=10, pager_cmd="cat > /dev/null")
     assert dumb_calls == [text]
@@ -370,7 +372,10 @@ def test_page_file_uses_system_pager(page_mod, monkeypatch, tmp_path):
     # keep 'less' unmodified by get_pager_cmd so get_pager_start matches it
     monkeypatch.setenv("LESS", "-r")
     commands = []
-    monkeypatch.setattr(page_mod, "system", lambda cmd: commands.append(cmd))
+    # page_file imports `system` when it runs, so patch it where it is defined
+    monkeypatch.setattr(
+        "IPython.utils.process.system", lambda cmd: commands.append(cmd)
+    )
     fname = tmp_path / "some_file.txt"
     fname.write_text("contents", encoding="utf-8")
     page_mod.page_file(str(fname), start=2, pager_cmd="less")

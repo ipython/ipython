@@ -13,25 +13,17 @@
 import abc
 import ast
 import atexit
-import bdb
 import builtins as builtin_mod
 import functools
-import inspect
 import os
 import re
 import runpy
-import shutil
-import subprocess
-from subprocess import CalledProcessError
 import sys
-import tempfile
-import traceback
 import types
 import warnings
 from ast import stmt
 from contextlib import contextmanager
 from io import open as io_open
-from logging import error
 from pathlib import Path
 from typing import Any as AnyType
 from typing import Literal
@@ -42,7 +34,6 @@ import textwrap
 
 from IPython.external.pickleshare import PickleShareDB
 
-from tempfile import TemporaryDirectory
 from traitlets import (
     Any,
     Bool,
@@ -110,6 +101,8 @@ def sphinxify(oinfo):
     wrapped_docstring = sphx.wrap_main_docstring(oinfo)
 
     def sphinxify_docstring(docstring):
+        from tempfile import TemporaryDirectory
+
         with TemporaryDirectory() as dirname:
             return {
                 "text/html": sphx.sphinxify(wrapped_docstring, dirname),
@@ -1245,6 +1238,7 @@ class InteractiveShell(SingletonConfigurable):
             return
 
         if not hasattr(sys,'last_traceback'):
+            from logging import error
             error('No traceback has been produced, nothing to debug.')
             return
 
@@ -2185,6 +2179,7 @@ class InteractiveShell(SingletonConfigurable):
         Return as a string (ending with a newline) the exception that
         just occurred, without any traceback.
         """
+        import traceback
         etype, value, tb = self._get_exc_info(exc_tuple)
         msg = traceback.format_exception_only(etype, value)
         return ''.join(msg)
@@ -2239,6 +2234,7 @@ class InteractiveShell(SingletonConfigurable):
                     if contains_exceptiongroup(value):
                         # fall back to native exception formatting until ultratb
                         # supports exception groups
+                        import traceback
                         traceback.print_exc()
                     else:
                         try:
@@ -2256,6 +2252,7 @@ class InteractiveShell(SingletonConfigurable):
                             print(
                                 "Unexpected exception formatting exception. Falling back to standard exception"
                             )
+                            import traceback
                             traceback.print_exc()
                             return None
 
@@ -2297,6 +2294,7 @@ class InteractiveShell(SingletonConfigurable):
         If the syntax error occurred when running a compiled code (i.e. running_compile_code=True),
         longer stack trace will be displayed.
         """
+        import traceback
         etype, value, last_traceback = self._get_exc_info()
 
         if filename and issubclass(etype, SyntaxError):
@@ -2702,6 +2700,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # Raise an exception if the command failed and system_raise_on_error is True
         if self.system_raise_on_error and exit_code != 0:
+            from subprocess import CalledProcessError
             raise CalledProcessError(exit_code, cmd)
 
     def system_raw(self, cmd):
@@ -2753,6 +2752,7 @@ class InteractiveShell(SingletonConfigurable):
             executable = os.environ.get('SHELL', None)
             try:
                 # Use env shell instead of default /bin/sh
+                import subprocess
                 ec = subprocess.call(cmd, shell=True, executable=executable)
             except KeyboardInterrupt:
                 # intercept control-C; a long traceback is not useful here
@@ -2770,6 +2770,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # Raise an exception if the command failed and system_raise_on_error is True
         if self.system_raise_on_error and ec != 0:
+            from subprocess import CalledProcessError
             raise CalledProcessError(ec, cmd)
 
     # use piped system by default, because it is better behaved
@@ -2809,6 +2810,7 @@ class InteractiveShell(SingletonConfigurable):
 
             # Raise an exception if the command failed
             if exit_code != 0:
+                from subprocess import CalledProcessError
                 raise CalledProcessError(exit_code, cmd)
         else:
             # Use the original getoutput for backward compatibility
@@ -3517,6 +3519,8 @@ class InteractiveShell(SingletonConfigurable):
         Format an exception's traceback and details for storage, with special handling
         for different types of errors.
         """
+        import traceback
+
         etype = type(exception)
         evalue = exception
         tb = exception.__traceback__
@@ -3705,6 +3709,7 @@ class InteractiveShell(SingletonConfigurable):
         try:
 
             def compare(code):
+                import inspect
                 is_async = inspect.CO_COROUTINE & code.co_flags == inspect.CO_COROUTINE
                 return is_async
 
@@ -3783,6 +3788,7 @@ class InteractiveShell(SingletonConfigurable):
         # code (such as magics) needs access to it.
         self.sys_excepthook = old_excepthook
         outflag = True  # happens in more places, so it's easier as default
+        import bdb
         try:
             try:
                 if async_:
@@ -3989,6 +3995,7 @@ class InteractiveShell(SingletonConfigurable):
           - data(None): if data is given, it gets written out to the temp file
             immediately, and the file is closed again."""
 
+        import tempfile
         dir_path = Path(tempfile.mkdtemp(prefix=prefix))
         self.tempdirs.append(dir_path)
 
@@ -4173,6 +4180,8 @@ class InteractiveShell(SingletonConfigurable):
             except FileNotFoundError:
                 pass
         del self.tempfiles
+        import shutil
+
         for tdir in self.tempdirs:
             try:
                 shutil.rmtree(tdir)

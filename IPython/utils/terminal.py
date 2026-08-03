@@ -15,7 +15,6 @@ from __future__ import annotations
 import os
 import sys
 import warnings
-from shutil import get_terminal_size as _get_terminal_size
 
 # This variable is part of the expected API of the module:
 ignore_termtitle = True
@@ -122,4 +121,5 @@ def restore_term_title():
 
 
 def get_terminal_size(defaultx: int = 80, defaulty: int = 25) -> tuple[int, int]:
+    from shutil import get_terminal_size as _get_terminal_size
     return _get_terminal_size((defaultx, defaulty))

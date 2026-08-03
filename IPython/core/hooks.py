@@ -41,7 +41,6 @@ from typing import Any
 from collections.abc import Callable
 
 import os
-import subprocess
 import sys
 
 from .error import TryNext
@@ -78,6 +77,7 @@ def editor(self, filename, linenum=None, wait=True):
         editor = '"%s"' % editor
 
     # Call the actual editor
+    import subprocess
     proc = subprocess.Popen('{} {} {}'.format(editor, linemark, filename),
                             shell=True)
     if wait and proc.wait() != 0:

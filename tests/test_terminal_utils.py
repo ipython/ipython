@@ -23,7 +23,8 @@ def test_get_terminal_size_returns_tuple():
     (40, 10),
 ])
 def test_get_terminal_size_defaults_used_when_no_tty(defaultx, defaulty):
-    with mock.patch("IPython.utils.terminal._get_terminal_size") as m:
+    # get_terminal_size imports it when it runs, so patch it in shutil
+    with mock.patch("shutil.get_terminal_size") as m:
         m.return_value = (defaultx, defaulty)
         w, h = get_terminal_size(defaultx, defaulty)
     assert w == defaultx
