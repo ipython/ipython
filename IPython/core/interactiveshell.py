@@ -66,7 +66,6 @@ from IPython.core.extensions import ExtensionManager
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager, HistoryOutput
 from IPython.core.inputtransformer2 import ESC_MAGIC, ESC_MAGIC2
-from IPython.core.logger import Logger
 from IPython.core.macro import Macro
 from IPython.core.payload import PayloadManager
 from IPython.core.prefilter import PrefilterManager
@@ -658,7 +657,6 @@ class InteractiveShell(SingletonConfigurable):
         self.init_events()
         self.init_pushd_popd_magic()
         self.init_user_ns()
-        self.init_logger()
         self.init_builtins()
 
         # The following was in post_config_initialization
@@ -858,9 +856,28 @@ class InteractiveShell(SingletonConfigurable):
 
         self.dir_stack = []
 
-    def init_logger(self) -> None:
-        self.logger = Logger(self.home_dir, logfname='ipython_log.py',
-                             logmode='rotate')
+    _logger = None
+
+    @property
+    def logger(self):
+        """The session transcript logger behind `%logstart` and friends.
+
+        This is *not* the traitlets `log` trait (`self.log`), which is an
+        ordinary `logging.Logger` for diagnostics; this one writes the
+        session to a replayable `ipython_log.py`. Sessions that never run
+        `%logstart` never need it, so it is built on first access.
+        """
+        if self._logger is None:
+            from IPython.core.logger import Logger
+
+            self._logger = Logger(
+                self.home_dir, logfname="ipython_log.py", logmode="rotate"
+            )
+        return self._logger
+
+    @logger.setter
+    def logger(self, value):
+        self._logger = value
 
     def init_logstart(self) -> None:
         """Initialize logging in case it was requested at the command line.
