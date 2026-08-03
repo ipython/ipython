@@ -5,6 +5,7 @@ import json
 import os
 import sys
 import warnings
+from pathlib import Path
 
 from unittest import mock
 
@@ -593,6 +594,12 @@ def test_iframe_escaping():
 
     html = display.IFrame("http://example.com", '400" onload="alert(1)', 300)
     assert 'width="400&quot; onload=&quot;alert(1)"' in html._repr_html_()
+
+
+def test_iframe_path_source():
+    """IFrame: pathlib sources are converted to strings before escaping."""
+    html = display.IFrame(Path("report&notes.html"), 400, 300)._repr_html_()
+    assert 'src="report&amp;notes.html"' in html
 
 
 def test_image_bad_filename_raises_proper_exception():
