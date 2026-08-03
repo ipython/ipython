@@ -11,7 +11,6 @@ import sys
 import time
 import weakref
 from codecs import getincrementaldecoder
-from subprocess import CalledProcessError
 from threading import Thread
 
 from traitlets import Any, Dict, List, default
@@ -229,6 +228,7 @@ class ScriptMagics(Magics):
         """
         import asyncio
         import asyncio.exceptions
+        from subprocess import CalledProcessError
 
         # Create the event loop in which to run script magics
         # this operates on a background thread
