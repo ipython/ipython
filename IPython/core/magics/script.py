@@ -3,8 +3,6 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import asyncio
-import asyncio.exceptions
 import atexit
 import errno
 import os
@@ -229,6 +227,8 @@ class ScriptMagics(Magics):
             2
             3
         """
+        import asyncio
+        import asyncio.exceptions
 
         # Create the event loop in which to run script magics
         # this operates on a background thread

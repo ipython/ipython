@@ -20,7 +20,6 @@ import re
 import sys
 import ast
 from itertools import chain
-from urllib.request import Request, urlopen
 from urllib.parse import urlencode
 from pathlib import Path
 
@@ -36,6 +35,16 @@ from IPython.utils.path import get_py_filename
 from warnings import warn
 from logging import error
 from IPython.utils.text import get_text_list
+
+
+def urlopen(*args, **kwargs):
+    """Lazily import urllib.request (and its costly ``http.client``/``email``
+    dependencies) so that the cost is only paid the first time %pastebin
+    actually performs a network request."""
+    from urllib.request import urlopen as _urlopen
+
+    return _urlopen(*args, **kwargs)
+
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -270,6 +279,8 @@ class CodeMagics(Magics):
           -e: Pass number of days for the link to be expired.
               The default will be 7 days.
         """
+        from urllib.request import Request
+
         opts, args = self.parse_options(parameter_s, "d:e:")
 
         try:

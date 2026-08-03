@@ -12,7 +12,6 @@ import gc
 import itertools
 import math
 import os
-import pstats
 import re
 import shlex
 import sys
@@ -25,7 +24,6 @@ from ast import (
 from io import StringIO
 from logging import error
 from pathlib import Path
-from pdb import Restart
 from textwrap import indent
 from warnings import warn
 
@@ -327,6 +325,7 @@ class ExecutionMagics(Magics):
             A dictionary for Python namespace (e.g., `self.shell.user_ns`).
 
         """
+        import pstats
 
         # Fill default values for unspecified options:
         opts.merge(Struct(D=[''], l=[], s=['time'], T=['']))
@@ -929,6 +928,8 @@ class ExecutionMagics(Magics):
             If the break point given by `bp_line` is not valid.
 
         """
+        from pdb import Restart
+
         deb = self.shell.InteractiveTB.pdb
         if not deb:
             self.shell.InteractiveTB.pdb = self.shell.InteractiveTB.debugger_cls()
