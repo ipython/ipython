@@ -6,7 +6,6 @@
 import atexit
 import errno
 import os
-import signal
 import sys
 import time
 import weakref
@@ -346,6 +345,7 @@ class ScriptMagics(Magics):
             in_thread(_stream_communicate(p, cell))
         except KeyboardInterrupt:
             try:
+                import signal
                 p.send_signal(signal.SIGINT)
                 in_thread(asyncio.wait_for(p.wait(), timeout=0.1))
                 if p.returncode is not None:
@@ -413,6 +413,7 @@ class ScriptMagics(Magics):
         for p in self.bg_processes:
             if p.returncode is None:
                 try:
+                    import signal
                     p.send_signal(signal.SIGINT)
                 except OSError:
                     pass
