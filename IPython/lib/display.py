@@ -292,7 +292,7 @@ class IFrame:
         else:
             params = ""
         return self.iframe.format(
-            src=html_escape(self.src),
+            src=html_escape(str(self.src)),
             width=html_escape(str(self.width)),
             height=html_escape(str(self.height)),
             params=params,
