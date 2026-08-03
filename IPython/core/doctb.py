@@ -8,10 +8,8 @@ from types import TracebackType
 from typing import TYPE_CHECKING, Any
 from collections.abc import Callable
 
-from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.token import Token
 
-from IPython.utils.PyColorize import Theme, TokenStream, theme_table
 from IPython.utils.terminal import get_terminal_size
 
 from .tbtools import (
@@ -26,6 +24,8 @@ from .tbtools import (
 
 if TYPE_CHECKING:
     import stack_data
+
+    from IPython.utils.PyColorize import Theme, TokenStream
 
 INDENT_SIZE = 8
 
@@ -144,6 +144,8 @@ class DocTB(TBTools):
         """Format a single stack frame"""
         import stack_data
 
+        from IPython.utils.PyColorize import theme_table
+
         assert isinstance(frame_info, FrameInfo)
 
         if isinstance(frame_info._sd, stack_data.RepeatedFrames):
@@ -246,6 +248,7 @@ class DocTB(TBTools):
         return result
 
     def prepare_header(self, etype: str) -> str:
+        from IPython.utils.PyColorize import theme_table
         width = min(75, get_terminal_size()[0])
         head = theme_table[self._theme_name].format(
             [
@@ -260,6 +263,7 @@ class DocTB(TBTools):
         return head
 
     def format_exception(self, etype: Any, evalue: Any) -> Any:
+        from IPython.utils.PyColorize import theme_table
         # Get (safely) a string form of the exception info
         try:
             etype_str, evalue_str = map(str, (etype, evalue))
@@ -297,6 +301,8 @@ class DocTB(TBTools):
         This may be called multiple times by Python 3 exception chaining
         (PEP 3134).
         """
+        from IPython.utils.PyColorize import theme_table
+
         # some locals
         orig_etype = etype
         try:
@@ -333,12 +339,16 @@ class DocTB(TBTools):
     def get_records(self, etb: TracebackType, context: int, tb_offset: int) -> Any:
         import stack_data
 
+        from IPython.utils.PyColorize import theme_table
+
         assert context == 1, context
         assert etb is not None
         context = context - 1
         after = context // 2
         before = context - after
         if self.has_colors:
+            from pygments.formatters.terminal256 import Terminal256Formatter
+
             base_style = theme_table[self._theme_name].as_pygments_style()
             # stack_data ships without type annotations
             style = stack_data.style_with_executing_node(  # type: ignore[no-untyped-call]
@@ -387,6 +397,8 @@ class DocTB(TBTools):
         context: int = 1,
     ) -> list[str]:
         """Return a nice text document describing the traceback."""
+        from IPython.utils.PyColorize import theme_table
+
         assert context > 0
         assert context == 1, context
         formatted_exceptions: list[list[str]] = self.format_exception_as_a_whole(
