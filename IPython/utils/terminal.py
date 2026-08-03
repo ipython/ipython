@@ -13,12 +13,17 @@ from __future__ import annotations
 # Distributed under the terms of the Modified BSD License.
 
 import os
+import re
 import sys
 import warnings
 from shutil import get_terminal_size as _get_terminal_size
 
 # This variable is part of the expected API of the module:
 ignore_termtitle = True
+
+# C0/C1 controls and DEL. These terminate or abort the OSC string used to set
+# the title, leaving the rest of it to be read as a new terminal command.
+_title_controls_re = re.compile(r"[\x00-\x1f\x7f-\x9f]")
 
 
 
@@ -74,7 +79,7 @@ def _set_term_title_xterm(title):
         # save the current title to the xterm "stack"
         sys.stdout.write("\033[22;0t")
         _xterm_term_title_saved = True
-    sys.stdout.write('\033]0;%s\007' % title)
+    sys.stdout.write("\033]0;%s\007" % _title_controls_re.sub("", title))
 
 
 def _restore_term_title_xterm():
