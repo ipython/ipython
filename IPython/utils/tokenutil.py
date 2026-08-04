@@ -38,6 +38,15 @@ def generate_tokens_catch_errors(
         "unterminated string literal",
         "invalid non-printable character",
         "after line continuation character",
+        # Since Python 3.12 the tokenizer raises TokenError for malformed
+        # number literals (e.g. 0b12, 0o1239, 1__2).  Those are syntax
+        # errors, not incomplete input (see ipython/ipython#15320).
+        "invalid decimal literal",
+        "invalid binary literal",
+        "invalid octal literal",
+        "invalid hexadecimal literal",
+        "in binary literal",
+        "in octal literal",
     ]
     assert extra_errors_to_catch is None or isinstance(extra_errors_to_catch, list)
     errors_to_catch = default_errors_to_catch + (extra_errors_to_catch or [])

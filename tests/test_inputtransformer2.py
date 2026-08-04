@@ -319,6 +319,17 @@ examples = [
     pytest.param("for a in range(5):", "incomplete", 4),
     pytest.param("for a in range(5):\n    if a > 0:", "incomplete", 8),
     pytest.param("raise = 2", "invalid", None),
+    # Invalid number literals (ipython/ipython#15320): on Python <= 3.11 the
+    # tokenizer splits these into separate tokens and compilation fails;
+    # since Python 3.12 the tokenizer raises TokenError for malformed
+    # literals, which must be surfaced as a syntax error, not mistaken for
+    # incomplete input (0x123g is "invalid" on every version via the
+    # compile path; it guards the surrounding tokenizer-regression rows).
+    pytest.param("0b12", "invalid", None),
+    pytest.param("0o1239", "invalid", None),
+    pytest.param("0x123g", "invalid", None),
+    pytest.param("0b12+1", "invalid", None),
+    pytest.param("(0b12)", "invalid", None),
     pytest.param("a = [1,\n2,", "incomplete", 0),
     extra_closing_paren_param,
     pytest.param("\\\r\n", "incomplete", 0),
