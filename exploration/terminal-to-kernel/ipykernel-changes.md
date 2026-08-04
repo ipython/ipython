@@ -1,6 +1,6 @@
 # ipykernel changes to support promoting an existing interactive session to a kernel
 
-**Status:** implementation-ready proposal.
+**Status:** implementation-ready proposal — **optional**: since the IPython-side PoC adopted traitlets ≥ 5.17 `SingletonScope` (scoped singleton registries), none of these changes are prerequisites for session promotion. They remain worthwhile as quality-of-life improvements for kernel embedders, particularly on released traitlets < 5.17.
 **Target repo:** `ipython/ipykernel` (line anchors below are against ipykernel **7.3.0**;
 re-locate them on current `main` before editing — the structures are stable but lines
 drift).
@@ -21,9 +21,10 @@ the process's **main thread** becomes the kernel event loop (main-thread executi
 hard requirement — signal-based `interrupt_request` handling and many libraries need
 it). A working proof of concept exists in `ipython`'s exploration branch
 (`exploration/terminal-to-kernel/promote_kernel.py` on branch
-`claude/ipython-terminal-kernel-migration-km1thx`), but it must reach into private
-state to work. The changes below give it supported seams. Each change is independently
-useful and mergeable; they are ordered by value.
+`claude/ipython-terminal-kernel-migration-km1thx`) — it now works without ipykernel
+changes by leveraging traitlets ≥ 5.17 `SingletonScope` (scoped singleton registries).
+The changes below give embedders supported seams that do not depend on unreleased
+traitlets. Each change is independently useful and mergeable; they are ordered by value.
 
 What the IPython-side promotion code should look like **after** these changes:
 

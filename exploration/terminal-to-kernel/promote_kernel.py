@@ -1,5 +1,14 @@
 """Proof-of-concept IPython extension: promote a live terminal session to a Jupyter kernel.
 
+IPython-only implementation: requires traitlets >= 5.17 (``SingletonScope``,
+on traitlets ``main`` as of 2026-08) and an installed ipykernel, but **no
+patches to ipykernel** — all singleton collisions are avoided by activating a
+scoped singleton registry, so the kernel machinery instantiates its own
+``IPKernelApp``/``ZMQInteractiveShell`` inside the scope while the terminal's
+``TerminalIPythonApp``/``TerminalInteractiveShell`` singletons are never read,
+created over, or mutated. On older traitlets, ``%promote`` prints that a newer
+traitlets is required and does nothing.
+
 Usage, from a plain ``ipython`` terminal session::
 
     In [1]: %load_ext promote_kernel   # (this file on sys.path / in extensions dir)
@@ -16,35 +25,30 @@ event loop runs on the **main thread**. This is the semantically-correct
 "move my session to a kernel": signal-based interrupt works
 (``interrupt_request`` → SIGINT → ``default_int_handler`` around handlers,
 ipykernel/kernelbase.py), GUI event loops and main-thread-only libraries
-work, ``get_ipython()`` globally resolves to the kernel shell, and
-``IPython.display.display()`` publishes real display_data. The old tty keeps
-mirroring output via ``OutStream(echo=sys.__stdout__)`` (``quiet=False``).
-The hand-off blocks inside the magic (embed_kernel-style) rather than
-returning through ``TerminalInteractiveShell.mainloop()``, because that path
-runs ``_atexit_once()`` which resets the (now shared) user_ns and closes
-history (IPython/terminal/interactiveshell.py:1050,
+work, and streams / ``execute_result`` / ``display_data`` all reach iopub.
+The scope is entered on the main thread and deliberately never exited: the
+rest of the process's main-thread work *is* the kernel loop, so in-scope
+resolution (e.g. ``InteractiveShell.instance()`` inside
+``IPython.display.display``, IPython/core/display_functions.py:64) yields the
+kernel's ZMQ shell, while the untouched terminal singletons simply become
+unreachable garbage-in-waiting. The old tty keeps mirroring output via
+``OutStream(echo=sys.__stdout__)`` (``quiet=False``). The hand-off blocks
+inside the magic (embed_kernel-style) rather than returning through
+``TerminalInteractiveShell.mainloop()``, because that path runs
+``_atexit_once()`` which resets the (now shared) user_ns and closes history
+(IPython/terminal/interactiveshell.py:1050,
 IPython/core/interactiveshell.py:4173-4183).
 
 ``%promote --share`` — **experimental dual-frontend**: the kernel machinery
 runs in a daemon background thread and the terminal REPL stays interactive;
-both frontends share user_ns/user_module. Execution of notebook-initiated
-code happens off the main thread (signal-based interrupt and some libraries
-degrade), and the two frontends are not serialized. Singleton handling in
-this mode:
-
-- with ``traitlets.config.SingletonScope`` (traitlets >= 5.17; on traitlets
-  main as of 2026-08) the kernel thread
-  activates a scoped singleton registry: IPKernelApp/ZMQInteractiveShell are
-  created inside the scope, the process-global singletons are never touched,
-  and ``get_ipython()``/``InteractiveShell.instance()`` resolve per-thread —
-  terminal shell on the main thread (keybinding filters keep working), ZMQ
-  shell on the kernel thread (rich ``display()`` reaches the notebook);
-- with stock traitlets, fall back to clearing the singleton slots and
-  re-pointing ``InteractiveShell._instance`` at the terminal shell (without
-  this, prompt_toolkit key-binding filters that read terminal-only traits
-  through get_ipython() on every keypress —
-  IPython/terminal/shortcuts/filters.py — crash the prompt loop). Trade-off:
-  ``display()`` from notebook clients does not reach the notebook.
+both frontends share user_ns/user_module. The scope is activated *inside* the
+kernel thread (the pattern recommended by the SingletonScope docs, correct on
+both GIL and free-threaded builds), so ``get_ipython()`` resolves per-thread:
+terminal shell on the main thread (prompt_toolkit key-binding filters keep
+working, IPython/terminal/shortcuts/filters.py:84), ZMQ shell on the kernel
+thread (rich ``display()`` reaches the notebook). Caveats: notebook-initiated
+code executes off the main thread (signal-based interrupt and some libraries
+degrade), and the two frontends are not serialized.
 
 Attach paths after promotion (either mode):
 
@@ -55,7 +59,6 @@ Attach paths after promotion (either mode):
   picker (jupyter_client >= 8.3.1 / jupyter_server >= 2.7.3).
 """
 
-import contextlib
 import os
 import sys
 import threading
@@ -73,8 +76,9 @@ _state = {"app": None, "thread": None, "error": None, "ready": threading.Event()
 def _make_kernel_app(shell, connection_file):
     """Create + initialize IPKernelApp and adopt *shell*'s session state.
 
-    Must run with the singleton slots resolved by the caller (cleared
-    globals for hand-off, or inside a SingletonScope for --share).
+    Must run with a SingletonScope active so IPKernelApp/ZMQInteractiveShell
+    instantiate in the scoped registry instead of colliding with the
+    terminal's Application/InteractiveShell singletons.
     """
     from ipykernel.kernelapp import IPKernelApp
 
@@ -122,16 +126,18 @@ def _handoff(shell, connection_file, external_dir):
     mainloop() would run _atexit_once(), which resets the user_ns we just
     handed to the kernel. On kernel shutdown_request the process exits.
     """
-    from IPython.core.interactiveshell import InteractiveShell
-    from IPython.core.application import BaseIPythonApplication
+    from traitlets.config.configurable import SingletonConfigurable
 
-    # The terminal session is over: hand the singleton slots to the kernel
-    # so get_ipython()/InteractiveShell.instance() resolve to the kernel
-    # shell everywhere from now on. (No SingletonScope needed here even
-    # when available -- a global hand-over is the semantically-correct
-    # global state.)
-    BaseIPythonApplication.clear_instance()
-    InteractiveShell.clear_instance()
+    # Enter a process-wide-for-all-practical-purposes scope: it is activated
+    # on the main thread and never exited, so kernel construction here and
+    # every later main-thread resolution (the kernel loop, executions, and
+    # io_loop callbacks, which inherit this context) happen in the scoped
+    # registry. The terminal's TerminalIPythonApp/TerminalInteractiveShell
+    # globals are never touched.
+    scope = SingletonConfigurable.scope()
+    scope_cm = scope()
+    scope_cm.__enter__()
+    _state["scope"] = scope
 
     app = _make_kernel_app(shell, connection_file)
     _state["app"] = app
@@ -153,46 +159,19 @@ def _handoff(shell, connection_file, external_dir):
 def _start_kernel_thread(shell, connection_file):
     """--share mode: run IPKernelApp forever in this background thread."""
     try:
-        from IPython.core.interactiveshell import InteractiveShell
-        from IPython.core.application import BaseIPythonApplication
         from traitlets.config.configurable import SingletonConfigurable
 
-        if _HAS_SCOPE:
-            # Give this thread its own singleton registry. IPKernelApp and
-            # ZMQInteractiveShell are created inside the scope; the global
-            # TerminalIPythonApp / TerminalInteractiveShell singletons are
-            # never read or mutated, so .instance() keeps resolving to the
-            # terminal objects on the main thread and to the kernel objects
-            # on this thread (contextvars propagate into the io_loop
-            # callbacks registered here).
-            singleton_ctx = SingletonConfigurable.scope()()
-        else:
-            # Stock traitlets: both the Application and the InteractiveShell
-            # singleton slots are already claimed by the terminal session,
-            # and ipykernel registering its siblings raises
-            # MultipleInstanceError -- release the slots first.
-            BaseIPythonApplication.clear_instance()
-            InteractiveShell.clear_instance()
-            singleton_ctx = contextlib.nullcontext()
-
-        with singleton_ctx:
+        # Give this thread its own singleton registry (activated inside the
+        # thread -- the pattern the SingletonScope docs recommend, valid on
+        # both GIL and free-threaded builds). IPKernelApp and
+        # ZMQInteractiveShell are created inside the scope; the global
+        # TerminalIPythonApp / TerminalInteractiveShell singletons are never
+        # read or mutated, so .instance() keeps resolving to the terminal
+        # objects on the main thread and to the kernel objects on this
+        # thread (contextvars propagate into the io_loop callbacks
+        # registered here).
+        with SingletonConfigurable.scope()():
             app = _make_kernel_app(shell, connection_file)
-
-            if not _HAS_SCOPE:
-                # Creating the ZMQ shell made it the InteractiveShell
-                # singleton, so the module-level get_ipython() now returns
-                # it -- which breaks the terminal frontend: prompt_toolkit
-                # key-binding filters look up terminal-only traits through
-                # get_ipython() on every keypress
-                # (IPython/terminal/shortcuts/filters.py, e.g.
-                # shell.auto_match) and raise AttributeError on
-                # ZMQInteractiveShell. Point the singleton back at the
-                # terminal shell. Trade-off: IPython.display.display() from
-                # notebook clients resolves the terminal display publisher
-                # and won't reach the notebook (execute_result display
-                # still works -- the displayhook is per-shell, installed
-                # around each run_cell).
-                InteractiveShell._instance = shell
 
             # init_io() installed iopub OutStreams as sys.stdout/stderr, but
             # the terminal REPL wraps every prompt in prompt_toolkit's
@@ -234,8 +213,24 @@ def promote(line=""):
     becomes a kernel executing on the main thread. With --share, the kernel
     runs in a background thread and the terminal stays interactive
     (experimental; see module docstring for caveats).
+
+    Requires traitlets >= 5.17 (SingletonScope).
     """
     from IPython.core.getipython import get_ipython
+
+    if not _HAS_SCOPE:
+        import traitlets
+
+        print(
+            "%%promote requires traitlets >= 5.17 (SingletonScope); "
+            "you have %s." % traitlets.__version__,
+            file=sys.stderr,
+        )
+        print(
+            "Until 5.17 is released:  pip install git+https://github.com/ipython/traitlets",
+            file=sys.stderr,
+        )
+        return
 
     shell = get_ipython()
 
@@ -275,14 +270,7 @@ def promote(line=""):
         print(_state["error"], file=sys.stderr)
         return
 
-    mode = (
-        "scoped singletons (traitlets SingletonScope)"
-        if _HAS_SCOPE
-        else "singleton swap (stock traitlets)"
-    )
-    _print_connect_info(
-        _state["app"], external_dir, extra=" [shared mode: %s]" % mode
-    )
+    _print_connect_info(_state["app"], external_dir, extra=" [shared mode]")
 
 
 def load_ipython_extension(ip):

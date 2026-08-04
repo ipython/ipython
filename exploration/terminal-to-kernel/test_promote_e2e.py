@@ -1,8 +1,7 @@
 """End-to-end checks for the %promote proof of concept.
 
 Drives a real `ipython` terminal session under pexpect, promotes it to a
-kernel, attaches a jupyter_client (standing in for a notebook), and verifies
-both modes:
+kernel, attaches a jupyter_client (standing in for a notebook), and verifies:
 
 Hand-off mode (default %promote):
 - the terminal REPL ends; the process becomes a kernel;
@@ -16,12 +15,12 @@ Hand-off mode (default %promote):
 Share mode (%promote --share):
 - the terminal REPL stays interactive after promotion;
 - the client executes against the terminal's namespace (execute_result on iopub);
-- print() from client executions arrives as a stream message on iopub;
-- state assigned by the client is visible back at the terminal;
-- with traitlets SingletonScope available (traitlets >= 5.17; on traitlets
-  main as of 2026-08), display() publishes
-  display_data on iopub (on stock traitlets the PoC's singleton swap routes
-  display() to the terminal instead, and this check is skipped).
+- print() and display() from client executions arrive on iopub;
+- state assigned by the client is visible back at the terminal.
+
+%promote requires traitlets >= 5.17 (SingletonScope). When this test runs
+against an older traitlets, it instead verifies the refusal path: %promote
+prints the requirement and the terminal keeps working.
 
 Run directly: python test_promote_e2e.py   (requires pexpect, ipykernel)
 """
@@ -35,7 +34,7 @@ import pexpect
 POC_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def spawn_promoted(promote_args):
+def spawn_session():
     workdir = tempfile.mkdtemp(prefix="promote-e2e-")
     ext_dir = os.path.join(workdir, "external")
 
@@ -56,6 +55,11 @@ def spawn_promoted(promote_args):
     child.expect(r"In \[2\]:")
     child.sendline("%load_ext promote_kernel")
     child.expect(r"In \[3\]:")
+    return child, ext_dir
+
+
+def spawn_promoted(promote_args):
+    child, ext_dir = spawn_session()
     child.sendline("%promote --external-dir " + ext_dir + " " + promote_args)
     child.expect("Connection file: (\\S+kernel-\\d+\\.json)")
     cf = child.match.group(1).splitlines()[0].strip()
@@ -180,24 +184,14 @@ def test_share():
     )
     print("client print() -> stream message on iopub")
 
-    try:
-        from traitlets.config import SingletonScope  # noqa: F401
-
-        has_scope = True
-    except ImportError:
-        has_scope = False
     reply, _, _, display_data = run(
         kc, "from IPython.display import display, HTML; display(HTML('<b>rich</b>'))"
     )
-    assert reply["status"] == "ok", reply
-    if has_scope:
-        assert any("text/html" in d for d in display_data), display_data
-        print("client display() -> display_data on iopub (SingletonScope mode)")
-    else:
-        print(
-            "display_data on iopub: %s (stock traitlets; expected to be missing)"
-            % bool(display_data)
-        )
+    assert reply["status"] == "ok" and any("text/html" in d for d in display_data), (
+        reply,
+        display_data,
+    )
+    print("client display() -> display_data on iopub")
 
     kc.stop_channels()
 
@@ -207,7 +201,29 @@ def test_share():
     child.close(force=True)
 
 
+def test_requires_scope():
+    print("--- refusal on traitlets < 5.17 ---")
+    child, ext_dir = spawn_session()
+    child.sendline("%promote --external-dir " + ext_dir)
+    child.expect("requires traitlets >= 5.17")
+    child.expect(r"In \[4\]:")
+    child.sendline("x + 1")
+    child.expect("11")
+    print("%promote refused, requirement printed, terminal keeps working")
+    child.close(force=True)
+
+
 if __name__ == "__main__":
-    test_handoff()
-    test_share()
+    try:
+        from traitlets.config import SingletonScope  # noqa: F401
+
+        has_scope = True
+    except ImportError:
+        has_scope = False
+
+    if has_scope:
+        test_handoff()
+        test_share()
+    else:
+        test_requires_scope()
     print("E2E OK")
