@@ -164,10 +164,11 @@ This keeps `IPKernelApp.initialized()` / `.instance()` (and thus `%connect_info`
 `ipykernel.connect`) working, while the host application keeps answering
 `Application.instance()`.
 
-**Follow-up (do not implement now, note in the docstring):** if/when traitlets grows
-scoped singleton registries (`SingletonScope`, prototyped in
-https://github.com/Carreau/traitlets/tree/multiton), this method can be expressed with
-a scope instead of the targeted `_instance` write.
+**Follow-up (do not implement now, note in the docstring):** traitlets `main` has
+scoped singleton registries (`SingletonScope`, `versionadded 5.17`, unreleased as of
+2026-08); once ipykernel's minimum traitlets reaches 5.17, this method can be
+expressed with a scope instead of the targeted `_instance` write. Until then the
+`_instance` write keeps ipykernel working on released traitlets.
 
 **Also:** switch `embed_kernel` (`embed.py:33-38`) to use `embed_instance`.
 
@@ -352,5 +353,6 @@ Changes 1/2/4/5 are additive).
   jupyter-server/jupyter_server#1305.
 - Prior art: `ipykernel.embed.embed_kernel`; albertz/background-zmq-ipython;
   wishlist issues ipython/ipython#8097, ipython/ipython#4032.
-- Scoped singletons prototype: https://github.com/Carreau/traitlets/tree/multiton
-  (`SingletonScope`) — would subsume the `_instance` handling in Change 2.
+- Scoped singletons: `traitlets.config.SingletonScope`, on traitlets `main`
+  (`versionadded 5.17`, unreleased as of 2026-08) — will subsume the `_instance`
+  handling in Change 2 once ipykernel can require traitlets >= 5.17.

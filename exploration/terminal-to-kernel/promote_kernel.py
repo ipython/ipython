@@ -22,8 +22,8 @@ mirroring output via ``OutStream(echo=sys.__stdout__)`` (``quiet=False``).
 The hand-off blocks inside the magic (embed_kernel-style) rather than
 returning through ``TerminalInteractiveShell.mainloop()``, because that path
 runs ``_atexit_once()`` which resets the (now shared) user_ns and closes
-history (IPython/terminal/interactiveshell.py:1045,
-IPython/core/interactiveshell.py:4091-4101).
+history (IPython/terminal/interactiveshell.py:1050,
+IPython/core/interactiveshell.py:4173-4183).
 
 ``%promote --share`` — **experimental dual-frontend**: the kernel machinery
 runs in a daemon background thread and the terminal REPL stays interactive;
@@ -32,8 +32,8 @@ code happens off the main thread (signal-based interrupt and some libraries
 degrade), and the two frontends are not serialized. Singleton handling in
 this mode:
 
-- with the ``SingletonScope`` traitlets extension
-  (https://github.com/Carreau/traitlets/tree/multiton) the kernel thread
+- with ``traitlets.config.SingletonScope`` (traitlets >= 5.17; on traitlets
+  main as of 2026-08) the kernel thread
   activates a scoped singleton registry: IPKernelApp/ZMQInteractiveShell are
   created inside the scope, the process-global singletons are never touched,
   and ``get_ipython()``/``InteractiveShell.instance()`` resolve per-thread —
@@ -61,7 +61,7 @@ import sys
 import threading
 
 try:
-    from traitlets.config import SingletonScope  # noqa: F401  (multiton branch)
+    from traitlets.config import SingletonScope  # noqa: F401  (traitlets >= 5.17)
 
     _HAS_SCOPE = True
 except ImportError:
@@ -127,8 +127,8 @@ def _handoff(shell, connection_file, external_dir):
 
     # The terminal session is over: hand the singleton slots to the kernel
     # so get_ipython()/InteractiveShell.instance() resolve to the kernel
-    # shell everywhere from now on. (No scope needed here even with the
-    # multiton branch -- a global hand-over is the semantically-correct
+    # shell everywhere from now on. (No SingletonScope needed here even
+    # when available -- a global hand-over is the semantically-correct
     # global state.)
     BaseIPythonApplication.clear_instance()
     InteractiveShell.clear_instance()
@@ -197,7 +197,7 @@ def _start_kernel_thread(shell, connection_file):
             # init_io() installed iopub OutStreams as sys.stdout/stderr, but
             # the terminal REPL wraps every prompt in prompt_toolkit's
             # patch_stdout(raw=True)
-            # (IPython/terminal/interactiveshell.py:949), which restores the
+            # (IPython/terminal/interactiveshell.py:954), which restores the
             # pre-prompt stdout when the prompt exits -- so the OutStreams
             # get evicted one prompt after promotion and notebook-side
             # print() would silently stop reaching iopub. Instead of owning
@@ -276,7 +276,7 @@ def promote(line=""):
         return
 
     mode = (
-        "scoped singletons (traitlets multiton)"
+        "scoped singletons (traitlets SingletonScope)"
         if _HAS_SCOPE
         else "singleton swap (stock traitlets)"
     )

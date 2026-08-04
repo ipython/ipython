@@ -18,8 +18,8 @@ Share mode (%promote --share):
 - the client executes against the terminal's namespace (execute_result on iopub);
 - print() from client executions arrives as a stream message on iopub;
 - state assigned by the client is visible back at the terminal;
-- with the traitlets SingletonScope extension installed
-  (https://github.com/Carreau/traitlets/tree/multiton), display() publishes
+- with traitlets SingletonScope available (traitlets >= 5.17; on traitlets
+  main as of 2026-08), display() publishes
   display_data on iopub (on stock traitlets the PoC's singleton swap routes
   display() to the terminal instead, and this check is skipped).
 

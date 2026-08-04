@@ -12,6 +12,12 @@ directory ([`promote_kernel.py`](promote_kernel.py)) with an end-to-end test
 ([`test_promote_e2e.py`](test_promote_e2e.py)) that drives a real `ipython` under pexpect,
 promotes it, attaches a `jupyter_client`, and verifies shared state and iopub output.
 
+**Rebase note (2026-08).** Rebased onto IPython `main` @ `2795752` and re-verified:
+both PoC modes pass end-to-end on current IPython (the deferred-imports refactors only
+shifted line numbers — all cited refs updated) with traitlets `main` (which now ships
+`SingletonScope` upstream — see the traitlets section below) and with released
+traitlets 5.16.1 (fallback path, expected `display()` limitation in `--share` mode).
+
 **Design direction (maintainer feedback).** Execution should stay on the **main thread**
 if possible (some libraries misbehave off it), and it is acceptable — expected, even —
 that a promoted terminal stops being interactive: finish the prompt_toolkit session and
@@ -114,14 +120,14 @@ Finish the prompt_toolkit session and hand the namespace to ipykernel running on
 **main thread**. The PoC implements this by blocking inside the magic
 (`embed_kernel`-style): we are inside `run_cell` inside `interact()` and deliberately
 never return, because returning through `mainloop()` runs `_atexit_once()`
-(`terminal/interactiveshell.py:1045`), which calls `shell.reset()` — wiping the very
+(`terminal/interactiveshell.py:1050`), which calls `shell.reset()` — wiping the very
 `user_ns` dict that was just handed to the kernel (it is *shared*, not copied;
-`core/interactiveshell.py:4091-4101`). `shell.keep_running` is set to `False` so that if
+`core/interactiveshell.py:4173-4183`). `shell.keep_running` is set to `False` so that if
 the kernel loop ever stops (shutdown), the process falls out through
 `interact()`/`mainloop()` and exits cleanly — at which point `_atexit_once()` is the
 correct teardown.
 
-Verified end-to-end in `test_promote_e2e.py::test_handoff`, on both stock and multiton
+Verified end-to-end in `test_promote_e2e.py::test_handoff`, on both released and scope-capable
 traitlets:
 
 - client executions run on `MainThread` (the whole point);
@@ -164,7 +170,7 @@ ipykernel 7: `shellchannel.py`, `subshell_manager.py`). Terminal prompt redraw a
 async iopub output uses the `patch_stdout` machinery IPython already employs. This
 resolves every correctness issue in A (single executor, single shell object, serialized
 history/execution_count) at the cost of a real refactor of
-`interact()`/`mainloop()` loop ownership (`terminal/interactiveshell.py:1005-1046`).
+`interact()`/`mainloop()` loop ownership (`terminal/interactiveshell.py:1010-1051`).
 Estimated 1-2 months; best done after an A/B-grade prototype ships behind a flag.
 
 *(Rejected: `ipykernel.inprocess` — no real ZMQ sockets, solves the inverse problem.)*
@@ -186,7 +192,7 @@ All verified by experiment in this exploration, not just code reading:
 
 2. **`get_ipython()` re-points to the ZMQ shell and breaks the terminal.** After the
    swap, prompt_toolkit key-binding filters resolve terminal-only traits through
-   `get_ipython()` on *every keypress* (`IPython/terminal/shortcuts/filters.py:85`,
+   `get_ipython()` on *every keypress* (`IPython/terminal/shortcuts/filters.py:84`,
    `shell.auto_match`) → `AttributeError` → unhandled exception in the prompt loop →
    "Press ENTER to continue..." wedge. PoC restores
    `InteractiveShell._instance = <terminal shell>`; trade-off: `IPython.display.display()`
@@ -197,7 +203,7 @@ All verified by experiment in this exploration, not just code reading:
 
 3. **`patch_stdout` evicts the kernel's OutStream.** `prompt_for_code` wraps every
    prompt in prompt_toolkit's `patch_stdout(raw=True)`
-   (`IPython/terminal/interactiveshell.py:949`), which restores the pre-prompt
+   (`IPython/terminal/interactiveshell.py:954`), which restores the pre-prompt
    `sys.stdout` on exit — so the iopub `OutStream` installed by `init_io`
    (`kernelapp.py:530-546`) is silently removed one prompt after promotion and
    notebook `print()` stops reaching iopub. PoC swaps the ZMQ streams in only around
@@ -225,13 +231,24 @@ All verified by experiment in this exploration, not just code reading:
    normally would wipe `user_ns` and close history before the kernel starts; B needs an
    exit path that skips it.
 
-## The traitlets `multiton` branch (Carreau/traitlets, `SingletonScope`)
+## Traitlets `SingletonScope` (upstream since 2026-08, `versionadded 5.17`)
 
-Evaluated empirically against this PoC (branch adds contextvar-scoped singleton
-registries: `Base.scope()` returns a `SingletonScope`; while active on a thread/task,
+The scoped-singleton work originally evaluated here from Carreau/traitlets'
+`multiton` branch has **landed on traitlets `main`** (commit `58f4301`, "Add scoped
+singleton registries to SingletonConfigurable", unreleased as of this writing — install
+with `pip install git+https://github.com/ipython/traitlets` until 5.17 is out).
+
+Evaluated empirically against this PoC (contextvar-scoped singleton registries:
+`Base.scope()` returns a `SingletonScope`; while active on a thread/task,
 `.instance()` on the covered subtree resolves in the scope, never touching the
-process-global `_instance`; re-enterable; `add()` pre-seeds; new threads do *not*
-inherit the parent's scope).
+process-global `_instance`; re-enterable; `add()` pre-seeds). One semantic to know:
+whether a *new* `threading.Thread` inherits the active scope follows
+`sys.flags.thread_inherit_context` — off on GIL builds (threads fall through to the
+global registry), on by default on free-threaded builds (3.14t), where activating a
+scope emits a `RuntimeWarning`. This PoC uses the recommended pattern either way — the
+scope is activated *inside* the kernel thread, never on the main thread — so it is
+unaffected by the flag; threads spawned *by notebook-executed code* inherit the kernel
+scope under the flag, which is the desirable resolution for them anyway.
 
 **For `--share` (dual-frontend) mode it is exactly the right tool.** The kernel thread
 activates `SingletonConfigurable.scope()` and both PoC hacks disappear:
@@ -245,7 +262,7 @@ activates `SingletonConfigurable.scope()` and both PoC hacks disappear:
   filters keep working, obstacle 2 gone), ZMQ shell on the kernel thread (contextvars
   propagate into the io_loop callbacks registered inside the scope);
 - **bonus capability:** `IPython.display.display()` from notebook clients resolves
-  `InteractiveShell.instance()` (`core/display_functions.py:65`) *in the kernel
+  `InteractiveShell.instance()` (`core/display_functions.py:64`) *in the kernel
   thread's scope* → `ZMQDisplayPublisher` → real `display_data` messages reach the
   notebook. Verified by `test_promote_e2e.py::test_share`, which passes the
   display-data assertion with the branch installed and (expectedly) not without it.
@@ -353,5 +370,5 @@ jupyter lab --ServerApp.allow_external_kernels=True \
 python test_promote_e2e.py
 
 # optional: scoped-singleton variant for --share mode
-pip install git+https://github.com/Carreau/traitlets@multiton
+pip install git+https://github.com/ipython/traitlets  # until 5.17 is released
 ```
