@@ -12,12 +12,6 @@ Hand-off mode (default %promote):
   (SIGINT -> KeyboardInterrupt, only possible with main-thread execution);
 - shutdown_request terminates the process cleanly.
 
-Share mode (%promote --share):
-- the terminal REPL stays interactive after promotion;
-- the client executes against the terminal's namespace (execute_result on iopub);
-- print() and display() from client executions arrive on iopub;
-- state assigned by the client is visible back at the terminal.
-
 %promote requires traitlets >= 5.17 (SingletonScope). When this test runs
 against an older traitlets, it instead verifies the refusal path: %promote
 prints the requirement and the terminal keeps working.
@@ -58,9 +52,9 @@ def spawn_session():
     return child, ext_dir
 
 
-def spawn_promoted(promote_args):
+def spawn_promoted():
     child, ext_dir = spawn_session()
-    child.sendline("%promote --external-dir " + ext_dir + " " + promote_args)
+    child.sendline("%promote --external-dir " + ext_dir)
     child.expect("Connection file: (\\S+kernel-\\d+\\.json)")
     cf = child.match.group(1).splitlines()[0].strip()
     deadline = time.time() + 30
@@ -111,8 +105,8 @@ def run(kc, code, reply_timeout=20):
 
 
 def test_handoff():
-    print("--- hand-off mode (default) ---")
-    child, cf = spawn_promoted("")
+    print("--- hand-off ---")
+    child, cf = spawn_promoted()
     kc = attach(cf)
     print("client attached")
 
@@ -162,45 +156,6 @@ def test_handoff():
     print("shutdown_request -> process exited cleanly")
 
 
-def test_share():
-    print("--- share mode (--share) ---")
-    child, cf = spawn_promoted("--share")
-    child.expect(r"In \[4\]:")
-    child.sendline("y = x + 5")
-    child.expect(r"In \[5\]:")
-    print("terminal still interactive after promote")
-
-    kc = attach(cf)
-    print("client attached")
-
-    reply, _, results, _ = run(kc, "x + y")
-    assert reply["status"] == "ok" and results == ["25"], (reply, results)
-    print("client exec 'x + y' -> 25 (execute_result on iopub)")
-
-    reply, streams, _, _ = run(kc, "print('streamed'); z = 99")
-    assert reply["status"] == "ok" and any("streamed" in s for s in streams), (
-        reply,
-        streams,
-    )
-    print("client print() -> stream message on iopub")
-
-    reply, _, _, display_data = run(
-        kc, "from IPython.display import display, HTML; display(HTML('<b>rich</b>'))"
-    )
-    assert reply["status"] == "ok" and any("text/html" in d for d in display_data), (
-        reply,
-        display_data,
-    )
-    print("client display() -> display_data on iopub")
-
-    kc.stop_channels()
-
-    child.sendline("print('z is', z)")
-    child.expect("z is 99", timeout=15)
-    print("terminal sees client-assigned variable")
-    child.close(force=True)
-
-
 def test_requires_scope():
     print("--- refusal on traitlets < 5.17 ---")
     child, ext_dir = spawn_session()
@@ -223,7 +178,6 @@ if __name__ == "__main__":
 
     if has_scope:
         test_handoff()
-        test_share()
     else:
         test_requires_scope()
     print("E2E OK")

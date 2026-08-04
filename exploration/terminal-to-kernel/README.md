@@ -23,7 +23,7 @@ Attach a console:   jupyter console --existing /tmp/ext-kernels/kernel-12345.jso
 Attach a notebook:  jupyter lab --ServerApp.allow_external_kernels=True --ServerApp.external_connection_dir=/tmp/ext-kernels
 ```
 
-## How hand-off works (default `%promote`)
+## How hand-off works
 
 The terminal REPL is finished for good and the **main thread becomes the kernel's
 event loop** — main-thread execution is the design requirement: signal-based
@@ -60,26 +60,32 @@ Because the kernel owns the main thread, `interrupt_request` on the control chan
 `KeyboardInterrupt` lands in busy user code. `input()` from notebook-initiated code is
 answered over the stdin channel by the notebook, not the tty.
 
-## `%promote --share` (experimental dual-frontend)
+## Rejected: background-thread dual-frontend (`--share`)
 
-The kernel machinery runs in a daemon background thread instead, and the terminal
-stays interactive; both frontends share `user_ns`. The scope is activated *inside* the
-kernel thread (the pattern the `SingletonScope` docs recommend; correct on both GIL
-and free-threaded builds), so `get_ipython()` resolves per-thread — terminal shell on
-the main thread (the prompt_toolkit key-binding filters that read terminal-only traits
-through `get_ipython()` on every keypress, `terminal/shortcuts/filters.py:84`, keep
-working), ZMQ shell on the kernel thread (rich `display()` reaches the notebook).
+A variant that ran the kernel in a daemon thread while the terminal stayed interactive
+was prototyped, made to pass end-to-end, and **rejected**. It is architecturally
+unsound, not merely rough:
 
-Two share-mode-specific mitigations/caveats, both inherent to keeping the REPL alive:
+- **notebook code executes off the main thread** — GUI event loops and matplotlib
+  backends (macosx hard-crashes), tkinter, `signal`, `faulthandler`, and a long tail
+  of main-thread-assuming C extensions break; this is the common case, not an edge;
+- **interrupt delivery inverts**: `interrupt_request` → `os.kill(pid, SIGINT)` lands
+  on the *main* thread (the idle terminal), while the busy kernel thread is
+  uninterruptible;
+- **two unserialized executors on one shell state** race on `execution_count`,
+  history, and display state; serializing them would freeze the terminal during
+  notebook cells;
+- keeping the REPL alive forces stream juggling: every prompt's
+  `patch_stdout(raw=True)` (`terminal/interactiveshell.py:954`) restores the
+  pre-prompt `sys.stdout` on exit, evicting the kernel's iopub `OutStream` — the
+  prototype had to swap ZMQ streams in around each kernel-side execution.
 
-- every prompt is wrapped in prompt_toolkit's `patch_stdout(raw=True)`
-  (`terminal/interactiveshell.py:954`), which restores the pre-prompt `sys.stdout` on
-  exit and would silently evict the kernel's iopub `OutStream` one prompt after
-  promotion — so the ZMQ streams are swapped in only around each kernel-side
-  execution via the kernel shell's `pre_execute`/`post_execute` events;
-- notebook-initiated code executes **off** the main thread (signal-based interrupt and
-  main-thread-only libraries degrade), and the two frontends' executions are not
-  serialized (races on `execution_count`, history, display state are possible).
+The "attach without ending my session" need is mostly covered by hand-off plus
+`jupyter console --existing` in the same tty. A principled dual-frontend is the
+single-loop design (terminal as one more frontend/subshell, all execution serialized
+on the main thread, cf. ipykernel's JEP 91 subshell machinery) — a separate future
+project, to which the reusable learnings here are the per-thread `SingletonScope`
+pattern and the `patch_stdout` eviction behavior.
 
 ## Connection info and attaching
 
@@ -109,9 +115,6 @@ Hand-off: client sees the terminal namespace; executions run on **`MainThread`**
 `display()` → iopub `display_data`; `interrupt_request` turns `time.sleep(120)` into a
 `KeyboardInterrupt` error reply; `shutdown_request` exits the process cleanly.
 
-Share: terminal stays interactive; bidirectional namespace visibility; streams,
-`execute_result`, and `display_data` on iopub.
-
 Refusal: on traitlets < 5.17, `%promote` prints the requirement (and an install hint)
 and the session continues unharmed.
 
@@ -134,11 +137,7 @@ Open questions:
 2. **History** — the kernel shell opens a second `HistoryManager` session on the same
    sqlite file; notebook inputs land in a new session. Handing over the live manager is
    blocked on sqlite thread affinity.
-3. **`get_ipython()` in user code** — it resolves through the shared `user_ns`, where
-   the kernel shell's `init_user_ns` wrote its own binding; terminal-side user code
-   calling it in `--share` mode gets the ZMQ shell. Harmless for hand-off, worth a
-   decision for share.
-4. **Un-promote** — hand-off is a one-way door. A reversible version is a bigger
+3. **Un-promote** — hand-off is a one-way door. A reversible version is a bigger
    design (the terminal as a first-class ZMQ frontend / subshell owner).
 
 ## Optional ipykernel polish
@@ -168,9 +167,7 @@ specs quality-of-life changes that would still help embedders (honoring an injec
 cd exploration/terminal-to-kernel
 PYTHONPATH=. ipython
 In [1]: %load_ext promote_kernel
-In [2]: %promote --external-dir /tmp/ext-kernels        # hand-off (default)
-#  ... or keep the terminal interactive too (experimental):
-In [2]: %promote --share --external-dir /tmp/ext-kernels
+In [2]: %promote --external-dir /tmp/ext-kernels
 
 # terminal 2 — console attach
 jupyter console --existing /tmp/ext-kernels/kernel-<pid>.json
