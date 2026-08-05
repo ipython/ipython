@@ -624,6 +624,17 @@ def test_aimport_parsing(autoreload_fixture):
     assert "os" not in module_reloader.modules.keys()
 
 
+def test_aimport_as(autoreload_fixture):
+    # `%aimport module as alias` should import under the alias name.
+    module_reloader = autoreload_fixture.shell.auto_magics._reloader
+    autoreload_fixture.shell.magic_aimport("os as o")
+    assert module_reloader.modules["os"] is True
+    assert "o" in autoreload_fixture.shell.ns
+    assert "os" not in autoreload_fixture.shell.ns
+    import os
+    assert autoreload_fixture.shell.ns["o"] is os
+
+
 def test_autoreload_output(autoreload_fixture):
     import logging
     import logging.handlers
