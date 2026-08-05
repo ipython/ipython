@@ -838,7 +838,6 @@ class AutoreloadMagics(Magics):
                         real_name, alias = [_.strip() for _ in _module.split(" as ")]
                     else:
                         real_name, alias = _module, None
-                        
                     top_module, top_name = self._reloader.aimport_module(real_name)
 
                     # Inject module to user namespace
