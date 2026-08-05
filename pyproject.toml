@@ -401,6 +401,7 @@ namespaces = false
 [tool.setuptools.package-data]
 "IPython" = ["py.typed"]
 "IPython.core" = ["profile/README*"]
+"IPython.utils" = ["themes/*.json"]
 "IPython.testing.plugin" = ["*.txt"]
 
 [tool.setuptools.dynamic]

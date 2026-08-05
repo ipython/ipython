@@ -235,9 +235,7 @@ itself to the 16 base ANSI colors.
 Theme details
 -------------
 
-We encourage you to contribute themes, and to distribute them,
-while currently you need to modify source code to add a theme, it should be
-possible to load theme from Json, Yaml, or any other declarative file type.
+We encourage you to contribute themes, and to distribute them.
 
 Since IPython 9.0, most of IPython internal code emit a sequence of `(Token
 Type, string)`, which is fed through pygments, and a theme is mapping from those
@@ -247,9 +245,72 @@ token types to a style. For example: ``Token.Prompt : '#ansired underline'``, or
 For simplicity, a theme can be derived from from a pygments style (which will
 give the basic code highlighting).
 
-A theme can also define a few symbols (see the source for how), for example
-``arrow_body``, and ``arrow_head``, can help customising line indicators.
+A theme can also define a few symbols, for example ``arrow_body``, and
+``arrow_head``, can help customising line indicators.
 
+Themes are declarative data rather than code. Each of the bundled themes is a
+JSON file in :file:`IPython/utils/themes/`, and looks like this:
+
+.. sourcecode:: json
+
+    {
+      "name": "gruvbox-dark",
+      "base": "gruvbox-dark",
+      "extra_style": {
+        "Prompt": "#689D6A",
+        "Prompt.Continuation.L1": "#D79921"
+      },
+      "symbols": {
+        "top_line": "\u2500",
+        "arrow_body": "\u2500",
+        "arrow_head": "\u25b6"
+      }
+    }
+
+``base`` names an existing pygments style to build on, or is ``null``. The keys
+of ``extra_style`` are token types written as dotted paths with the leading
+``Token.`` left off, so ``Token.Prompt.Continuation.L1`` is spelled
+``"Prompt.Continuation.L1"``. ``symbols`` is optional.
+
+A theme is checked before it loads, and refused with a warning if it fails:
+each token path must name a token, and each symbol must be printable and at
+most 20 characters, so that a theme cannot write an escape sequence to your
+terminal. Powerline separators and Nerd Font glyphs are fine.
+
+Adding a theme of your own
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Drop a JSON file in :file:`themes/` inside your IPython directory -- usually
+:file:`~/.ipython/themes/`, or wherever ``IPYTHONDIR`` points -- and it becomes
+a theme named after the file, so :file:`~/.ipython/themes/my-theme.json` gives
+you ``%colors my-theme``. The ``"name"`` key is optional there; the file name is
+what the theme is known by. A file added during a session is picked up without
+restarting, though a theme already loaded is not re-read.
+
+Distributing a theme
+~~~~~~~~~~~~~~~~~~~~
+
+A package can ship themes by advertising them in the ``ipython.themes`` entry
+point group. The entry point is named after the theme, and its value says which
+package the JSON file lives in, optionally followed by a subdirectory:
+
+.. sourcecode:: toml
+
+    [project.entry-points."ipython.themes"]
+    solarized-dark = "my_ipython_themes"          # solarized-dark.json
+    solarized-light = "my_ipython_themes:data"    # data/solarized-light.json
+
+The subdirectory need not be a package; a plain directory of JSON files is
+fine. As for the bundled themes, a ``:`` in a theme name becomes a ``-`` in the
+file name.
+
+Such a package contains no code at all: the JSON files and an empty
+:file:`__init__.py` are enough, and IPython never imports an object from it.
+
+Where more than one of these offers the same name, the bundled themes win, then
+a file in your IPython directory, then an installed package -- so a bundled
+theme always means the same thing. Neither of the two is consulted until a
+requested name is not one IPython ships, so neither costs anything at startup.
 
 
 Colors in the pager
