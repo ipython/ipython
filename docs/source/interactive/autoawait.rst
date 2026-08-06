@@ -36,6 +36,14 @@ syntax error in the Python REPL::
                               ^
     SyntaxError: invalid syntax
 
+.. note::
+
+    Libraries like ``aiohttp`` require a running event loop at the moment an
+    object such as ``ClientSession`` is constructed. IPython only starts an
+    event loop when a cell contains an ``await`` expression, so the example
+    below uses ``await asyncio.sleep(0)`` to force the loop to start before
+    ``aiohttp.ClientSession()`` is called.
+
 Should behave as expected in the IPython REPL::
 
     Python 3.12.0
@@ -43,6 +51,8 @@ Should behave as expected in the IPython REPL::
     IPython 9.0.0 -- An enhanced Interactive Python. Type '?' for help.
 
     In [1]: import aiohttp
+       ...: import asyncio
+       ...: await asyncio.sleep(0)
        ...: session = aiohttp.ClientSession()
        ...: result = session.get('https://api.github.com')
 
