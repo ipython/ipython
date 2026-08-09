@@ -76,10 +76,16 @@ def editor(self, filename, linenum=None, wait=True):
     if ' ' in editor and os.path.isfile(editor) and editor[0] != '"':
         editor = '"%s"' % editor
 
-    # Call the actual editor
+    # Call the actual editor. Quote the filename so shell metacharacters in the
+    # path are not interpreted, the same way install_editor does.
+    import shlex
     import subprocess
-    proc = subprocess.Popen('{} {} {}'.format(editor, linemark, filename),
-                            shell=True)
+
+    cmd = "{} {} {}".format(editor, linemark, shlex.quote(filename))
+    # shlex.quote uses POSIX rules; on Windows split back into an argv list
+    if sys.platform.startswith("win"):
+        cmd = shlex.split(cmd)
+    proc = subprocess.Popen(cmd, shell=True)
     if wait and proc.wait() != 0:
         raise TryNext()
 
