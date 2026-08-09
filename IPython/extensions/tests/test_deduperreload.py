@@ -2308,3 +2308,32 @@ def test_reload_enums(shell_fixture):
     )
     shell_fixture.shell.run_code("pass")
     assert mod.MyEnum.C.value == "C"
+
+
+def test_deduperreload_preserves_source_line_numbers(shell_fixture):
+    """Reloaded functions keep their original source line numbers (#15359).
+
+    Previously the function AST was unparsed to source and re-parsed before
+    exec, which reset line information and made tracebacks point at the wrong
+    line. The def is on line 3 of the (squish_text-preserved) source.
+    """
+    shell_fixture.shell.magic_autoreload("2")
+    src_v1 = """
+        # leading comment so the def is not on line 1
+
+        def foo():
+            raise ValueError("v1")
+    """
+    src_v2 = """
+        # leading comment so the def is not on line 1
+
+        def foo():
+            raise ValueError("v2")
+    """
+    mod_name, mod_fn = shell_fixture.new_module(src_v1)
+    shell_fixture.shell.run_code(f"import {mod_name}")
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(mod_fn, src_v2)
+    shell_fixture.shell.run_code("pass")
+    mod = sys.modules[mod_name]
+    assert mod.foo.__code__.co_firstlineno == 3

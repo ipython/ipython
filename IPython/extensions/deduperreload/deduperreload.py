@@ -8,7 +8,6 @@ import os
 import pickle
 import platform
 import sys
-import textwrap
 import tokenize
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, NamedTuple, cast
@@ -446,10 +445,12 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
                 if isinstance(to_patch_to, (staticmethod, classmethod)):
                     to_patch_to = to_patch_to.__func__
                 # exec new source code using old function's (obj) globals environment.
-                func_code = textwrap.dedent(ast.unparse(new_ast_def))
                 if is_method := (len(prefixes) > 0):
-                    func_code = "class __autoreload_class__:\n" + textwrap.indent(
-                        func_code, "    "
+                    # Wrap in a class so the method binds `self`. Operate on the AST
+                    # node directly (rather than unparse + reparse) below to keep the
+                    # original source line numbers in tracebacks. See #15359.
+                    new_ast_def = ast.ClassDef(
+                        name="__autoreload_class__", body=[new_ast_def]
                     )
                 global_env = ns.__dict__
                 if not isinstance(global_env, dict):
@@ -460,7 +461,10 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
                     and to_patch_to.__code__.co_filename
                     or "<string>"
                 )
-                func_asts = [ast.parse(func_code)]
+                # Wrap in a Module (what ast.parse returns) so compile() accepts it,
+                # while keeping the original AST node and its line numbers. See #15359.
+                func_asts = [ast.Module(body=[new_ast_def], type_ignores=[])]
+                ast.fix_missing_locations(func_asts[0])
                 if len(cast(ast.FunctionDef, func_asts[0].body[0]).decorator_list) > 0:
                     without_decorator_list = pickle.loads(pickle.dumps(func_asts[0]))
                     cast(
