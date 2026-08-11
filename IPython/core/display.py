@@ -8,11 +8,8 @@ from __future__ import annotations
 from enum import Enum
 from dataclasses import dataclass, KW_ONLY
 from binascii import b2a_base64, hexlify
-import html
-import json
 import mimetypes
 import os
-import struct
 import warnings
 from copy import deepcopy
 from os.path import splitext
@@ -639,6 +636,7 @@ class JSON(DisplayObject):
         if isinstance(data, str):
             if self.filename is None and self.url is None:
                 warnings.warn("JSON expects JSONable dict or list, not JSON strings")
+            import json
             data = json.loads(data)
         self._data = data
 
@@ -800,6 +798,7 @@ def _pngxy(data):
     """read the (width, height) from a PNG header"""
     ihdr = data.index(b'IHDR')
     # next 8 bytes are width/height
+    import struct
     return struct.unpack('>ii', data[ihdr+4:ihdr+12])
 
 
@@ -807,6 +806,7 @@ def _jpegxy(data):
     """read the (width, height) from a JPEG header"""
     # adapted from http://www.64lines.com/jpeg-width-height
 
+    import struct
     idx = 4
     while True:
         block_size = struct.unpack('>H', data[idx:idx+2])[0]
@@ -825,11 +825,13 @@ def _jpegxy(data):
 
 def _gifxy(data):
     """read the (width, height) from a GIF header"""
+    import struct
     return struct.unpack('<HH', data[6:10])
 
 
 def _webpxy(data):
     """read the (width, height) from a WEBP header"""
+    import struct
     if data[12:16] == b"VP8 ":
         width, height = struct.unpack("<HH", data[24:30])
         width = width & 0x3FFF
@@ -1055,6 +1057,7 @@ class Image(DisplayObject):
 
     def _repr_html_(self):
         if not self.embed:
+            import html
             width = height = klass = alt = ""
             if self.width:
                 width = ' width="%d"' % self.width
@@ -1065,7 +1068,7 @@ class Image(DisplayObject):
             if self.alt:
                 alt = ' alt="%s"' % html.escape(self.alt)
             return '<img src="{url}"{width}{height}{klass}{alt}/>'.format(
-                url=self.url,
+                url=html.escape(self.url or ""),
                 width=width,
                 height=height,
                 klass=klass,
@@ -1225,10 +1228,11 @@ class Video(DisplayObject):
         # External URLs and potentially local files are not embedded into the
         # notebook output.
         if not self.embed:
+            import html
             url = self.url if self.url is not None else self.filename
             output = """<video src="{}" {} {} {}>
       Your browser does not support the <code>video</code> element.
-    </video>""".format(url, self.html_attributes, width, height)
+    </video>""".format(html.escape(url or ""), self.html_attributes, width, height)
             return output
 
         # Embedded videos are base64-encoded.

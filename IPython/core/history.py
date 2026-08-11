@@ -45,29 +45,72 @@ from typing import cast
 from warnings import warn
 from weakref import ref, WeakSet
 
+from collections.abc import Callable, Iterator
+from weakref import ReferenceType
+
+
 if TYPE_CHECKING:
+    import sqlite3
     from types import TracebackType
 
     from IPython.core.interactiveshell import InteractiveShell
     from traitlets.config import Config as Configuration
 
-try:
-    from sqlite3 import DatabaseError, OperationalError
+# sqlite3 is optional: it is a pure-Python package wrapping the `_sqlite3`
+# extension module, and CPython can be built (or packaged) without the latter.
+# Importing it costs ~8 ms and 23 modules, and a session that never touches
+# history never needs it, so everything below resolves it on first use.
+#
+# Note that `importlib.util.find_spec("sqlite3")` is *not* a valid
+# availability check: the pure-Python package is on disk either way, and only
+# the import of `_sqlite3` underneath it fails. Only trying the import tells
+# the truth -- and it must catch `ImportError`, not just `ModuleNotFoundError`,
+# since the extension can also be present but fail to load.
+
+
+@functools.cache
+def _sqlite3() -> t.Any:
+    """Return the `sqlite3` module, with IPython's converter registered.
+
+    Raises `ImportError` if this Python has no working sqlite3.
+    """
     import sqlite3
 
     sqlite3.register_converter(
         "timestamp", lambda val: datetime.datetime.fromisoformat(val.decode())
     )
+    return sqlite3
 
-    sqlite3_found = True
-except ModuleNotFoundError:
-    sqlite3_found = False
 
-    class DatabaseError(Exception):  # type: ignore [no-redef]
-        pass
+@functools.cache
+def _sqlite3_found() -> bool:
+    """Whether this Python can actually import sqlite3."""
+    try:
+        _sqlite3()
+    except ImportError:
+        return False
+    return True
 
-    class OperationalError(Exception):  # type: ignore [no-redef]
-        pass
+
+@functools.cache
+def _db_errors() -> tuple[type[BaseException], ...]:
+    """The sqlite3 errors to catch, or an empty tuple if it is unavailable.
+
+    An empty tuple in an `except` clause simply never matches, which is the
+    right behaviour when there is no database to fail in the first place.
+    """
+    if not _sqlite3_found():
+        return ()
+    sqlite3 = _sqlite3()
+    return (sqlite3.DatabaseError, sqlite3.OperationalError)
+
+
+@functools.cache
+def _operational_error() -> tuple[type[BaseException], ...]:
+    """`sqlite3.OperationalError`, or an empty tuple if unavailable."""
+    if not _sqlite3_found():
+        return ()
+    return (_sqlite3().OperationalError,)
 
 
 InOrInOut = str | tuple[str, str | None]
@@ -141,7 +184,7 @@ def catch_corrupt_db(f: t.Callable[_P, _R]) -> t.Callable[_P, _R]:
         self = cast("HistoryAccessor", a[0])
         try:
             return f(*a, **kw)
-        except (DatabaseError, OperationalError) as e:
+        except _db_errors() as e:
             self._corrupt_db_counter += 1
             self.log.error("Failed to open SQLite history %s (%s).", self.hist_file, e)
             if self.hist_file != ":memory:":
@@ -258,7 +301,6 @@ class HistoryAccessor(HistoryAccessorBase):
     ).tag(config=True)
 
     enabled = Bool(
-        sqlite3_found,
         help="""enable the SQLite history
 
         set enabled=False to disable the SQLite history,
@@ -267,6 +309,13 @@ class HistoryAccessor(HistoryAccessorBase):
         threaded environments where IPython is embedded.
         """,
     ).tag(config=True)
+
+    @default("enabled")
+    def _enabled_default(self) -> bool:
+        # dynamic rather than `Bool(_sqlite3_found())`: a static default is
+        # evaluated when the class is created, which would import sqlite3 on
+        # every `import IPython`
+        return _sqlite3_found()
 
     connection_options = Dict(
         help="""Options for configuring the SQLite connection
@@ -288,7 +337,7 @@ class HistoryAccessor(HistoryAccessorBase):
     def _db_changed(self, change):  # type: ignore [no-untyped-def]
         """validate the db, since it can be an Instance of two different types"""
         new = change["new"]
-        connection_types = (DummyDB, sqlite3.Connection)
+        connection_types = (DummyDB, _sqlite3().Connection)
         if not isinstance(new, connection_types):
             msg = "{}.db must be sqlite3 Connection or DummyDB, not {!r}".format(
                 self.__class__.__name__,
@@ -348,9 +397,10 @@ class HistoryAccessor(HistoryAccessorBase):
             return
 
         # use detect_types so that timestamps return datetime objects
+        sqlite3 = _sqlite3()
         kwargs = dict(detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
         kwargs.update(self.connection_options)
-        self.db = sqlite3.connect(str(self.hist_file), **kwargs)  # type: ignore [call-overload]
+        self.db = sqlite3.connect(str(self.hist_file), **kwargs)
         self._finalizer = weakref.finalize(self, lambda db: db.close(), self.db)
         with self.db:
             self.db.execute(
@@ -739,7 +789,7 @@ class HistoryManager(HistoryAccessor):
 
         try:
             self.new_session()
-        except OperationalError:
+        except _operational_error():
             self.log.error(
                 "Failed to create history session in %s. History will not be saved.",
                 self.hist_file,
@@ -1139,7 +1189,7 @@ class HistoryManager(HistoryAccessor):
         with self.db_input_cache_lock:
             try:
                 self._writeout_input_cache(conn)
-            except sqlite3.IntegrityError:
+            except _sqlite3().IntegrityError:
                 self.new_session(conn)
                 print(
                     "ERROR! Session/line number was not unique in",
@@ -1150,7 +1200,7 @@ class HistoryManager(HistoryAccessor):
                     # Try writing to the new session. If this fails, don't
                     # recurse
                     self._writeout_input_cache(conn)
-                except sqlite3.IntegrityError:
+                except _sqlite3().IntegrityError:
                     pass
             finally:
                 self.db_input_cache = []
@@ -1158,7 +1208,7 @@ class HistoryManager(HistoryAccessor):
         with self.db_output_cache_lock:
             try:
                 self._writeout_output_cache(conn)
-            except sqlite3.IntegrityError:
+            except _sqlite3().IntegrityError:
                 print(
                     "!! Session/line number for output was not unique",
                     "in database. Output will not be stored.",
@@ -1170,9 +1220,6 @@ class HistoryManager(HistoryAccessor):
 if hasattr(os, "register_at_fork"):
     os.register_at_fork(before=HistoryManager._stop_thread)
 
-
-from collections.abc import Callable, Iterator
-from weakref import ReferenceType
 
 
 @contextmanager
@@ -1217,7 +1264,7 @@ class HistorySavingThread(threading.Thread):
             hm: ReferenceType[HistoryManager]
             with hold(self.history_manager) as hm:
                 if hm() is not None:
-                    self.db = sqlite3.connect(
+                    self.db = _sqlite3().connect(
                         str(hm().hist_file),  # type: ignore [union-attr]
                         **cast(dict[str, t.Any], hm().connection_options),  # type: ignore [union-attr]
                     )

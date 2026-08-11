@@ -35,6 +35,15 @@ from IPython.core.magic import (
     register_line_magic,
 )
 from IPython.core.magics import code, execution, logging, osm, script
+
+try:
+    # cProfile is stdlib but wraps the optional `_lsprof` extension, so an
+    # interpreter can be built without a working profiler
+    import cProfile  # noqa: F401
+
+    HAS_PROFILER = True
+except ImportError:
+    HAS_PROFILER = False
 from IPython.core.history import HistoryOutput
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
@@ -945,7 +954,7 @@ def test_timeit_raise_on_interrupt():
         thread.join()
 
 
-@dec.skipif(execution.profile is None)
+@dec.skipif(not HAS_PROFILER)
 def test_prun_special_syntax():
     "Test %%prun with IPython special syntax"
 
@@ -962,7 +971,7 @@ def test_prun_special_syntax():
     assert _ip.user_ns["lmagic_out"] == "my line2"
 
 
-@dec.skipif(execution.profile is None)
+@dec.skipif(not HAS_PROFILER)
 def test_prun_quotes():
     "Test that prun does not clobber string escapes (GH #1302)"
     _ip.run_line_magic("prun", r"-q x = '\t'")
@@ -1818,13 +1827,16 @@ def test_bookmark():
 
 def test_ls_magic():
     ip = get_ipython()
-    json_formatter = ip.display_formatter.formatters["application/json"]
-    json_formatter.enabled = True
     lsmagic = ip.run_line_magic("lsmagic", "")
-    with warnings.catch_warnings(record=True) as w:
-        j = json_formatter(lsmagic)
-    assert sorted(j) == ["cell", "line"]
-    assert w == []  # no warnings
+    assert isinstance(lsmagic, str)
+    assert "Available line magics:" in lsmagic
+    assert "Available cell magics:" in lsmagic
+
+
+def test_ls_magic_json():
+    ip = get_ipython()
+    lsmagic = ip.run_line_magic("lsmagic", "--json")
+    assert sorted(lsmagic) == ["cell", "line"]
 
 
 def test_strip_initial_indent():

@@ -5,16 +5,20 @@ import token
 import tokenize
 import warnings
 from io import StringIO
-from typing import Any, TypeAlias
+from typing import TYPE_CHECKING, Any, TypeAlias
 
 import pygments
-from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.style import Style
-from pygments.styles import get_style_by_name
 from pygments.token import Token, _TokenType
 from functools import cache
 
 from typing import TypedDict
+
+if TYPE_CHECKING:
+    # importing this drags in the whole `pygments.formatters` package, which
+    # is only needed once something is actually formatted -- see
+    # Theme._get_formatter below.
+    from pygments.formatters.terminal256 import Terminal256Formatter
 
 
 TokenStream: TypeAlias = list[tuple[_TokenType, str]]
@@ -55,11 +59,15 @@ class Theme:
         self.extra_style = extra_style
         s: Symbols = symbols if symbols is not None else _default_symbols
         self.symbols = {**_default_symbols, **s}
-        self._formatter = Terminal256Formatter(style=self.as_pygments_style())
 
     @cache
     def as_pygments_style(self) -> type[Style]:
         if self.base is not None:
+            # `pygments.styles` pulls in the pygments plugin machinery, and
+            # with it `importlib.metadata`, `zipfile` and `shutil`; keep that
+            # off the import path of everything that merely wants a Theme.
+            from pygments.styles import get_style_by_name
+
             base_styles = get_style_by_name(self.base).styles
         else:
             base_styles = {}
@@ -69,8 +77,14 @@ class Theme:
 
         return MyStyle
 
+    @cache
+    def _get_formatter(self) -> "Terminal256Formatter":
+        from pygments.formatters.terminal256 import Terminal256Formatter
+
+        return Terminal256Formatter(style=self.as_pygments_style())
+
     def format(self, stream: TokenStream) -> str:
-        return pygments.format(stream, self._formatter)
+        return pygments.format(stream, self._get_formatter())
 
     def make_arrow(self, width: int) -> str:
         """generate the leading arrow in front of traceback or debugger"""

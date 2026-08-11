@@ -158,13 +158,13 @@ def getoutput(cmd: str) -> str:
 
 
 try:
-    windll = ctypes.windll  # type: ignore [attr-defined]
+    windll = ctypes.windll  # type: ignore[attr-defined, unused-ignore]
     CommandLineToArgvW = windll.shell32.CommandLineToArgvW
-    CommandLineToArgvW.arg_types = [LPCWSTR, POINTER(c_int)]
+    CommandLineToArgvW.argtypes = [LPCWSTR, POINTER(c_int)]
     CommandLineToArgvW.restype = POINTER(LPCWSTR)
     LocalFree = windll.kernel32.LocalFree
-    LocalFree.res_type = HLOCAL
-    LocalFree.arg_types = [HLOCAL]
+    LocalFree.restype = HLOCAL
+    LocalFree.argtypes = [HLOCAL]
 
     def arg_split(
         commandline: str, posix: bool = False, strict: bool = True

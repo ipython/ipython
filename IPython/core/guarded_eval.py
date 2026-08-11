@@ -1,5 +1,5 @@
 from copy import copy
-from inspect import isclass, signature, Signature, getmodule
+from inspect import get_annotations, isclass, signature, Signature, getmodule
 from typing import (
     Annotated,
     AnyStr,
@@ -29,7 +29,7 @@ from types import MethodDescriptorType, ModuleType, MethodType
 from IPython.utils.decorators import undoc
 
 import types
-from typing import Self, LiteralString, get_type_hints
+from typing import Self, LiteralString
 
 if sys.version_info < (3, 12):
     from typing_extensions import TypeAliasType
@@ -1125,14 +1125,9 @@ def eval_node(node: ast.AST | None, context: EvaluationContext):
                 value if isinstance(value, type) else getattr(value, "__class__", None)
             )
             if cls is not None:
-                resolved_hints = get_type_hints(
-                    cls,
-                    globalns=(context.globals or {}),
-                    localns=(context.locals or {}),
-                )
-                if node.attr in resolved_hints:
-                    annotated = resolved_hints[node.attr]
-                    return _resolve_annotation(annotated, context)
+                hints = _collect_annotations(cls)
+                if node.attr in hints:
+                    return _resolve_annotation(hints[node.attr], context)
         except Exception:
             # Fall through to the guard rejection
             pass
@@ -1319,15 +1314,27 @@ def _eval_return_type(func: Callable, node: ast.Call, context: EvaluationContext
     return NOT_EVALUATED
 
 
+def _collect_annotations(cls: type) -> dict:
+    """Collect annotations of a class and its bases without resolving them.
+
+    `typing.get_type_hints()` is not usable here because it resolves stringized
+    annotations with `eval()`; under PEP 563 every annotation of a module is a
+    string, so that would run arbitrary code from `__annotations__`. Strings are
+    left as-is and later resolved by `_eval_annotation` under the policy.
+    """
+    annotations: dict = {}
+    for base in reversed(cls.__mro__):
+        annotations.update(get_annotations(base, eval_str=False))
+    return annotations
+
+
 def _eval_annotation(
     annotation: str,
     context: EvaluationContext,
 ):
-    return (
-        _eval_node_name(annotation, context)
-        if isinstance(annotation, str)
-        else annotation
-    )
+    if not isinstance(annotation, str):
+        return annotation
+    return eval_node(ast.parse(annotation, mode="eval").body, context)
 
 
 class _GetItemDuck(dict):

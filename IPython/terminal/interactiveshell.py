@@ -45,10 +45,8 @@ from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.shortcuts import PromptSession, CompleteStyle, print_formatted_text
 from prompt_toolkit.styles import DynamicStyle, merge_styles
 from prompt_toolkit.styles.pygments import style_from_pygments_cls, style_from_pygments_dict
-from pygments.styles import get_style_by_name
 from pygments.style import Style
 
-from .debugger import TerminalPdb, Pdb
 from .magics import TerminalMagics
 from .pt_inputhooks import get_inputhook_name_and_func
 from .prompts import Prompts, ClassicPrompts, RichPromptDisplayHook
@@ -247,6 +245,11 @@ class TerminalInteractiveShell(InteractiveShell):
 
     @property
     def debugger_cls(self):
+        # Deferred: `.debugger` (and everything it drags in, including
+        # pdb and prompt_toolkit-based pieces) is only imported the first
+        # time a debugger class is actually needed.
+        from .debugger import TerminalPdb, Pdb
+
         return Pdb if self.simple_prompt else TerminalPdb
 
     confirm_exit = Bool(True,
@@ -837,6 +840,11 @@ class TerminalInteractiveShell(InteractiveShell):
 
         theme = theme_table.get(legacy, None)
         assert theme is not None, legacy
+
+        # `pygments.styles` drags in the pygments plugin machinery
+        # (importlib.metadata -> zipfile -> shutil); it is only needed to
+        # resolve a theme's base style, which happens once, here.
+        from pygments.styles import get_style_by_name
 
         if legacy == "nocolor":
             style_overrides = {}

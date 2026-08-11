@@ -5,14 +5,10 @@
 
 
 import ast
-import bdb
 import builtins as builtin_mod
-import cProfile as profile
 import gc
 import itertools
-import math
 import os
-import pstats
 import re
 import shlex
 import sys
@@ -25,7 +21,6 @@ from ast import (
 from io import StringIO
 from logging import error
 from pathlib import Path
-from pdb import Restart
 from textwrap import indent
 from warnings import warn
 
@@ -50,7 +45,6 @@ from IPython.utils.ipstruct import Struct
 from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, shellglob
 from IPython.utils.process import arg_split_with_quotes
-from IPython.utils.timing import clock, clock2
 from IPython.core.magics.ast_mod import ReplaceCodeTransformer
 
 #-----------------------------------------------------------------------------
@@ -92,10 +86,12 @@ class TimeitResult:
 
     @property
     def average(self):
+        import math
         return math.fsum(self.timings) / len(self.timings)
 
     @property
     def stdev(self):
+        import math
         mean = self.average
         return (math.fsum([(x - mean) ** 2 for x in self.timings]) / len(self.timings)) ** 0.5
 
@@ -327,6 +323,8 @@ class ExecutionMagics(Magics):
             A dictionary for Python namespace (e.g., `self.shell.user_ns`).
 
         """
+        import cProfile as profile
+        import pstats
 
         # Fill default values for unspecified options:
         opts.merge(Struct(D=[''], l=[], s=['time'], T=['']))
@@ -929,6 +927,8 @@ class ExecutionMagics(Magics):
             If the break point given by `bp_line` is not valid.
 
         """
+        from pdb import Restart
+
         deb = self.shell.InteractiveTB.pdb
         if not deb:
             self.shell.InteractiveTB.pdb = self.shell.InteractiveTB.debugger_cls()
@@ -936,6 +936,7 @@ class ExecutionMagics(Magics):
 
         # reset Breakpoint state, which is moronically kept
         # in a class
+        import bdb
         bdb.Breakpoint.next = 1
         bdb.Breakpoint.bplist = {}
         bdb.Breakpoint.bpbynumber = [None]
@@ -1020,6 +1021,8 @@ class ExecutionMagics(Magics):
             Number of times to execute `run`.
 
         """
+        from IPython.utils.timing import clock2
+
         twall0 = time.perf_counter()
         if nruns == 1:
             t0 = clock2()
@@ -1136,6 +1139,8 @@ class ExecutionMagics(Magics):
         statement to import function or create variables. Generally, the bias
         does not matter as long as results from timeit.py are not mixed with
         those from ``%timeit``."""
+        from IPython.utils.timing import clock
+
 
         # TODO: port to magic_arguments as currently this is duplicated in IPCompleter._extract_code
         opts, stmt = self.parse_options(
@@ -1342,6 +1347,8 @@ class ExecutionMagics(Magics):
                 Wall time: 0.00 s
                 Compiler : 0.78 s
         """
+        from IPython.utils.timing import clock, clock2
+
         args, extra = magic_arguments.parse_argstring(self.time, line, partial=True)
         line = " ".join(extra)
 
@@ -1392,7 +1399,7 @@ class ExecutionMagics(Magics):
         wall_st = wtime()
         # Track whether to propagate exceptions or exit
         exit_on_interrupt = False
-        interrupt_occured = False
+        interrupt_occurred = False
         captured_exception = None
 
         if mode == "eval":
@@ -1401,11 +1408,11 @@ class ExecutionMagics(Magics):
                 out = eval(code, glob, local_ns)
             except KeyboardInterrupt as e:
                 captured_exception = e
-                interrupt_occured = True
+                interrupt_occurred = True
                 exit_on_interrupt = True
             except Exception as e:
                 captured_exception = e
-                interrupt_occured = True
+                interrupt_occurred = True
                 if not args.no_raise_error:
                     exit_on_interrupt = True
             end = clock2()
@@ -1420,11 +1427,11 @@ class ExecutionMagics(Magics):
                     out = eval(code_2, glob, local_ns)
             except KeyboardInterrupt as e:
                 captured_exception = e
-                interrupt_occured = True
+                interrupt_occurred = True
                 exit_on_interrupt = True
             except Exception as e:
                 captured_exception = e
-                interrupt_occured = True
+                interrupt_occurred = True
                 if not args.no_raise_error:
                     exit_on_interrupt = True
             end = clock2()
@@ -1446,7 +1453,7 @@ class ExecutionMagics(Magics):
             print(f"Compiler : {_format_time(tc)}")
         if tp > tp_min:
             print(f"Parser   : {_format_time(tp)}")
-        if interrupt_occured:
+        if interrupt_occurred:
             if exit_on_interrupt and captured_exception:
                 raise captured_exception
             return
@@ -1705,6 +1712,7 @@ def _format_time(timespan, precision=3):
     scaling = [1, 1e3, 1e6, 1e9]
 
     if timespan > 0.0:
+        import math
         order = min(-int(math.floor(math.log10(timespan)) // 3), 3)
     else:
         order = 3

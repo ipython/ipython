@@ -18,7 +18,6 @@ import os
 import platform
 import pprint
 import sys
-import subprocess
 
 from pathlib import Path
 
@@ -57,6 +56,7 @@ def pkg_commit_hash(pkg_path: str) -> tuple[str, str]:
         return "installation", _sysinfo.commit
 
     # maybe we are in a repository
+    import subprocess
     proc = subprocess.Popen('git rev-parse --short HEAD'.split(' '),
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,

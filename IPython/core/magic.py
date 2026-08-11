@@ -17,14 +17,11 @@ import sys
 from getopt import getopt, GetoptError
 
 from traitlets.config.configurable import Configurable
-from . import oinspect
 from .error import UsageError
 from .inputtransformer2 import ESC_MAGIC, ESC_MAGIC2
 from ..utils.ipstruct import Struct
-from ..utils.process import arg_split
 from ..utils.text import dedent
 from traitlets import Bool, Dict, Instance, observe
-from logging import error
 
 import typing as t
 from typing import Any, Literal, TypeVar, overload
@@ -670,6 +667,8 @@ class Magics(Configurable):
 
     def arg_err(self, func: Callable[..., Any]) -> None:
         """Print docstring if incorrect arguments were passed"""
+        from . import oinspect
+
         print("Error in arguments:")
         print(oinspect.getdoc(func))
 
@@ -735,6 +734,7 @@ class Magics(Configurable):
         odict: dict[str, t.Any] = {}  # Dictionary with options
         args = arg_str.split()
         if len(args) >= 1:
+            from ..utils.process import arg_split
             # If the list of inputs only has 0 or 1 thing in it, there's no
             # need to look for options
             argv = arg_split(arg_str, posix, strict)

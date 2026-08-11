@@ -41,7 +41,6 @@ from typing import Any
 from collections.abc import Callable
 
 import os
-import subprocess
 import sys
 
 from .error import TryNext
@@ -94,6 +93,7 @@ def editor(self, filename, linenum=None, wait=True):
     filename = _quote_if_needed(filename)
 
     # Call the actual editor
+    import subprocess
     proc = subprocess.Popen('{} {} {}'.format(editor, linemark, filename),
                             shell=True)
     if wait and proc.wait() != 0:

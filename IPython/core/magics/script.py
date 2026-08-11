@@ -3,17 +3,13 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import asyncio
-import asyncio.exceptions
 import atexit
 import errno
 import os
-import signal
 import sys
 import time
 import weakref
 from codecs import getincrementaldecoder
-from subprocess import CalledProcessError
 from threading import Thread
 
 from traitlets import Any, Dict, List, default
@@ -229,6 +225,9 @@ class ScriptMagics(Magics):
             2
             3
         """
+        import asyncio
+        import asyncio.exceptions
+        from subprocess import CalledProcessError
 
         # Create the event loop in which to run script magics
         # this operates on a background thread
@@ -346,6 +345,7 @@ class ScriptMagics(Magics):
             in_thread(_stream_communicate(p, cell))
         except KeyboardInterrupt:
             try:
+                import signal
                 p.send_signal(signal.SIGINT)
                 in_thread(asyncio.wait_for(p.wait(), timeout=0.1))
                 if p.returncode is not None:
@@ -413,6 +413,7 @@ class ScriptMagics(Magics):
         for p in self.bg_processes:
             if p.returncode is None:
                 try:
+                    import signal
                     p.send_signal(signal.SIGINT)
                 except OSError:
                     pass
