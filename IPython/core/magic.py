@@ -806,6 +806,47 @@ class MagicAlias:
 
         self._in_call = False
 
+    def _target(self) -> Any:
+        """Resolve the aliased magic, keeping the lookup at call time."""
+        target = self.shell.find_magic(self.magic_name, self.magic_kind)  # type: ignore[no-untyped-call]
+        seen = {id(self)}
+        while isinstance(target, MagicAlias):
+            if id(target) in seen:
+                return None
+            seen.add(id(target))
+            target = target.shell.find_magic(  # type: ignore[no-untyped-call]
+                target.magic_name, target.magic_kind
+            )
+        return target
+
+    @property
+    def _ipython_magic_no_var_expand(self) -> bool:
+        """Propagate the ``no_var_expand`` opt-out flag of the aliased magic."""
+        target = self._target()
+        return (
+            getattr(target, MAGIC_NO_VAR_EXPAND_ATTR, False)
+            if target is not None
+            else False
+        )
+
+    @property
+    def needs_local_scope(self) -> bool:
+        """Propagate the ``needs_local_scope`` flag of the aliased magic."""
+        target = self._target()
+        return (
+            getattr(target, "needs_local_scope", False) if target is not None else False
+        )
+
+    @property
+    def _ipython_magic_output_can_be_silenced(self) -> bool:
+        """Propagate the ``output_can_be_silenced`` flag of the aliased magic."""
+        target = self._target()
+        return (
+            getattr(target, MAGIC_OUTPUT_CAN_BE_SILENCED, False)
+            if target is not None
+            else False
+        )
+
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         """Call the magic alias."""
         fn = self.shell.find_magic(self.magic_name, self.magic_kind)  # type: ignore[no-untyped-call]
