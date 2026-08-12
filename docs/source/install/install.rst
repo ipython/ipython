@@ -111,7 +111,8 @@ Installing the development version
 
 It is also possible to install the development version of IPython from our
 `Git <https://git-scm.com/>`_ source code repository.  To do this you will
-need to have Git installed on your system.
+need to have Git installed on your system. Additionally, ensure that
+pip version 25.1 (2025-04-26) or later is installed.
 
 
 Then do:
@@ -120,7 +121,7 @@ Then do:
 
     $ git clone https://github.com/ipython/ipython.git
     $ cd ipython
-    $ pip install -e '.[test]'
+    $ pip install -e . --group test
 
 The :command:`pip install -e .` command allows users and developers to follow
 the development branch as it changes by creating links in the right places and

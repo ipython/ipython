@@ -63,15 +63,14 @@ jobs:
     - name: Install and update Python dependencies (binary only)
       if: ${{ ! contains( matrix.python-version, 'dev' ) }}
       run: |
-        uv pip install --system setuptools wheel build
-        uv pip install --system -e .[${{ matrix.deps }}]
+        uv pip install --system --group build
+        uv pip install --system -e . --group ${{ matrix.deps }}
         uv pip install --system check-manifest pytest-cov pytest
     - name: Install and update Python dependencies (dev?)
       if: ${{ contains( matrix.python-version, 'dev' ) }}
       run: |
-        uv pip install --system --prerelease=allow setuptools wheel build
-        uv pip install --system --prerelease=allow --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple -e .[${{ matrix.deps }}]
-        uv pip install --system --prerelease=allow --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple check-manifest pytest-cov
+        uv pip install --system --prerelease=allow --group build
+        uv pip install --system --prerelease=allow --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple -e . --group ${{ matrix.deps }} check-manifest pytest-cov
     - name: Try building with Python build
       if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
       run: |
@@ -143,7 +142,7 @@ jobs:
           pyproject.toml
 
     - name: Install Python dependencies (oldest supported versions)
-      run: uv pip install --resolution=lowest-direct -e .[test]
+      run: uv pip install --resolution=lowest-direct -e . --group test
 
     - name: Try building with uv build
       if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
