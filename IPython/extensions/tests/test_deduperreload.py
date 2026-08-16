@@ -910,6 +910,57 @@ def test_deduperreloader_need_to_default_back(shell_fixture):
     assert mod.foo(0) == 5
 
 
+def test_deduperreloader_preserves_traceback_lines(shell_fixture):
+    """Tracebacks after a deduperreload point at the real source lines.
+
+    Regression test for #15359: the old implementation re-created the new
+    function's source text (unparse + re-indent + re-parse), which reset all
+    line numbers to 1. After reload, a traceback inside the function pointed
+    at the top of the file (typically a docstring) instead of the failing
+    line.
+    """
+    shell_fixture.shell.magic_autoreload("2")
+    mod_name, mod_fn = shell_fixture.new_module(
+        '''
+        """
+        This docstring sits on line 2 of the file; a traceback that
+        loses line numbers points here.
+        """
+        def func():
+            assert False, "v1"
+        ''',
+    )
+    shell_fixture.shell.run_code("import %s" % mod_name)
+    shell_fixture.shell.run_code("pass")
+    shell_fixture.write_file(
+        mod_fn,
+        '''
+        """
+        This docstring sits on line 2 of the file; a traceback that
+        loses line numbers points here.
+        """
+        def func():
+            assert False, "v2"
+        ''',
+    )
+    shell_fixture.shell.run_code("pass")
+    # Capture the traceback's file:line frame for func() after reload.
+    shell_fixture.shell.run_code(
+        "import traceback\n"
+        "import sys\n"
+        "result = None\n"
+        "try:\n"
+        "    %s.func()\n"
+        "except AssertionError:\n"
+        "    result = traceback.extract_tb(sys.exc_info()[2])[-1]" % mod_name
+    )
+    frame = shell_fixture.shell.user_ns["result"]
+    # The assert lives on line 6 of the squished module text
+    # (docstring on lines 2-4, def on line 5, assert on line 6).
+    assert frame.lineno == 6, f"got {frame}"
+    assert frame.name == "func"
+
+
 def test_deduperreloader_failure(shell_fixture):
     shell_fixture.shell.magic_autoreload("2")
     mod_name, mod_fn = shell_fixture.new_module(

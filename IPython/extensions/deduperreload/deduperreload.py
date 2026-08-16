@@ -8,7 +8,6 @@ import os
 import pickle
 import platform
 import sys
-import textwrap
 import tokenize
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, NamedTuple, cast
@@ -446,11 +445,21 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
                 if isinstance(to_patch_to, (staticmethod, classmethod)):
                     to_patch_to = to_patch_to.__func__
                 # exec new source code using old function's (obj) globals environment.
-                func_code = textwrap.dedent(ast.unparse(new_ast_def))
+                # Methods are exec'd inside a synthetic class so that ``super()``
+                # and zero-arg ``__class__`` closures keep working.
                 if is_method := (len(prefixes) > 0):
-                    func_code = "class __autoreload_class__:\n" + textwrap.indent(
-                        func_code, "    "
+                    # compile() requires every statement node to carry
+                    # position info; derive it from the wrapped method.
+                    wrapped = new_ast_def
+                    new_ast_def = ast.ClassDef(
+                        name="__autoreload_class__",
+                        bases=[],
+                        keywords=[],
+                        body=[wrapped],
+                        decorator_list=[],
                     )
+                    new_ast_def.lineno = wrapped.lineno
+                    new_ast_def.col_offset = wrapped.col_offset
                 global_env = ns.__dict__
                 if not isinstance(global_env, dict):
                     global_env = dict(global_env)
@@ -460,7 +469,12 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
                     and to_patch_to.__code__.co_filename
                     or "<string>"
                 )
-                func_asts = [ast.parse(func_code)]
+                # Wrap in a module so the downstream ``func_asts[0].body[0]``
+                # accesses keep working. Reusing the freshly-parsed AST node
+                # (rather than unparse/re-indent/re-parse) preserves the
+                # original source line numbers, so tracebacks from reloaded
+                # code point at the real lines (#15359).
+                func_asts = [ast.Module(body=[new_ast_def], type_ignores=[])]
                 if len(cast(ast.FunctionDef, func_asts[0].body[0]).decorator_list) > 0:
                     without_decorator_list = pickle.loads(pickle.dumps(func_asts[0]))
                     cast(
