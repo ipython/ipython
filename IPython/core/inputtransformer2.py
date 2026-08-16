@@ -827,6 +827,10 @@ class TransformerManager:
             return "invalid", None
 
         if lines[0].startswith("%%"):
+            # Help queries are complete without a blank line.
+            if len(lines) == 1 and re.match(r"^%%\w+\?{1,2}\s*$", lines[0]):
+                return "complete", None
+
             # Special case for cell magics - completion marked by blank line
             if lines[-1].strip():
                 return "incomplete", find_last_indent(lines)

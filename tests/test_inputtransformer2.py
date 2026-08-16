@@ -319,6 +319,8 @@ examples = [
     pytest.param("for a in range(5):", "incomplete", 4),
     pytest.param("for a in range(5):\n    if a > 0:", "incomplete", 8),
     pytest.param("raise = 2", "invalid", None),
+    pytest.param("%%writefile?", "complete", None),
+    pytest.param("%%writefile??", "complete", None),
     # Invalid number literals (ipython/ipython#15320): on Python <= 3.11 the
     # tokenizer splits these into separate tokens and compilation fails;
     # since Python 3.12 the tokenizer raises TokenError for malformed
