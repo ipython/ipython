@@ -195,6 +195,27 @@ def test_history(hmmax2):
             ip.history_manager = hist_manager_ori
 
 
+def test_history_reset_without_cwd(tmp_path, monkeypatch):
+    ip = get_ipython()
+    history_manager = HistoryManager(
+        shell=ip,
+        hist_file=tmp_path / "history-no-cwd.sqlite",
+    )
+
+    def missing_cwd():
+        raise FileNotFoundError("current working directory was removed")
+
+    try:
+        with monkeypatch.context() as patcher:
+            patcher.setattr(Path, "cwd", missing_cwd)
+            history_manager.reset(new_session=False)
+
+        assert history_manager.dir_hist == []
+    finally:
+        history_manager.end_session()
+        history_manager.close()
+
+
 def test_extract_hist_ranges():
     instr = "1 2/3 ~4/5-6 ~4/7-~4/9 ~9/2-~7/5 ~10/"
     expected = [

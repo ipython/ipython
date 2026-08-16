@@ -921,8 +921,8 @@ class HistoryManager(HistoryAccessor):
         self.outputs.clear()
         self.exceptions.clear()
 
-        # The directory history can't be completely empty
-        self.dir_hist[:] = [Path.cwd()]
+        # Use the same missing-CWD fallback as initial directory history.
+        self.dir_hist[:] = self._dir_hist_default()
 
         if new_session:
             if self.session_number:
