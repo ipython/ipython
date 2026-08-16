@@ -280,7 +280,7 @@ class CodeMagics(Magics):
         from urllib.parse import urlencode
         from urllib.request import Request
 
-        opts, args = self.parse_options(parameter_s, "d:e:")
+        opts, args = self.parse_options(parameter_s, "d:e:", interspersed=True)
 
         try:
             code = self.shell.find_user_code(args)

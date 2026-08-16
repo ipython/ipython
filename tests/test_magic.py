@@ -204,6 +204,19 @@ def test_magic_parse_long_options():
     assert opts["bar"] == "bubble"
 
 
+def test_magic_parse_options_interspersed_is_opt_in():
+    ip = get_ipython()
+    m = DummyMagics(ip)
+
+    opts, args = m.parse_options('1 -d "later"', "d:")
+    assert "d" not in opts
+    assert args == '1 -d later'
+
+    opts, args = m.parse_options('1 -d "later"', "d:", interspersed=True)
+    assert opts["d"] == "later"
+    assert args == "1"
+
+
 def doctest_hist_f():
     """Test %hist -f with temporary filename.
 

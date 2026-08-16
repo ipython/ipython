@@ -14,7 +14,7 @@ from __future__ import annotations
 import os
 import re
 import sys
-from getopt import getopt, GetoptError
+from getopt import GetoptError, getopt, gnu_getopt
 
 from traitlets.config.configurable import Configurable
 from .error import UsageError
@@ -713,6 +713,9 @@ class Magics(Configurable):
             Whether to split the input line in POSIX mode or not, as per the
             conventions outlined in the :mod:`shlex` module from the standard
             library.
+        interspersed : bool, default False
+            Whether options may appear after non-option arguments. The default
+            preserves the historical option parsing behavior.
         """
 
         # inject default options at the beginning of the input line
@@ -726,6 +729,7 @@ class Magics(Configurable):
         list_all = kw.get("list_all", 0)
         posix = kw.get("posix", os.name == "posix")
         strict = kw.get("strict", True)
+        interspersed = kw.get("interspersed", False)
 
         preserve_non_opts = kw.get("preserve_non_opts", False)
         remainder_arg_str = arg_str
@@ -740,7 +744,8 @@ class Magics(Configurable):
             argv = arg_split(arg_str, posix, strict)
             # Do regular option processing
             try:
-                opts, args = getopt(argv, opt_str, long_opts)
+                parser = gnu_getopt if interspersed else getopt
+                opts, args = parser(argv, opt_str, long_opts)
             except GetoptError as e:
                 raise UsageError(
                     '%s (allowed: "%s"%s)'
