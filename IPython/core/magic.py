@@ -346,6 +346,67 @@ register_line_cell_magic = _function_magic_marker("line_cell")
 # -----------------------------------------------------------------------------
 
 
+class LazyMagic:
+    """Stands in the magics table for a magic that is not imported yet.
+
+    Listing and completing magics only look at names, so they stay cheap;
+    using one -- calling it, or reading any attribute of it, as pyflyby does
+    with ``magics["line"]["prun"].__self__`` -- resolves through
+    :meth:`MagicsManager.find`, which imports and registers the real thing.
+    """
+
+    def __init__(
+        self,
+        manager: MagicsManager,
+        spec: str,
+        magic_kind: _MagicKind,
+        magic_name: str,
+    ) -> None:
+        self.spec = spec
+        self._manager = manager
+        self._kind = magic_kind
+        self._name = magic_name
+
+    def _resolve(self) -> Callable[..., Any]:
+        fn = self._manager.find(self._kind, self._name)
+        if fn is None:
+            raise UsageError(
+                f"Magic `{magic_escapes[self._kind]}{self._name}` not found."
+            )
+        return fn
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        return self._resolve()(*args, **kwargs)
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._resolve(), name)
+
+    def __repr__(self) -> str:
+        return f"<unloaded magic {self._name} from {self.spec}>"
+
+
+class _MagicsRegistry(dict[str, Any]):
+    """``MagicsManager.registry``, which loads a lazy class on a miss.
+
+    ``registry["ExecutionMagics"]`` is a legitimate way to reach a magics
+    instance, and may now be the first thing that needs the class.
+    """
+
+    def __init__(self, manager: MagicsManager) -> None:
+        super().__init__()
+        self._manager = manager
+
+    def __missing__(self, key: str) -> Any:
+        for magic_name, spec in list(self._manager.lazy_magics.items()):
+            if spec.endswith(":" + key):
+                self._manager.load_lazy(magic_name)
+                break
+        if key not in self:
+            # A second miss must not loop back here.
+            raise KeyError(key)
+        return self[key]
+
+
 class MagicsManager(Configurable):
     """Object that handles all magic-related functionality for IPython."""
 
@@ -372,6 +433,11 @@ class MagicsManager(Configurable):
     On first invocation of `%my_magic`, `%%my_magic`, `%%my_other_magic` or
     `%%my_other_magic`, the corresponding module will be loaded as an ipython
     extensions as if you had previously done `%load_ext ipython`.
+
+    A value of the form ``"package.module:MagicsClass"`` is instead imported
+    and registered directly, without going through the extension machinery.
+    This is how IPython declares its own magics, see
+    :mod:`IPython.core.magics._table`.
 
     Magics names should be without percent(s) as magics can be both cell
     and line magics.
@@ -418,6 +484,9 @@ class MagicsManager(Configurable):
             shell=shell, config=config, user_magics=user_magics, **traits
         )
         self.magics = dict(line={}, cell={})
+        # Specs already loaded, so a class is never registered twice.
+        self._loaded_lazy: set[str] = set()
+        self.registry = _MagicsRegistry(self)
         # Let's add the user_magics to the registry for uniformity, so *all*
         # registered magic containers can be found there.
         if user_magics is not None:
@@ -447,11 +516,16 @@ class MagicsManager(Configurable):
 
         If brief is True, only the first line of each docstring will be returned.
         """
+        # Everything is documented here, so everything has to be imported.
+        self.load_all_lazy_magics()
         docs: dict[str, dict[str, str]] = {}
         for m_type in self.magics:
             m_docs: dict[str, str] = {}
-            for m_name, m_func in self.magics[m_type].items():
-                if m_func.__doc__:
+            for m_name, m_func in list(self.magics[m_type].items()):
+                if isinstance(m_func, LazyMagic):
+                    # An extension we decline to load just for a docstring.
+                    m_docs[m_name] = missing
+                elif m_func.__doc__:
                     if brief:
                         m_docs[m_name] = m_func.__doc__.split("\n", 1)[0]
                     else:
@@ -461,23 +535,95 @@ class MagicsManager(Configurable):
             docs[m_type] = m_docs
         return docs
 
-    def register_lazy(self, name: str, fully_qualified_name: str) -> None:
+    def register_lazy(
+        self,
+        name: str,
+        fully_qualified_name: str,
+        magic_kind: _MagicSpec = "line_cell",
+    ) -> None:
         """
-        Lazily register a magic via an extension.
+        Lazily register a magic, without importing what implements it.
 
+        The magic shows up in ``%lsmagic`` and in completion straight away; the
+        module is only imported the first time it is looked up.
 
         Parameters
         ----------
         name : str
             Name of the magic you wish to register.
-        fully_qualified_name :
-            Fully qualified name of the module/submodule that should be loaded
-            as an extensions when the magic is first called.
-            It is assumed that loading this extensions will register the given
-            magic.
+        fully_qualified_name : str
+            Either ``"package.module"``, which is loaded as an IPython
+            extension (and trusted to register the magic itself), or
+            ``"package.module:MagicsClass"``, which is imported and registered
+            directly -- how IPython declares its own magics.
+        magic_kind : str
+            One of 'line', 'cell' or 'line_cell' (the default, since a lazily
+            declared magic may well be both).
         """
-
+        validate_type(magic_kind)
         self.lazy_magics[name] = fully_qualified_name
+        kinds = magic_kinds if magic_kind == "line_cell" else (magic_kind,)
+        for kind in kinds:
+            self.magics[kind][name] = LazyMagic(self, fully_qualified_name, kind, name)
+
+    def load_lazy(self, magic_name: str) -> None:
+        """Import and register whatever provides `magic_name`.
+
+        Does nothing if `magic_name` was not declared through
+        :meth:`register_lazy` or :attr:`lazy_magics`, or if what provides it
+        has already been loaded.
+        """
+        # `lazy_magics` is user-configurable and may have been replaced
+        # wholesale, so prefer the spec the placeholder carries.
+        fn = self.magics["line"].get(magic_name) or self.magics["cell"].get(magic_name)
+        spec = (
+            fn.spec if isinstance(fn, LazyMagic) else self.lazy_magics.get(magic_name)
+        )
+        if spec is None or spec in self._loaded_lazy:
+            return
+        module_name, sep, class_name = spec.partition(":")
+        # Marked before loading: what we run may look a magic up itself, and
+        # must not come back round and register twice.  Unwound on failure so
+        # a broken spec keeps raising rather than going quiet.
+        self._loaded_lazy.add(spec)
+        try:
+            if sep:
+                from importlib import import_module
+
+                self.register(getattr(import_module(module_name), class_name))
+            else:
+                assert self.shell is not None
+                self.shell.run_line_magic("load_ext", spec)
+        except Exception:
+            self._loaded_lazy.discard(spec)
+            raise
+
+    def load_all_lazy_magics(self) -> None:
+        """Import and register every magic still declared lazily.
+
+        Only the ``module:MagicsClass`` ones: loading an extension can run
+        arbitrary code, so that waits for the magic to actually be used.
+        """
+        for magic_name, spec in list(self.lazy_magics.items()):
+            if ":" in spec:
+                self.load_lazy(magic_name)
+
+    def find(
+        self, magic_kind: _MagicKind, magic_name: str
+    ) -> Callable[..., Any] | None:
+        """Return a registered magic, importing its implementation if needed.
+
+        Returns None if there is no such magic.
+        """
+        fn = self.magics[magic_kind].get(magic_name)
+        if isinstance(fn, LazyMagic) or (fn is None and magic_name in self.lazy_magics):
+            self.load_lazy(magic_name)
+            fn = self.magics[magic_kind].get(magic_name)
+            if isinstance(fn, LazyMagic):
+                # Declared but not delivered; drop the stale placeholder.
+                del self.magics[magic_kind][magic_name]
+                fn = None
+        return t.cast("Callable[..., Any] | None", fn)
 
     def register(self, *magic_objects: type[Magics] | Magics) -> None:
         """Register one or more instances of Magics.

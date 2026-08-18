@@ -2486,16 +2486,20 @@ class InteractiveShell(SingletonConfigurable):
         # Expose as public API from the magics manager
         self.register_magics = self.magics_manager.register
 
-        self.register_magics(m.AutoMagics, m.BasicMagics, m.CodeMagics,
-            m.ConfigMagics, m.DisplayMagics, m.ExecutionMagics,
-            m.ExtensionMagics, m.HistoryMagics, m.LoggingMagics,
-            m.NamespaceMagics, m.OSMagics, m.PackagingMagics,
-            m.PylabMagics, m.ScriptMagics,
-        )
-        self.register_magics(m.AsyncMagics)
+        mman = self.magics_manager
+
+        # IPython's own magics are declared rather than registered: the module
+        # implementing one is imported the first time it is looked up.  The
+        # table is hand maintained; tests/test_magic_table.py checks it.
+        for magic_kind, table in m.BUILTIN_LAZY_MAGICS.items():
+            for magic_name, spec in table.items():
+                mman.register_lazy(magic_name, spec, magic_kind)
+        # ScriptMagics generates a cell magic per configured interpreter.
+        script_magics = m.MAGICS_CLASSES["ScriptMagics"] + ":ScriptMagics"
+        for magic_name in m.configured_script_magics(self.config):
+            mman.register_lazy(magic_name, script_magics, "cell")
 
         # Register Magic Aliases
-        mman = self.magics_manager
         # FIXME: magic aliases should be defined by the Magics classes
         # or in MagicsManager, not here
         mman.register_alias('ed', 'edit')
@@ -2508,7 +2512,9 @@ class InteractiveShell(SingletonConfigurable):
         # FIXME: Move the color initialization to the DisplayHook, which
         # should be split into a prompt manager and displayhook. We probably
         # even need a centralize colors management object.
-        self.run_line_magic('colors', self.colors)
+        # This used to go through `%colors`, which would import the basic
+        # magics on every startup just to assign `shell.colors`.
+        self.init_syntax_highlighting()
 
     # Defined here so that it's included in the documentation
     @functools.wraps(magic.MagicsManager.register_function)
@@ -2532,17 +2538,8 @@ class InteractiveShell(SingletonConfigurable):
 
         Note that this may have any side effects
         """
-        finder = {"line": self.find_line_magic, "cell": self.find_cell_magic}[type_]
-        fn = finder(magic_name)
-        if fn is not None:
-            return fn
-        lazy = self.magics_manager.lazy_magics.get(magic_name)
-        if lazy is None:
-            return None
-
-        self.run_line_magic("load_ext", lazy)
-        res = finder(magic_name)
-        return res
+        # find_line_magic/find_cell_magic lazy-load by themselves now.
+        return self.magics_manager.find(type_, magic_name)
 
     def run_line_magic(self, magic_name: str, line: str, _stack_depth=1):
         """Execute the given line magic.
@@ -2558,11 +2555,6 @@ class InteractiveShell(SingletonConfigurable):
             This is added to ensure backward compatibility for use of 'get_ipython().magic()'
         """
         fn = self._find_with_lazy_load("line", magic_name)
-        if fn is None:
-            lazy = self.magics_manager.lazy_magics.get(magic_name)
-            if lazy:
-                self.run_line_magic("load_ext", lazy)
-                fn = self.find_line_magic(magic_name)
         if fn is None:
             cm = self.find_cell_magic(magic_name)
             etpl = "Line magic function `%%%s` not found%s."
@@ -2664,19 +2656,19 @@ class InteractiveShell(SingletonConfigurable):
         """Find and return a line magic by name.
 
         Returns None if the magic isn't found."""
-        return self.magics_manager.magics['line'].get(magic_name)
+        return self.magics_manager.find("line", magic_name)
 
     def find_cell_magic(self, magic_name):
         """Find and return a cell magic by name.
 
         Returns None if the magic isn't found."""
-        return self.magics_manager.magics['cell'].get(magic_name)
+        return self.magics_manager.find("cell", magic_name)
 
     def find_magic(self, magic_name, magic_kind='line'):
         """Find and return a magic of the given type by name.
 
         Returns None if the magic isn't found."""
-        return self.magics_manager.magics[magic_kind].get(magic_name)
+        return self.magics_manager.find(magic_kind, magic_name)
 
     #-------------------------------------------------------------------------
     # Things related to macros
@@ -3937,6 +3929,7 @@ class InteractiveShell(SingletonConfigurable):
         # Now we must activate the gui pylab wants to use, and fix %run to take
         # plot updates into account
         self.enable_gui(gui)
+        # registry imports ExecutionMagics on the miss if %run is not loaded.
         self.magics_manager.registry['ExecutionMagics'].default_runner = \
             pt.mpl_runner(self.safe_execfile)
 

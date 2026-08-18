@@ -13,7 +13,13 @@ from warnings import warn
 from traitlets.utils.importstring import import_item
 from IPython.core import magic_arguments, page
 from IPython.core.error import UsageError
-from IPython.core.magic import Magics, magics_class, line_magic, magic_escapes
+from IPython.core.magic import (
+    LazyMagic,
+    Magics,
+    magics_class,
+    line_magic,
+    magic_escapes,
+)
 from IPython.utils.text import format_screen, dedent, indent
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.ipstruct import Struct
@@ -60,10 +66,14 @@ class MagicsDisplay:
             d = {}
             magic_dict[key] = d
             for name, obj in subdict.items():
-                try:
-                    classname = obj.__self__.__class__.__name__
-                except AttributeError:
-                    classname = 'Other'
+                if isinstance(obj, LazyMagic):
+                    # Not imported yet; the spec already names the class.
+                    classname = obj.spec.rpartition(":")[2] or "Other"
+                else:
+                    try:
+                        classname = obj.__self__.__class__.__name__
+                    except AttributeError:
+                        classname = "Other"
 
                 d[name] = classname
         return magic_dict
