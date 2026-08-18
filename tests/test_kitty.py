@@ -221,8 +221,16 @@ def test_supports_kitty_graphics_finds_terminal_through_proc(monkeypatch):
     assert kitty._supports_kitty_graphics() is True
 
 
-def test_supports_kitty_graphics_does_not_import_psutil_on_linux(monkeypatch):
-    """The /proc walk exists to keep psutil -- and its import cost -- out."""
+@pytest.mark.skipif(
+    not os.path.isdir("/proc/self"),
+    reason="the psutil-free walk is the /proc one, and needs a real /proc",
+)
+def test_supports_kitty_graphics_does_not_import_psutil_on_linux():
+    """The /proc walk exists to keep psutil -- and its import cost -- out.
+
+    Deliberately not faking anything about the platform: what is being checked
+    is that a real Linux with a real ``/proc`` answers without psutil.
+    """
     code = """
 import os, sys, builtins
 
@@ -247,7 +255,6 @@ class StdoutTTY:
 
 
 sys.stdout = StdoutTTY()
-sys.platform = "linux"
 from IPython.core import kitty
 
 kitty._supports_kitty_graphics()
