@@ -83,6 +83,13 @@ def foo(self, args):
     return parse_argstring(foo, args)
 
 
+@magic_arguments()
+@argument("--path", action="append", default=[])
+@argument("remainder", nargs="*")
+def magic_paths(self, args):
+    return parse_argstring(magic_paths, args)
+
+
 def test_magic_arguments():
     assert (
         magic_foo1.__doc__
@@ -143,3 +150,57 @@ def test_magic_arguments():
     assert real_name(foo) == "foo"
     assert foo(None, "") == argparse.Namespace(foo=None)
     assert hasattr(foo, "has_arguments")
+
+
+def test_quoted_option_values_with_spaces(monkeypatch):
+    assert magic_paths(
+        None, '--path="-L/Users/carlos/Desktop/Test LGBM API"'
+    ) == argparse.Namespace(
+        path=["-L/Users/carlos/Desktop/Test LGBM API"], remainder=[]
+    )
+
+    # Exercise the quote-preserving splitter used on POSIX on every platform.
+    from IPython.utils._process_common import arg_split
+
+    monkeypatch.setattr("IPython.core.magic_arguments.arg_split", arg_split)
+
+    assert magic_paths(
+        None,
+        '--path="-L/Users/carlos/Desktop/Test LGBM API" '
+        "--path='single quoted path' "
+        '--path="say \\"hello\\" here" '
+        '--path="C:\\Program Files\\project" '
+        '--path="héllo 世界" tail',
+    ) == argparse.Namespace(
+        path=[
+            "-L/Users/carlos/Desktop/Test LGBM API",
+            "single quoted path",
+            'say "hello" here',
+            "C:\\Program Files\\project",
+            "héllo 世界",
+        ],
+        remainder=["tail"],
+    )
+
+
+def test_magic_argument_existing_quote_behavior(monkeypatch):
+    from IPython.utils._process_common import arg_split
+
+    monkeypatch.setattr("IPython.core.magic_arguments.arg_split", arg_split)
+
+    assert magic_paths(
+        None, '--path plain --path "separate quoted value" "quoted positional"'
+    ) == argparse.Namespace(
+        path=["plain", '"separate quoted value"'],
+        remainder=['"quoted positional"'],
+    )
+
+
+def test_non_option_equals_quote_behavior(monkeypatch):
+    from IPython.utils._process_common import arg_split
+
+    monkeypatch.setattr("IPython.core.magic_arguments.arg_split", arg_split)
+
+    assert magic_paths(None, 'expression="still split apart"') == argparse.Namespace(
+        path=[], remainder=['expression="still', "split", 'apart"']
+    )
