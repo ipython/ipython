@@ -2491,7 +2491,10 @@ class InteractiveShell(SingletonConfigurable):
         # session) eagerly. The rest are registered lazily via
         # ``mman.register_lazy`` below, and only imported on first use, to
         # keep startup cost down.
-        self.register_magics(m.AutoMagics, m.BasicMagics, m.ConfigMagics,
+        self.register_magics(
+            m.AutoMagics,
+            m.BasicMagics,
+            m.ConfigMagics,
             m.ExtensionMagics,
         )
         self.register_magics(m.AsyncMagics)
@@ -2506,56 +2509,103 @@ class InteractiveShell(SingletonConfigurable):
         # can list these without having to import/load them.
         lazy_magic_modules = {
             "IPython.core.magics.code": {
-                "save": "line", "pastebin": "line", "loadpy": "line",
-                "load": "line", "edit": "line",
+                "save": "line",
+                "pastebin": "line",
+                "loadpy": "line",
+                "load": "line",
+                "edit": "line",
             },
             "IPython.core.magics.display": {
-                "js": "cell", "javascript": "cell", "latex": "cell",
-                "svg": "cell", "html": "cell", "markdown": "cell",
+                "js": "cell",
+                "javascript": "cell",
+                "latex": "cell",
+                "svg": "cell",
+                "html": "cell",
+                "markdown": "cell",
             },
             "IPython.core.magics.execution": {
-                "prun": "line_cell", "pdb": "line", "debug": "line_cell",
-                "tb": "line", "run": "line", "timeit": "line_cell",
-                "time": "line_cell", "macro": "line", "capture": "cell",
+                "prun": "line_cell",
+                "pdb": "line",
+                "debug": "line_cell",
+                "tb": "line",
+                "run": "line",
+                "timeit": "line_cell",
+                "time": "line_cell",
+                "macro": "line",
+                "capture": "cell",
                 "code_wrap": "line_cell",
             },
             "IPython.core.magics.history": {
-                "history": "line", "recall": "line", "rerun": "line",
+                "history": "line",
+                "recall": "line",
+                "rerun": "line",
             },
             "IPython.core.magics.logging": {
-                "logstart": "line", "logstop": "line", "logoff": "line",
-                "logon": "line", "logstate": "line",
+                "logstart": "line",
+                "logstop": "line",
+                "logoff": "line",
+                "logon": "line",
+                "logstate": "line",
             },
             "IPython.core.magics.namespace": {
-                "pinfo": "line", "pinfo2": "line", "pdef": "line",
-                "pdoc": "line", "psource": "line", "pfile": "line",
-                "psearch": "line", "who_ls": "line", "who": "line",
-                "whos": "line", "reset": "line", "reset_selective": "line",
+                "pinfo": "line",
+                "pinfo2": "line",
+                "pdef": "line",
+                "pdoc": "line",
+                "psource": "line",
+                "pfile": "line",
+                "psearch": "line",
+                "who_ls": "line",
+                "who": "line",
+                "whos": "line",
+                "reset": "line",
+                "reset_selective": "line",
                 "xdel": "line",
             },
             "IPython.core.magics.osm": {
-                "alias": "line", "unalias": "line", "rehashx": "line",
-                "pwd": "line", "cd": "line", "env": "line",
-                "set_env": "line", "pushd": "line", "popd": "line",
-                "dirs": "line", "dhist": "line", "sc": "line",
-                "sx": "line_cell", "bookmark": "line", "pycat": "line",
+                "alias": "line",
+                "unalias": "line",
+                "rehashx": "line",
+                "pwd": "line",
+                "cd": "line",
+                "env": "line",
+                "set_env": "line",
+                "pushd": "line",
+                "popd": "line",
+                "dirs": "line",
+                "dhist": "line",
+                "sc": "line",
+                "sx": "line_cell",
+                "bookmark": "line",
+                "pycat": "line",
                 "writefile": "cell",
             },
             "IPython.core.magics.packaging": {
-                "pip": "line", "conda": "line", "mamba": "line",
-                "micromamba": "line", "uv": "line",
+                "pip": "line",
+                "conda": "line",
+                "mamba": "line",
+                "micromamba": "line",
+                "uv": "line",
             },
             "IPython.core.magics.pylab": {
-                "matplotlib": "line", "pylab": "line",
+                "matplotlib": "line",
+                "pylab": "line",
             },
             "IPython.core.magics.script": {
-                "script": "cell", "killbgscripts": "line",
+                "script": "cell",
+                "killbgscripts": "line",
                 # ScriptMagics also generates a cell magic per interpreter
                 # found on PATH (see ScriptMagics._generate_script_magics);
                 # register the common ones so e.g. %%bash lazy-loads too.
-                "sh": "cell", "bash": "cell", "perl": "cell",
-                "ruby": "cell", "python": "cell", "python2": "cell",
-                "python3": "cell", "pypy": "cell", "cmd": "cell",
+                "sh": "cell",
+                "bash": "cell",
+                "perl": "cell",
+                "ruby": "cell",
+                "python": "cell",
+                "python2": "cell",
+                "python3": "cell",
+                "pypy": "cell",
+                "cmd": "cell",
             },
         }
         for module_name, magic_kinds in lazy_magic_modules.items():
@@ -4003,6 +4053,9 @@ class InteractiveShell(SingletonConfigurable):
         # Now we must activate the gui pylab wants to use, and fix %run to take
         # plot updates into account
         self.enable_gui(gui)
+        # `run` may not have been loaded yet if it is registered lazily;
+        # looking it up forces ExecutionMagics to be imported and registered.
+        self._find_with_lazy_load("line", "run")
         self.magics_manager.registry['ExecutionMagics'].default_runner = \
             pt.mpl_runner(self.safe_execfile)
 
