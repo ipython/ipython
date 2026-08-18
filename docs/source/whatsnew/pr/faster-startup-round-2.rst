@@ -34,5 +34,6 @@ avoided or postponed until something actually needs it.
   evaluation machinery (and ``typing_extensions``). They are still importable
   from :mod:`IPython.core.guarded_eval`.
 
-Together this takes another ~10% off ``ipython -c pass`` and another ~40
-modules off an interactive start, on top of the previous rounds.
+Together this takes another ~13% off starting an interactive ``ipython`` in a
+real terminal, ~9% off ``ipython -c pass``, and another ~43 modules off an
+interactive start, on top of the previous rounds.
