@@ -11,7 +11,7 @@ from IPython.core.kitty import (
     display_formatter_default_active_types,
     terminal_default_mime_renderers,
 )
-from IPython.utils.PyColorize import theme_table
+from IPython.utils.PyColorize import _pygments_base_styles, theme_table
 from IPython.utils.terminal import toggle_set_term_title, set_term_title, restore_term_title
 from IPython.utils.process import abbrev_cwd
 from traitlets import (
@@ -44,7 +44,7 @@ from prompt_toolkit.output import ColorDepth
 from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.shortcuts import PromptSession, CompleteStyle, print_formatted_text
 from prompt_toolkit.styles import DynamicStyle, merge_styles
-from prompt_toolkit.styles.pygments import style_from_pygments_cls, style_from_pygments_dict
+from prompt_toolkit.styles.pygments import style_from_pygments_dict
 from pygments.style import Style
 
 from .magics import TerminalMagics
@@ -841,24 +841,19 @@ class TerminalInteractiveShell(InteractiveShell):
         theme = theme_table.get(legacy, None)
         assert theme is not None, legacy
 
-        # `pygments.styles` drags in the pygments plugin machinery
-        # (importlib.metadata -> zipfile -> shutil); it is only needed to
-        # resolve a theme's base style, which happens once, here.
-        from pygments.styles import get_style_by_name
-
         if legacy == "nocolor":
             style_overrides = {}
-            style_cls = _NoStyle
+            base_styles = _NoStyle.styles
         else:
             style_overrides = {**theme.extra_style, **self.highlighting_style_overrides}
             if theme.base is not None:
-                style_cls = get_style_by_name(theme.base)
+                base_styles = _pygments_base_styles(theme.base)
             else:
-                style_cls = _NoStyle
+                base_styles = _NoStyle.styles
 
         style = merge_styles(
             [
-                style_from_pygments_cls(style_cls),
+                style_from_pygments_dict(base_styles),
                 style_from_pygments_dict(style_overrides),
             ]
         )
