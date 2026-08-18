@@ -374,6 +374,9 @@ def update_instances(old, new):
     class definition and update their __class__ to point to the new class
     definition"""
 
+    if old is new:
+        return
+
     refs = gc.get_referrers(old)
 
     for ref in refs:

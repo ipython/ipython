@@ -23,12 +23,13 @@ import random
 import time
 import traceback
 import types
+from functools import partial
 from io import StringIO
 from dataclasses import dataclass
 
 import IPython.testing.tools as tt
 
-from IPython.extensions.autoreload import AutoreloadMagics
+from IPython.extensions.autoreload import AutoreloadMagics, update_instances
 from IPython.core.events import EventManager, pre_run_cell
 from IPython.testing.decorators import skipif_not_numpy
 from IPython.core.interactiveshell import ExecutionInfo
@@ -162,6 +163,12 @@ def autoreload_fixture():
 # -----------------------------------------------------------------------------
 # Test automatic reloading
 # -----------------------------------------------------------------------------
+
+
+def test_update_instances_skips_identical_types():
+    instance = partial(int, base=16)
+    update_instances(partial, partial)
+    assert instance("10") == 16
 
 
 def pickle_get_current_class(obj):
