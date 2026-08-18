@@ -454,6 +454,12 @@ skip_decorators_blocks = (
 )
 
 
+# From 3.13, ``set_trace()``/``breakpoint()`` stop on the line where they are
+# called instead of on the next one, so one extra ``step`` is needed to reach
+# the line following the ``set_trace()`` call.
+SET_TRACE_STOPS_ON_CALLING_LINE = sys.version_info >= (3, 13)
+
+
 def _decorator_skip_setup():
     import pexpect
 
@@ -484,7 +490,6 @@ def _decorator_skip_setup():
     return child
 
 
-@pytest.mark.skip(reason="recently fail for unknown reason on CI")
 @skip_win32
 def test_decorator_skip():
     """test that decorator frames can be skipped."""
@@ -496,6 +501,11 @@ def test_decorator_skip():
     child.expect("ipdb>")
 
     child.expect("ipdb>")
+    if SET_TRACE_STOPS_ON_CALLING_LINE:
+        child.sendline("step")
+        child.expect_exact("step")
+        child.expect_exact("----> 3     bar(3, 4)")
+        child.expect("ipdb>")
     child.sendline("step")
     child.expect_exact("step")
     child.expect_exact("--Call--")
@@ -509,7 +519,6 @@ def test_decorator_skip():
     child.close()
 
 
-@pytest.mark.skip(reason="recently fail for unknown reason on CI")
 @pytest.mark.skipif(platform.python_implementation() == "PyPy", reason="issues on PyPy")
 @skip_win32
 def test_decorator_skip_disabled():
@@ -519,7 +528,12 @@ def test_decorator_skip_disabled():
 
     child.expect_exact("3     bar(3, 4)")
 
-    for input_, expected in [
+    if SET_TRACE_STOPS_ON_CALLING_LINE:
+        extra_step = [("step", "----> 3     bar(3, 4)")]
+    else:
+        extra_step = []
+
+    for input_, expected in extra_step + [
         ("skip_predicates debuggerskip False", ""),
         ("skip_predicates", "debuggerskip : False"),
         ("step", "---> 2     def wrapped_fn"),
@@ -538,7 +552,6 @@ def test_decorator_skip_disabled():
     child.close()
 
 
-@pytest.mark.skip(reason="recently fail for unknown reason on CI")
 @pytest.mark.skipif(platform.python_implementation() == "PyPy", reason="issues on PyPy")
 @skip_win32
 def test_decorator_skip_with_breakpoint():
@@ -582,12 +595,7 @@ def test_decorator_skip_with_breakpoint():
                 child.expect_exact(line)
             child.sendline("")
 
-        # From 3.13, set_trace()/breakpoint() stop on the line where they're
-        # called, instead of the next line.
-        if sys.version_info >= (3, 14):
-            child.expect_exact("     46     ipdb.set_trace()")
-            extra_step = [("step", "--> 47     bar(3, 4)")]
-        elif sys.version_info >= (3, 13):
+        if SET_TRACE_STOPS_ON_CALLING_LINE:
             child.expect_exact("--> 46     ipdb.set_trace()")
             extra_step = [("step", "--> 47     bar(3, 4)")]
         else:

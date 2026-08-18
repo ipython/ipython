@@ -44,7 +44,6 @@ from IPython.testing.decorators import skipif_not_numpy
 def test_instantiation_FileLink():
     """FileLink: Test class can be instantiated"""
     fl = display.FileLink("example.txt")
-    # TODO: remove if when only Python >= 3.6 is supported
     fl = display.FileLink(pathlib.PurePath("example.txt"))
 
 
