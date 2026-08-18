@@ -27,6 +27,77 @@ TokenStream: TypeAlias = list[tuple[_TokenType, str]]
 __all__ = ["Parser", "Theme"]
 
 
+# Which ``pygments/styles/*.py`` module (and class in it) defines each of the
+# builtin pygments styles the themes IPython ships use as a `Theme.base`.
+#
+# This is only a shortcut, never the source of truth: any name missing from
+# here, and any entry that no longer resolves, falls back to pygments' own
+# `get_style_by_name`, plugins and all. See `_pygments_base_styles`.
+_BUILTIN_PYGMENTS_STYLES: dict[str, tuple[str, str]] = {
+    "default": ("default", "DefaultStyle"),
+    "gruvbox-dark": ("gruvbox", "GruvboxDarkStyle"),
+    "monokai": ("monokai", "MonokaiStyle"),
+    "pastie": ("pastie", "PastieStyle"),
+}
+
+
+def _exec_pygments_style_module(module: str, class_name: str) -> Any | None:
+    """Read one style's ``styles`` mapping out of ``pygments/styles/<module>.py``.
+
+    Returns None if pygments is not laid out as expected, leaving it to the
+    caller to fall back to `pygments.styles.get_style_by_name`.
+
+    The module is executed in isolation and deliberately *not* registered in
+    `sys.modules`: registering a submodule of a package that is not itself
+    imported breaks later ``import pygments.styles.<module>`` statements, and
+    keeping `pygments.styles` unimported is the entire point. Style modules
+    are pure data, so executing one twice is harmless, and nothing but the
+    ``styles`` dict escapes this function.
+    """
+    from importlib.machinery import PathFinder
+    from importlib.util import module_from_spec
+
+    package = PathFinder.find_spec("pygments.styles", list(pygments.__path__))
+    if package is None or package.submodule_search_locations is None:
+        return None
+    spec = PathFinder.find_spec(
+        f"pygments.styles.{module}", list(package.submodule_search_locations)
+    )
+    if spec is None or spec.loader is None:
+        return None
+    style_module = module_from_spec(spec)
+    try:
+        spec.loader.exec_module(style_module)
+        return getattr(style_module, class_name).styles
+    except Exception:
+        return None
+
+
+def _pygments_base_styles(name: str) -> Any:
+    """Return the token -> style-string mapping of a pygments style, by name.
+
+    Equivalent to ``pygments.styles.get_style_by_name(name).styles``, which is
+    all IPython ever wants from a base style, but able to answer for the
+    handful of builtin styles IPython's own themes are based on without
+    importing `pygments.styles`.
+
+    Importing that package -- which importing any of its submodules does too --
+    runs `pygments.plugin`, and with it `importlib.metadata` and `email`:
+    roughly 10ms whose only purpose is to make third party *style plugins*
+    findable by name. No theme IPython ships needs that, and this is on the
+    startup path.
+    """
+    target = _BUILTIN_PYGMENTS_STYLES.get(name)
+    if target is not None:
+        styles = _exec_pygments_style_module(*target)
+        if styles is not None:
+            return styles
+
+    from pygments.styles import get_style_by_name
+
+    return get_style_by_name(name).styles
+
+
 class Symbols(TypedDict):
     top_line: str
     arrow_body: str
@@ -63,12 +134,7 @@ class Theme:
     @cache
     def as_pygments_style(self) -> type[Style]:
         if self.base is not None:
-            # `pygments.styles` pulls in the pygments plugin machinery, and
-            # with it `importlib.metadata`, `zipfile` and `shutil`; keep that
-            # off the import path of everything that merely wants a Theme.
-            from pygments.styles import get_style_by_name
-
-            base_styles = get_style_by_name(self.base).styles
+            base_styles = _pygments_base_styles(self.base)
         else:
             base_styles = {}
 
