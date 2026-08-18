@@ -251,6 +251,21 @@ def test_simpledef(run_tmpfile):
     assert _ip.user_ns["t"] is True
 
 
+def test_run_path_containing_dash_m_is_not_rewritten(tmp_path, monkeypatch):
+    script_dir = tmp_path / "test-main"
+    script_dir.mkdir()
+    script = script_dir / "script.py"
+    script.write_text("dash_m_path_ran = True\n", encoding="utf-8")
+
+    def fail_join(_argv):
+        raise AssertionError("ordinary script path should not be rewritten")
+
+    monkeypatch.setattr("IPython.core.magics.execution.shlex.join", fail_join)
+    _ip = get_ipython()
+    _ip.run_line_magic("run", str(script))
+    assert _ip.user_ns["dash_m_path_ran"] is True
+
+
 @pytest.mark.xfail(
     platform.python_implementation() == "PyPy",
     reason="expecting __del__ call on exit is unreliable and doesn't happen on PyPy",
