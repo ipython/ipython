@@ -15,8 +15,6 @@ from __future__ import annotations
 #-----------------------------------------------------------------------------
 
 import os
-import platform
-import pprint
 import sys
 
 from pathlib import Path
@@ -80,6 +78,8 @@ def pkg_info(pkg_path: str) -> dict:
     context : dict
         with named parameters of interest
     """
+    import platform
+
     src, hsh = pkg_commit_hash(pkg_path)
     return dict(
         ipython_version=release.version,
@@ -117,4 +117,6 @@ def sys_info() -> str:
          'sys_platform': 'linux2',
          'sys_version': '2.6.6 (r266:84292, Sep 15 2010, 15:52:39) \\n[GCC 4.4.5]'}
     """
+    import pprint
+
     return pprint.pformat(get_sys_info())

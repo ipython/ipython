@@ -17,7 +17,6 @@ from dataclasses import dataclass
 from inspect import signature
 from textwrap import dedent
 import ast
-import html
 import inspect
 import io as stdlib_io
 import linecache
@@ -574,6 +573,8 @@ class Inspector(Configurable):
         Formatters returning strings are supported but this behavior is deprecated.
 
         """
+        import html
+
         defaults = {
             "text/plain": text,
             "text/html": f"<pre>{html.escape(text)}</pre>",
