@@ -346,6 +346,19 @@ def test_check_complete_param(code, expected, number):
     assert cc(code) == (expected, number)
 
 
+def test_check_complete_defers_nonlocal_binding_error():
+    cc = ipt2.TransformerManager().check_complete
+    partial = "def a():\n    def b():\n        nonlocal c"
+    complete = (
+        partial
+        + "\n        return c + 1\n    c = 1\n    b()\n    return c\n"
+    )
+
+    assert cc(partial) == ("incomplete", 8)
+    assert cc(partial + "\n\n") == ("invalid", None)
+    assert cc(complete) == ("complete", None)
+
+
 @pytest.mark.xfail(platform.python_implementation() == "PyPy", reason="fail on pypy")
 def test_check_complete():
     cc = ipt2.TransformerManager().check_complete

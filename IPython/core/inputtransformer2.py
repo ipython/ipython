@@ -896,8 +896,11 @@ class TransformerManager:
             with warnings.catch_warnings():
                 warnings.simplefilter("error", SyntaxWarning)
                 res = compile_command("".join(lines), symbol="exec")
+        except SyntaxError as exc:
+            if exc.msg.startswith("no binding for nonlocal ") and lines[-1].strip():
+                return "incomplete", find_last_indent(lines)
+            return "invalid", None
         except (
-            SyntaxError,
             OverflowError,
             ValueError,
             TypeError,
