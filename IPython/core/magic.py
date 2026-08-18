@@ -840,7 +840,7 @@ class MagicAlias:
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         """Call the magic alias."""
-        fn = self.shell._find_with_lazy_load(self.magic_kind, self.magic_name)  # type: ignore[no-untyped-call]
+        fn = self.shell._find_with_lazy_load(self.magic_kind, self.magic_name)
         if fn is None:
             raise UsageError("Magic `%s` not found." % self.pretty_target)
 
