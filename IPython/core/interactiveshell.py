@@ -30,7 +30,6 @@ from typing import Literal
 from typing import TYPE_CHECKING
 from collections.abc import Sequence
 from warnings import warn
-import textwrap
 
 
 from traitlets import (
@@ -1066,7 +1065,9 @@ class InteractiveShell(SingletonConfigurable):
             banner is default_banner
             and (when := os.environ.get("SOURCE_DATE_EPOCH", None)) is not None
         ):
+            import textwrap
             from datetime import datetime
+
             date = datetime.fromtimestamp(int(when))
             banner = textwrap.dedent(
                 f"""
