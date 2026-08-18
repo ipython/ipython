@@ -8,7 +8,6 @@ from __future__ import annotations
 from enum import Enum
 from dataclasses import dataclass, KW_ONLY
 from binascii import b2a_base64, hexlify
-import mimetypes
 import os
 import warnings
 from copy import deepcopy
@@ -1239,6 +1238,8 @@ class Video(DisplayObject):
         mimetype = self.mimetype
         if self.filename is not None:
             if not mimetype:
+                import mimetypes
+
                 mimetype, _ = mimetypes.guess_type(self.filename)
 
             with open(self.filename, 'rb') as f:

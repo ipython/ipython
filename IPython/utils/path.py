@@ -8,7 +8,6 @@ Utilities for path handling.
 import os
 import sys
 import errno
-import glob
 import warnings
 
 #-----------------------------------------------------------------------------
@@ -279,6 +278,8 @@ def shellglob(args):
     expanded = []
     # Do not unescape backslash in Windows as it is interpreted as
     # path separator:
+    import glob
+
     unescape = unescape_glob if sys.platform != 'win32' else lambda x: x
     for a in args:
         expanded.extend(glob.glob(a) or [unescape(a)])

@@ -1,6 +1,7 @@
 """Tests for small IPython.utils modules: data, timing, frame and encoding."""
 
 import importlib
+import locale
 import sys
 import time
 import types
@@ -199,9 +200,7 @@ def test_getdefaultencoding_from_stdin(monkeypatch):
 
 def test_getdefaultencoding_prefers_locale_over_ascii(monkeypatch):
     monkeypatch.setattr(sys, "stdin", FakeStream("ascii"))
-    monkeypatch.setattr(
-        encoding_mod.locale, "getpreferredencoding", lambda: "latin-1"
-    )
+    monkeypatch.setattr(locale, "getpreferredencoding", lambda: "latin-1")
     assert encoding_mod.getdefaultencoding() == "latin-1"
 
 
@@ -211,13 +210,13 @@ def test_getdefaultencoding_locale_error(monkeypatch):
         raise RuntimeError("no locale")
 
     monkeypatch.setattr(sys, "stdin", FakeStream("ascii"))
-    monkeypatch.setattr(encoding_mod.locale, "getpreferredencoding", boom)
+    monkeypatch.setattr(locale, "getpreferredencoding", boom)
     assert encoding_mod.getdefaultencoding() == "ascii"
 
 
 def test_getdefaultencoding_falls_back_to_sys(monkeypatch):
     monkeypatch.setattr(sys, "stdin", FakeStream(None))
-    monkeypatch.setattr(encoding_mod.locale, "getpreferredencoding", lambda: "")
+    monkeypatch.setattr(locale, "getpreferredencoding", lambda: "")
     assert encoding_mod.getdefaultencoding() == sys.getdefaultencoding()
 
 
