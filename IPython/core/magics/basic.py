@@ -147,9 +147,9 @@ class BasicMagics(Magics):
                 or (params.startswith("'") and params.endswith("'")))):
             params = params[1:-1]
 
-        # Find the requested magics.
-        m_line = shell.find_magic(target, 'line')
-        m_cell = shell.find_magic(target, 'cell')
+        # Find the requested magics, lazy-loading them if needed.
+        m_line = shell._find_with_lazy_load("line", target)
+        m_cell = shell._find_with_lazy_load("cell", target)
         if args.line and m_line is None:
             raise UsageError('Line magic function `%s%s` not found.' %
                              (magic_escapes['line'], target))

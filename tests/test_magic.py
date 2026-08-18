@@ -1439,9 +1439,13 @@ def test_file_spaces():
 
 def test_script_config():
     ip = get_ipython()
-    ip.config.ScriptMagics.script_magics = ["whoda"]
-    sm = script.ScriptMagics(shell=ip)
-    assert "whoda" in sm.magics["cell"]
+    previous = ip.config.ScriptMagics.script_magics
+    try:
+        ip.config.ScriptMagics.script_magics = ["whoda"]
+        sm = script.ScriptMagics(shell=ip)
+        assert "whoda" in sm.magics["cell"]
+    finally:
+        ip.config.ScriptMagics.script_magics = previous
 
 
 def _interrupt_after_1s():
@@ -1587,7 +1591,7 @@ def test_script_defaults(cmd):
         find_cmd(cmd)
     except Exception:
         pytest.skip(f"{cmd} not found")
-    assert cmd in ip.magics_manager.magics["cell"]
+    assert ip._find_with_lazy_load("cell", cmd) is not None
 
 
 @pytest.mark.asyncio

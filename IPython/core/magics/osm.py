@@ -854,3 +854,12 @@ class OSMagics(Magics):
         mode = 'a' if args.append else 'w'
         with open(filename, mode, encoding='utf-8') as f:
             f.write(cell)
+
+
+def load_ipython_extension(ip):
+    """Load the magics in this module as an IPython extension.
+
+    Used to lazily register these magics via
+    ``MagicsManager.lazy_magics``.
+    """
+    ip.register_magics(OSMagics)

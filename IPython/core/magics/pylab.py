@@ -171,3 +171,12 @@ class PylabMagics(Magics):
         """show matplotlib message backend message"""
         if not gui or gui == 'auto':
             print("Using matplotlib backend: %s" % backend)
+
+
+def load_ipython_extension(ip):
+    """Load the magics in this module as an IPython extension.
+
+    Used to lazily register these magics via
+    ``MagicsManager.lazy_magics``.
+    """
+    ip.register_magics(PylabMagics)

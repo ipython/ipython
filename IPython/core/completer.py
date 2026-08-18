@@ -2339,10 +2339,11 @@ class IPCompleter(Completer):
         if not rest:
             return line
         args = rest[0]
-        known_magics = self.shell.magics_manager.lsmagic()
-        line_magics = known_magics["line"]
         magic_name = maybe_magic.lstrip(self.magic_escape)
-        if magic_name not in line_magics:
+        mman = self.shell.magics_manager
+        if magic_name not in mman.magics["line"] and (
+            "line" not in mman.lazy_magic_kinds(magic_name)
+        ):
             return line
 
         if not maybe_magic.startswith(self.magic_escape):
@@ -2353,7 +2354,10 @@ class IPCompleter(Completer):
                 # a magic). In these cases users need to use explicit `%time`.
                 return line
 
-        magic_method = line_magics[magic_name]
+        # This may lazily load the magic's module if it hasn't been used yet.
+        magic_method = self.shell._find_with_lazy_load("line", magic_name)
+        if magic_method is None:
+            return line
 
         try:
             if magic_name == "timeit":
@@ -2388,9 +2392,26 @@ class IPCompleter(Completer):
         # Get all shell magics now rather than statically, so magics loaded at
         # runtime show up too.
         text = context.token
-        lsm = self.shell.magics_manager.lsmagic()
-        line_magics = lsm['line']
-        cell_magics = lsm['cell']
+        mman = self.shell.magics_manager
+        lsm = mman.lsmagic()
+        # Include names of not-yet-loaded lazy magics too, without forcing
+        # them to be imported.
+        line_magics = {
+            **lsm["line"],
+            **{
+                name: None
+                for name in mman.lazy_magics
+                if "line" in mman.lazy_magic_kinds(name)
+            },
+        }
+        cell_magics = {
+            **lsm["cell"],
+            **{
+                name: None
+                for name in mman.lazy_magics
+                if "cell" in mman.lazy_magic_kinds(name)
+            },
+        }
         pre = self.magic_escape
         pre2 = pre + pre
 

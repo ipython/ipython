@@ -179,3 +179,12 @@ class PackagingMagics(Magics):
         self.shell.system(" ".join([python, "-m", "uv", line]))
 
         print("Note: you may need to restart the kernel to use updated packages.")
+
+
+def load_ipython_extension(ip):
+    """Load the magics in this module as an IPython extension.
+
+    Used to lazily register these magics via
+    ``MagicsManager.lazy_magics``.
+    """
+    ip.register_magics(PackagingMagics)

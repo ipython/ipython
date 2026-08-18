@@ -1717,3 +1717,12 @@ def _format_time(timespan, precision=3):
     else:
         order = 3
     return "%.*g %s" % (precision, timespan * scaling[order], units[order])
+
+
+def load_ipython_extension(ip):
+    """Load the magics in this module as an IPython extension.
+
+    Used to lazily register these magics via
+    ``MagicsManager.lazy_magics``.
+    """
+    ip.register_magics(ExecutionMagics)

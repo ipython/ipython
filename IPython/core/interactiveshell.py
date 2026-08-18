@@ -2486,16 +2486,82 @@ class InteractiveShell(SingletonConfigurable):
         # Expose as public API from the magics manager
         self.register_magics = self.magics_manager.register
 
-        self.register_magics(m.AutoMagics, m.BasicMagics, m.CodeMagics,
-            m.ConfigMagics, m.DisplayMagics, m.ExecutionMagics,
-            m.ExtensionMagics, m.HistoryMagics, m.LoggingMagics,
-            m.NamespaceMagics, m.OSMagics, m.PackagingMagics,
-            m.PylabMagics, m.ScriptMagics,
+        # Only register the magics that are needed unconditionally (e.g. for
+        # IPython's own startup, or that are cheap/likely to be used in every
+        # session) eagerly. The rest are registered lazily via
+        # ``mman.register_lazy`` below, and only imported on first use, to
+        # keep startup cost down.
+        self.register_magics(m.AutoMagics, m.BasicMagics, m.ConfigMagics,
+            m.ExtensionMagics,
         )
         self.register_magics(m.AsyncMagics)
 
         # Register Magic Aliases
         mman = self.magics_manager
+
+        # Lazily register the rest of the builtin magics: the underlying
+        # module is only imported (as an "extension") the first time one of
+        # its magics is actually invoked. Each name is mapped to its magic
+        # kind ("line", "cell" or "line_cell") so that e.g. tab completion
+        # can list these without having to import/load them.
+        lazy_magic_modules = {
+            "IPython.core.magics.code": {
+                "save": "line", "pastebin": "line", "loadpy": "line",
+                "load": "line", "edit": "line",
+            },
+            "IPython.core.magics.display": {
+                "js": "cell", "javascript": "cell", "latex": "cell",
+                "svg": "cell", "html": "cell", "markdown": "cell",
+            },
+            "IPython.core.magics.execution": {
+                "prun": "line_cell", "pdb": "line", "debug": "line_cell",
+                "tb": "line", "run": "line", "timeit": "line_cell",
+                "time": "line_cell", "macro": "line", "capture": "cell",
+                "code_wrap": "line_cell",
+            },
+            "IPython.core.magics.history": {
+                "history": "line", "recall": "line", "rerun": "line",
+            },
+            "IPython.core.magics.logging": {
+                "logstart": "line", "logstop": "line", "logoff": "line",
+                "logon": "line", "logstate": "line",
+            },
+            "IPython.core.magics.namespace": {
+                "pinfo": "line", "pinfo2": "line", "pdef": "line",
+                "pdoc": "line", "psource": "line", "pfile": "line",
+                "psearch": "line", "who_ls": "line", "who": "line",
+                "whos": "line", "reset": "line", "reset_selective": "line",
+                "xdel": "line",
+            },
+            "IPython.core.magics.osm": {
+                "alias": "line", "unalias": "line", "rehashx": "line",
+                "pwd": "line", "cd": "line", "env": "line",
+                "set_env": "line", "pushd": "line", "popd": "line",
+                "dirs": "line", "dhist": "line", "sc": "line",
+                "sx": "line_cell", "bookmark": "line", "pycat": "line",
+                "writefile": "cell",
+            },
+            "IPython.core.magics.packaging": {
+                "pip": "line", "conda": "line", "mamba": "line",
+                "micromamba": "line", "uv": "line",
+            },
+            "IPython.core.magics.pylab": {
+                "matplotlib": "line", "pylab": "line",
+            },
+            "IPython.core.magics.script": {
+                "script": "cell", "killbgscripts": "line",
+                # ScriptMagics also generates a cell magic per interpreter
+                # found on PATH (see ScriptMagics._generate_script_magics);
+                # register the common ones so e.g. %%bash lazy-loads too.
+                "sh": "cell", "bash": "cell", "perl": "cell",
+                "ruby": "cell", "python": "cell", "python2": "cell",
+                "python3": "cell", "pypy": "cell", "cmd": "cell",
+            },
+        }
+        for module_name, magic_kinds in lazy_magic_modules.items():
+            for magic_name, magic_kind in magic_kinds.items():
+                mman.register_lazy(magic_name, module_name, magic_kind=magic_kind)
+
         # FIXME: magic aliases should be defined by the Magics classes
         # or in MagicsManager, not here
         mman.register_alias('ed', 'edit')

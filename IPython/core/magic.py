@@ -384,6 +384,12 @@ class MagicsManager(Configurable):
         config=True,
     )
 
+    # Mapping from magic names registered via `register_lazy` to their kind
+    # ("line", "cell" or "line_cell"), when known. Used by tab-completion to
+    # list not-yet-loaded lazy magics without importing them. Not meant to be
+    # set directly; use `register_lazy` instead.
+    lazy_magics_kind = Dict()
+
     # A registry of the original objects that we've been given holding magics.
     registry = Dict()
 
@@ -461,7 +467,9 @@ class MagicsManager(Configurable):
             docs[m_type] = m_docs
         return docs
 
-    def register_lazy(self, name: str, fully_qualified_name: str) -> None:
+    def register_lazy(
+        self, name: str, fully_qualified_name: str, magic_kind: str | None = None
+    ) -> None:
         """
         Lazily register a magic via an extension.
 
@@ -475,9 +483,33 @@ class MagicsManager(Configurable):
             as an extensions when the magic is first called.
             It is assumed that loading this extensions will register the given
             magic.
+        magic_kind : str, optional
+            One of ``"line"``, ``"cell"`` or ``"line_cell"``, if known. This is
+            only used so that tools like tab completion can know about the
+            magic (and its kind) before it is actually loaded.
         """
 
         self.lazy_magics[name] = fully_qualified_name
+        if magic_kind is not None:
+            self.lazy_magics_kind[name] = magic_kind
+
+    def lazy_magic_kinds(self, name: str) -> set[str]:
+        """Return the set of magic kinds (``"line"``/``"cell"``) a not-yet
+        loaded lazy magic ``name`` is expected to provide.
+
+        Used by tab-completion to list not-yet-loaded magics without forcing
+        them to be imported. Returns an empty set for names that are not
+        (known) lazy magics.
+        """
+        if name not in self.lazy_magics:
+            return set()
+        kind = self.lazy_magics_kind.get(name)
+        if kind is None:
+            # Unknown kind: assume it could be either.
+            return {"line", "cell"}
+        if kind == "line_cell":
+            return {"line", "cell"}
+        return {kind}
 
     def register(self, *magic_objects: type[Magics] | Magics) -> None:
         """Register one or more instances of Magics.
@@ -808,7 +840,7 @@ class MagicAlias:
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         """Call the magic alias."""
-        fn = self.shell.find_magic(self.magic_name, self.magic_kind)  # type: ignore[no-untyped-call]
+        fn = self.shell._find_with_lazy_load(self.magic_kind, self.magic_name)  # type: ignore[no-untyped-call]
         if fn is None:
             raise UsageError("Magic `%s` not found." % self.pretty_target)
 

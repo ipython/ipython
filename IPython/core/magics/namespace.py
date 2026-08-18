@@ -721,3 +721,12 @@ class NamespaceMagics(Magics):
             self.shell.del_var(varname, ('n' in opts))
         except (NameError, ValueError) as e:
             print(type(e).__name__ +": "+ str(e))
+
+
+def load_ipython_extension(ip):
+    """Load the magics in this module as an IPython extension.
+
+    Used to lazily register these magics via
+    ``MagicsManager.lazy_magics``.
+    """
+    ip.register_magics(NamespaceMagics)

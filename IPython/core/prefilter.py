@@ -452,7 +452,11 @@ class AutoMagicChecker(PrefilterChecker):
         check_esc_chars. This just checks for automagic.  Also, before
         triggering the magic handler, make sure that there is nothing in the
         user namespace which could shadow it."""
-        if not self.shell.automagic or not self.shell.find_magic(line_info.ifun):
+        if not self.shell.automagic:
+            return None
+        if not self.shell.find_magic(line_info.ifun) and (
+            line_info.ifun not in self.shell.magics_manager.lazy_magics
+        ):
             return None
 
         # We have a likely magic method.  Make sure we should actually call it.

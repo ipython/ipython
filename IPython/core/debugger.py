@@ -1036,7 +1036,7 @@ class Pdb(OldPdb):
             ("Locals", self._curframe_locals),
             ("Globals", self.curframe.f_globals),
         ]
-        self.shell.find_line_magic("pdef")(arg, namespaces=namespaces)
+        self.shell._find_with_lazy_load("line", "pdef")(arg, namespaces=namespaces)
 
     def do_pdoc(self, arg):
         """Print the docstring for an object.
@@ -1047,7 +1047,7 @@ class Pdb(OldPdb):
             ("Locals", self._curframe_locals),
             ("Globals", self.curframe.f_globals),
         ]
-        self.shell.find_line_magic("pdoc")(arg, namespaces=namespaces)
+        self.shell._find_with_lazy_load("line", "pdoc")(arg, namespaces=namespaces)
 
     def do_pfile(self, arg):
         """Print (or run through pager) the file where an object is defined.
@@ -1059,7 +1059,7 @@ class Pdb(OldPdb):
             ("Locals", self._curframe_locals),
             ("Globals", self.curframe.f_globals),
         ]
-        self.shell.find_line_magic("pfile")(arg, namespaces=namespaces)
+        self.shell._find_with_lazy_load("line", "pfile")(arg, namespaces=namespaces)
 
     def do_pinfo(self, arg):
         """Provide detailed information about an object.
@@ -1070,7 +1070,7 @@ class Pdb(OldPdb):
             ("Locals", self._curframe_locals),
             ("Globals", self.curframe.f_globals),
         ]
-        self.shell.find_line_magic("pinfo")(arg, namespaces=namespaces)
+        self.shell._find_with_lazy_load("line", "pinfo")(arg, namespaces=namespaces)
 
     def do_pinfo2(self, arg):
         """Provide extra detailed information about an object.
@@ -1081,7 +1081,7 @@ class Pdb(OldPdb):
             ("Locals", self._curframe_locals),
             ("Globals", self.curframe.f_globals),
         ]
-        self.shell.find_line_magic("pinfo2")(arg, namespaces=namespaces)
+        self.shell._find_with_lazy_load("line", "pinfo2")(arg, namespaces=namespaces)
 
     def do_psource(self, arg):
         """Print (or run through pager) the source code for an object."""
@@ -1090,7 +1090,7 @@ class Pdb(OldPdb):
             ("Locals", self._curframe_locals),
             ("Globals", self.curframe.f_globals),
         ]
-        self.shell.find_line_magic("psource")(arg, namespaces=namespaces)
+        self.shell._find_with_lazy_load("line", "psource")(arg, namespaces=namespaces)
 
     def do_where(self, arg: str):
         """w(here)

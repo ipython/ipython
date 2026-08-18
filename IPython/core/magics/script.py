@@ -441,3 +441,12 @@ class ScriptMagics(Magics):
 
     def _gc_bg_processes(self):
         self.bg_processes = [p for p in self.bg_processes if p.returncode is None]
+
+
+def load_ipython_extension(ip):
+    """Load the magics in this module as an IPython extension.
+
+    Used to lazily register these magics via
+    ``MagicsManager.lazy_magics``.
+    """
+    ip.register_magics(ScriptMagics)

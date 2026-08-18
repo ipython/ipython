@@ -91,3 +91,12 @@ Isolated cells are rendered inside their own <iframe> tag"""
     def markdown(self, line, cell):
         """Render the cell as Markdown text block"""
         display(Markdown(cell))
+
+
+def load_ipython_extension(ip):
+    """Load the magics in this module as an IPython extension.
+
+    Used to lazily register these magics via
+    ``MagicsManager.lazy_magics``.
+    """
+    ip.register_magics(DisplayMagics)

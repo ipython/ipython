@@ -359,3 +359,12 @@ class HistoryMagics(Magics):
         print(histlines)
         print("=== Output: ===")
         self.shell.run_cell("\n".join(hist), store_history=False)
+
+
+def load_ipython_extension(ip):
+    """Load the magics in this module as an IPython extension.
+
+    Used to lazily register these magics via
+    ``MagicsManager.lazy_magics``.
+    """
+    ip.register_magics(HistoryMagics)
