@@ -10,6 +10,8 @@ their documented home.
 """
 
 import ast
+from collections.abc import Mapping
+from typing import Any
 
 __all__ = [
     "BINARY_OP_DUNDERS",
@@ -53,7 +55,9 @@ UNARY_OP_DUNDERS: dict[type[ast.unaryop], tuple[str, ...]] = {
 }
 
 
-def _find_dunder(node_op, dunders) -> tuple[str, ...] | None:
+def _find_dunder(
+    node_op: ast.AST, dunders: Mapping[type[Any], tuple[str, ...]]
+) -> tuple[str, ...] | None:
     dunder = None
     for op, candidate_dunder in dunders.items():
         if isinstance(node_op, op):
