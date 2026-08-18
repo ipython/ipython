@@ -15,7 +15,6 @@ from __future__ import annotations
 # Imports
 # -----------------------------------------------------------------------------
 import sys
-import locale
 import warnings
 from typing import Any
 
@@ -67,6 +66,8 @@ def getdefaultencoding(prefer_stream: object | bool = _sentinel) -> str:
     if prefer_stream:
         enc = get_stream_enc(sys.stdin)
     if not enc or enc == "ascii":
+        import locale
+
         try:
             # There are reports of getpreferredencoding raising errors
             # in some cases, which may well be fixed, but let's be conservative here.

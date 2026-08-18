@@ -17,7 +17,6 @@ import builtins as builtin_mod
 import functools
 import os
 import re
-import runpy
 import sys
 import types
 import warnings
@@ -3148,6 +3147,8 @@ class InteractiveShell(SingletonConfigurable):
         where : dict
             The globals namespace.
         """
+        import runpy
+
         try:
             try:
                 where.update(
