@@ -1,0 +1,29 @@
+{
+  "name": "lightbg",
+  "base": "pastie",
+  "extra_style": {
+    "Header": "ansired",
+    "LinenoEm": "ansigreen",
+    "Lineno": "ansibrightgreen",
+    "ValEm": "ansiblue",
+    "VName": "ansicyan",
+    "Caret": "",
+    "Filename": "ansigreen",
+    "FilenameEm": "ansibrightgreen",
+    "ExcName": "ansired",
+    "Topline": "ansired",
+    "Normal": "",
+    "NormalEm": "ansicyan",
+    "Line": "ansired",
+    "TB.Name": "ansibrightmagenta",
+    "TB.NameEm": "ansimagenta",
+    "Breakpoint": "",
+    "Breakpoint.Enabled": "ansibrightred",
+    "Breakpoint.Disabled": "ansired",
+    "Prompt": "ansibrightblue",
+    "PromptNum": "ansiblue bold",
+    "OutPrompt": "ansibrightred",
+    "OutPromptNum": "ansired bold",
+    "TbHighlight": "ansired bg:ansiyellow"
+  }
+}
