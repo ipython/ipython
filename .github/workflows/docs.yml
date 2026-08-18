@@ -19,7 +19,6 @@ jobs:
         python-version: 3.x
         cache: pip
         cache-dependency-path: |
-          docs/requirements.txt
           pyproject.toml
     - name: Install uv
       uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
@@ -28,9 +27,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install graphviz
     - name: Install Python dependencies
-      run: |
-        uv pip install --system setuptools coverage
-        uv pip install --system -r docs/requirements.txt
+      run: uv pip install --system setuptools coverage --group docs
     - name: Build docs
       run: |
         python tools/fixup_whats_new_pr.py

@@ -62,7 +62,12 @@ For more detailed information, see our [GitHub Workflow](https://github.com/ipyt
 
 ## Running Tests
 
-All the tests can be run by using
+Ensure dependencies are installed:
+```shell
+pip install --group test
+```
+
+All the tests can be run by using:
 ```shell
 pytest
 ```
@@ -82,7 +87,7 @@ pytest IPython/core/tests/test_alias.py::test_alias_lifecycle
 Sphinx documentation can be built locally using standard sphinx `make` commands. To build HTML documentation from the root of the project, execute:
 
 ```shell
-pip install -r docs/requirements.txt   # only needed once
+pip install --group docs
 make -C docs/ html SPHINXOPTS="-W"
 ```
 
