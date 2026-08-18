@@ -26,6 +26,12 @@ from functools import cached_property
 from dataclasses import dataclass, field
 from types import MethodDescriptorType, ModuleType, MethodType
 
+from IPython.core._dunder_ops import (
+    BINARY_OP_DUNDERS,
+    COMP_OP_DUNDERS,
+    UNARY_OP_DUNDERS,
+    _find_dunder,
+)
 from IPython.utils.decorators import undoc
 
 import types
@@ -465,41 +471,6 @@ def guarded_eval(code: str, context: EvaluationContext):
     return eval_node(node, context)
 
 
-BINARY_OP_DUNDERS: dict[type[ast.operator], tuple[str]] = {
-    ast.Add: ("__add__",),
-    ast.Sub: ("__sub__",),
-    ast.Mult: ("__mul__",),
-    ast.Div: ("__truediv__",),
-    ast.FloorDiv: ("__floordiv__",),
-    ast.Mod: ("__mod__",),
-    ast.Pow: ("__pow__",),
-    ast.LShift: ("__lshift__",),
-    ast.RShift: ("__rshift__",),
-    ast.BitOr: ("__or__",),
-    ast.BitXor: ("__xor__",),
-    ast.BitAnd: ("__and__",),
-    ast.MatMult: ("__matmul__",),
-}
-
-COMP_OP_DUNDERS: dict[type[ast.cmpop], tuple[str, ...]] = {
-    ast.Eq: ("__eq__",),
-    ast.NotEq: ("__ne__", "__eq__"),
-    ast.Lt: ("__lt__", "__gt__"),
-    ast.LtE: ("__le__", "__ge__"),
-    ast.Gt: ("__gt__", "__lt__"),
-    ast.GtE: ("__ge__", "__le__"),
-    ast.In: ("__contains__",),
-    # Note: ast.Is, ast.IsNot, ast.NotIn are handled specially
-}
-
-UNARY_OP_DUNDERS: dict[type[ast.unaryop], tuple[str, ...]] = {
-    ast.USub: ("__neg__",),
-    ast.UAdd: ("__pos__",),
-    # we have to check both __inv__ and __invert__!
-    ast.Invert: ("__invert__", "__inv__"),
-    ast.Not: ("__not__",),
-}
-
 GENERIC_CONTAINER_TYPES = (dict, list, set, tuple, frozenset)
 
 
@@ -533,14 +504,6 @@ class _Duck:
 
     def _ipython_key_completions_(self):
         return self.items.keys()
-
-
-def _find_dunder(node_op, dunders) -> tuple[str, ...] | None:
-    dunder = None
-    for op, candidate_dunder in dunders.items():
-        if isinstance(node_op, op):
-            dunder = candidate_dunder
-    return dunder
 
 
 def get_policy(context: EvaluationContext) -> EvaluationPolicy:
