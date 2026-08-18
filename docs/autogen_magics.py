@@ -26,6 +26,9 @@ def sortkey(s): return s[0].lower()
 
 def main():
     shell = InteractiveShell.instance()
+    # Built-in magics are declared lazily; documenting them all means
+    # importing them all.
+    shell.magics_manager.load_all_lazy_magics()
     magics = shell.magics_manager.magics
 
     output = [

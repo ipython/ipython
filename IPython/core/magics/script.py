@@ -23,6 +23,8 @@ from IPython.core.async_helpers import _AsyncIOProxy
 from IPython.core.magic import Magics, cell_magic, line_magic, magics_class
 from IPython.utils.process import arg_split
 
+from ._table import default_script_magics
+
 #-----------------------------------------------------------------------------
 # Magic implementation classes
 #-----------------------------------------------------------------------------
@@ -105,23 +107,9 @@ class ScriptMagics(Magics):
     @default('script_magics')
     def _script_magics_default(self):
         """default to a common list of programs"""
-
-        defaults = [
-            'sh',
-            'bash',
-            'perl',
-            'ruby',
-            'python',
-            'python2',
-            'python3',
-            'pypy',
-        ]
-        if os.name == 'nt':
-            defaults.extend([
-                'cmd',
-            ])
-
-        return defaults
+        # In `_table` so the lazy declaration can name these without
+        # importing this module.
+        return default_script_magics()
 
     script_paths = Dict(
         help="""Dict mapping short 'ruby' names to full paths, such as '/opt/secret/bin/ruby'
