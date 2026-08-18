@@ -575,6 +575,21 @@ def test_patching(deduperreloader):
     assert mod.foo() == 2
 
 
+def test_patching_preserves_function_line_number(deduperreloader):
+    code1 = "def foo():\n    return 1\n"
+    code2 = "\n\n\ndef foo():\n    return 2\n"
+    deduperreloader._to_autoreload.defs_to_reload = [
+        (("foo",), ast.parse(code2).body[0])
+    ]
+    mod = ModuleType("mod")
+    exec(code1, mod.__dict__)
+
+    deduperreloader._patch_namespace(mod)
+
+    assert mod.foo() == 2
+    assert mod.foo.__code__.co_firstlineno == 4
+
+
 def test_patching_parameters(deduperreloader):
     code1 = squish_text(
         """

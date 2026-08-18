@@ -8,7 +8,6 @@ import os
 import pickle
 import platform
 import sys
-import textwrap
 import tokenize
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, NamedTuple, cast
@@ -446,10 +445,16 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
                 if isinstance(to_patch_to, (staticmethod, classmethod)):
                     to_patch_to = to_patch_to.__func__
                 # exec new source code using old function's (obj) globals environment.
-                func_code = textwrap.dedent(ast.unparse(new_ast_def))
                 if is_method := (len(prefixes) > 0):
-                    func_code = "class __autoreload_class__:\n" + textwrap.indent(
-                        func_code, "    "
+                    new_ast_def = ast.copy_location(
+                        ast.ClassDef(
+                            name="__autoreload_class__",
+                            bases=[],
+                            keywords=[],
+                            body=[new_ast_def],
+                            decorator_list=[],
+                        ),
+                        new_ast_def,
                     )
                 global_env = ns.__dict__
                 if not isinstance(global_env, dict):
@@ -460,13 +465,17 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
                     and to_patch_to.__code__.co_filename
                     or "<string>"
                 )
-                func_asts = [ast.parse(func_code)]
-                if len(cast(ast.FunctionDef, func_asts[0].body[0]).decorator_list) > 0:
-                    without_decorator_list = pickle.loads(pickle.dumps(func_asts[0]))
-                    cast(
-                        ast.FunctionDef, without_decorator_list.body[0]
-                    ).decorator_list = []
-                    func_asts.insert(0, without_decorator_list)
+                func_asts = [ast.Module(body=[new_ast_def], type_ignores=[])]
+                if (
+                    isinstance(new_ast_def, (ast.FunctionDef, ast.AsyncFunctionDef))
+                    and new_ast_def.decorator_list
+                ):
+                    without_decorator_list = pickle.loads(pickle.dumps(new_ast_def))
+                    without_decorator_list.decorator_list = []
+                    func_asts.insert(
+                        0,
+                        ast.Module(body=[without_decorator_list], type_ignores=[]),
+                    )
                 for func_ast in func_asts:
                     compiled_code = compile(
                         func_ast, filename, mode="exec", dont_inherit=True
