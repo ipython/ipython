@@ -81,10 +81,11 @@ def editor(self, filename, linenum=None, wait=True):
     import shlex
     import subprocess
 
-    cmd = "{} {} {}".format(editor, linemark, shlex.quote(filename))
+    cmd_str = "{} {} {}".format(editor, linemark, shlex.quote(filename))
+    cmd: str | list[str] = cmd_str
     # shlex.quote uses POSIX rules; on Windows split back into an argv list
     if sys.platform.startswith("win"):
-        cmd = shlex.split(cmd)
+        cmd = shlex.split(cmd_str)
     proc = subprocess.Popen(cmd, shell=True)
     if wait and proc.wait() != 0:
         raise TryNext()
