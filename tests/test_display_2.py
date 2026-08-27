@@ -37,6 +37,13 @@ def test_image_size():
     assert '<img src="%s" class="unconfined"/>' % (thisurl) == img._repr_html_()
 
 
+def test_image_local_file_url_without_embedding():
+    """A local image requested without embedding keeps its file URL."""
+    filename = os.path.join(os.path.dirname(__file__), "2x2.png")
+    img = display.Image(filename=filename, embed=False)
+    assert f'<img src="{filename}"/>' == img._repr_html_()
+
+
 def test_image_mimes():
     fmt = get_ipython().display_formatter.format
     for name, format in ImageFormat.__members__.items():
