@@ -27,7 +27,7 @@ jobs:
           cache-dependency-path: |
             pyproject.toml
       - name: Install uv
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
       - name: Try building with Python build
         if: runner.os != 'Windows'  # setup.py does not support sdist on Windows
         run: |
@@ -35,7 +35,7 @@ jobs:
           python -m build
 
       - name: Upload wheel
-        uses: scientific-python/upload-nightly-action@33e7342b1dd8f27cffee961a531c3d9ce2d34a79 # main
+        uses: scientific-python/upload-nightly-action@1a97ddfaddedd815698cafe2c0c3463fd43f9095 # main
         with:
           artifacts_path: dist
           anaconda_nightly_upload_token: ${{secrets.UPLOAD_TOKEN}}
