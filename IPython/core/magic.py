@@ -572,7 +572,10 @@ class MagicsManager(Configurable):
             existing = self.magics[kind].get(name)
             if existing is not None and not isinstance(existing, LazyMagic):
                 continue
-            if isinstance(existing, LazyMagic) and existing.spec != fully_qualified_name:
+            if (
+                isinstance(existing, LazyMagic)
+                and existing.spec != fully_qualified_name
+            ):
                 # A newer declaration displaces an older one for this kind;
                 # remember the old spec so it can be restored if the new
                 # declaration never delivers the magic.
