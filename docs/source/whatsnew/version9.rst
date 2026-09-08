@@ -1044,12 +1044,26 @@ Featuring :magic:`autoreload`, :magic:`whos`, :cellmagic:`script`, ``%%time`` ma
 - :ghpull:`14933` List comprehensions and generators now work reliably in debugger on all supported Python versions
 - :ghpull:`14931` Fix streaming multi-byte Unicode characters in the ``%script`` magic and its derivatives
 
-The :magic:`time` magic no longer swallows exceptions raised by the measured code, and always prints the time of execution. If you wish the execution to continue after measuring time to execute code that is meant to raise an exception, pass the new ``--no-raise-error`` flag.
-The ``--no-raise-error`` flag does not affect ``KeyboardInterrupt`` as this exception is used to signal intended interruption of execution flow.
+The :magic:`time` magic no longer swallows exceptions raised by the measured
+code, and always prints the time of execution. If you wish the execution to
+continue after measuring time to execute code that is meant to raise an
+exception, pass the new ``--no-raise-error`` flag. The ``--no-raise-error`` flag
+does not affect ``KeyboardInterrupt`` as this exception is used to signal
+intended interruption of execution flow.
 
-Previously the debugger (ipdb) evaluation of list comprehensions and generators could fail with ``NameError`` due to generator implementation detail in CPython. This was recently fixed in Python 3.13. Because IPython is often used for interactive debugging, this release includes a backport of that fix, providing users who cannot yet update from Python 3.11 or 3.12 with a smoother debugging experience.
+Previously the debugger (ipdb) evaluation of list comprehensions and generators
+could fail with ``NameError`` due to generator implementation detail in CPython.
+This was recently fixed in Python 3.13. Because IPython is often used for
+interactive debugging, this release includes a backport of that fix, providing
+users who cannot yet update from Python 3.11 or 3.12 with a smoother debugging
+experience.
 
-The :magic:`autoreload` magic is now more reliable. The behaviour around decorators has been improved and `%autoreload 3` no longer imports all symbols when reloading the module, however, the heuristic used to determine which symbols to reload can sometimes lead to addition of imports from non-evaluated code branches, see `issue #14934 <https://github.com/ipython/ipython/issues/14934>`__.
+The :magic:`autoreload` magic is now more reliable. The behaviour around
+decorators has been improved and ``%autoreload 3`` no longer imports all symbols
+when reloading the module, however, the heuristic used to determine which
+symbols to reload can sometimes lead to addition of imports from non-evaluated
+code branches, see `issue #14934
+<https://github.com/ipython/ipython/issues/14934>`__.
 
 
 As usual, you can find the full list of PRs on GitHub under `the 9.4
