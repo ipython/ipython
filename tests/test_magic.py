@@ -1978,6 +1978,121 @@ def test_registered_magic_beats_lazy_one():
         mm.registry.pop("OverridingMagics", None)
 
 
+SPLIT_LAZY_MAGIC = """
+from IPython.core.magic import Magics, cell_magic, line_magic, magics_class
+
+
+@magics_class
+class LineHalf(Magics):
+    @line_magic
+    def dual(self, line):
+        \"\"\"The line half of the dual magic.\"\"\"
+
+
+@magics_class
+class CellHalf(Magics):
+    @cell_magic
+    def dual(self, line, cell):
+        \"\"\"The cell half of the dual magic.\"\"\"
+"""
+
+
+@pytest.mark.parametrize("line_first", [True, False])
+def test_lazy_magic_help_finds_both_kinds_first_try(line_first):
+    """`?` help resolves a lazily declared magic on the first attempt.
+
+    The same name may be declared with a different provider per kind; the
+    lookup must load the provider for the kind that was asked for, no
+    matter in which order the declarations were registered.
+    See https://github.com/ipython/ipython/issues/15383.
+    """
+    mm = ip.magics_manager
+    with TemporaryDirectory() as tmpdir:
+        with prepended_to_syspath(tmpdir):
+            mod = "split_lazy_magic_module"
+            Path(tmpdir, mod + ".py").write_text(dedent(SPLIT_LAZY_MAGIC))
+            invalidate_caches()
+            line_spec = f"{mod}:LineHalf"
+            cell_spec = f"{mod}:CellHalf"
+            first, second = (
+                (("line", line_spec), ("cell", cell_spec))
+                if line_first
+                else (("cell", cell_spec), ("line", line_spec))
+            )
+            try:
+                mm.register_lazy("dual", first[1], first[0])  # type: ignore[arg-type]
+                mm.register_lazy("dual", second[1], second[0])  # type: ignore[arg-type]
+                # Both kinds resolve on the very first lookup ...
+                assert "dual" in mm.magics["cell"]
+                assert mm.find("cell", "dual") is not None
+                assert not isinstance(mm.find("cell", "dual"), magic.LazyMagic)
+                assert mm.find("line", "dual") is not None
+                assert not isinstance(mm.find("line", "dual"), magic.LazyMagic)
+                # ... and so does `?` help in both spellings.
+                assert ip._ofind("%%dual").found
+                assert ip._ofind("%dual").found
+            finally:
+                mm.magics["line"].pop("dual", None)
+                mm.magics["cell"].pop("dual", None)
+                mm.lazy_magics.pop("dual", None)
+                for key in [("line", "dual"), ("cell", "dual")]:
+                    mm._lazy_fallbacks.pop(key, None)
+                mm._loaded_lazy.discard(line_spec)
+                mm._loaded_lazy.discard(cell_spec)
+                mm.registry.pop("LineHalf", None)
+                mm.registry.pop("CellHalf", None)
+                sys.modules.pop(mod, None)
+
+
+def test_lazy_magic_falls_back_to_previous_declaration():
+    """A declaration that delivers nothing restores the previous one.
+
+    Declaring ``time`` for both kinds displaces IPython's own lazy ``time``;
+    if the new class only provides the line half, the cell half must fall
+    back to the previously declared provider instead of vanishing.
+    See https://github.com/ipython/ipython/issues/15383.
+    """
+    mm = ip.magics_manager
+    with TemporaryDirectory() as tmpdir:
+        with prepended_to_syspath(tmpdir):
+            mod = "line_only_lazy_magic_module"
+            Path(tmpdir, mod + ".py").write_text(
+                dedent(
+                    """
+                    from IPython.core.magic import Magics, line_magic, magics_class
+
+
+                    @magics_class
+                    class LineOnly(Magics):
+                        @line_magic
+                        def time(self, line):
+                            \"\"\"My own line-only time.\"\"\"
+                    """
+                )
+            )
+            invalidate_caches()
+            spec = f"{mod}:LineOnly"
+            original_cell = mm.magics["cell"].get("time")
+            try:
+                mm.register_lazy("time", spec)
+                assert mm.find("line", "time") is not None
+                cell_fn = mm.find("cell", "time")
+                assert cell_fn is not None
+                assert not isinstance(cell_fn, magic.LazyMagic)
+                assert ip._ofind("%%time").found
+            finally:
+                if original_cell is not None:
+                    mm.magics["cell"]["time"] = original_cell
+                else:
+                    mm.magics["cell"].pop("time", None)
+                mm.lazy_magics.pop("time", None)
+                mm._lazy_fallbacks.pop(("cell", "time"), None)
+                mm._lazy_fallbacks.pop(("line", "time"), None)
+                mm._loaded_lazy.discard(spec)
+                mm.registry.pop("LineOnly", None)
+                sys.modules.pop(mod, None)
+
+
 TEST_MODULE = """
 print('Loaded my_tmp')
 if __name__ == "__main__":

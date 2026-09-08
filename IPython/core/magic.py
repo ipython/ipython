@@ -486,6 +486,11 @@ class MagicsManager(Configurable):
         self.magics = dict(line={}, cell={})
         # Specs already loaded, so a class is never registered twice.
         self._loaded_lazy: set[str] = set()
+        # Previous lazy specs displaced by a newer declaration, keyed by
+        # (kind, name). If the newer declaration turns out not to deliver
+        # the magic ("declared but not delivered"), the previous one is
+        # restored instead of leaving the name unresolvable.
+        self._lazy_fallbacks: dict[tuple[str, str], str] = {}
         self.registry = _MagicsRegistry(self)
         # Let's add the user_magics to the registry for uniformity, so *all*
         # registered magic containers can be found there.
@@ -567,18 +572,33 @@ class MagicsManager(Configurable):
             existing = self.magics[kind].get(name)
             if existing is not None and not isinstance(existing, LazyMagic):
                 continue
+            if isinstance(existing, LazyMagic) and existing.spec != fully_qualified_name:
+                # A newer declaration displaces an older one for this kind;
+                # remember the old spec so it can be restored if the new
+                # declaration never delivers the magic.
+                self._lazy_fallbacks[(kind, name)] = existing.spec
             self.magics[kind][name] = LazyMagic(self, fully_qualified_name, kind, name)
 
-    def load_lazy(self, magic_name: str) -> None:
+    def load_lazy(self, magic_name: str, magic_kind: _MagicKind | None = None) -> None:
         """Import and register whatever provides `magic_name`.
 
         Does nothing if `magic_name` was not declared through
         :meth:`register_lazy` or :attr:`lazy_magics`, or if what provides it
         has already been loaded.
+
+        When `magic_kind` is given, the placeholder for that kind decides
+        which spec to load: a name may be declared with a different provider
+        per kind, and the lookup must resolve the kind that was asked for,
+        not whichever placeholder happens to be checked first.
         """
         # `lazy_magics` is user-configurable and may have been replaced
         # wholesale, so prefer the spec the placeholder carries.
-        fn = self.magics["line"].get(magic_name) or self.magics["cell"].get(magic_name)
+        if magic_kind is not None:
+            fn = self.magics[magic_kind].get(magic_name)
+        else:
+            fn = self.magics["line"].get(magic_name) or self.magics["cell"].get(
+                magic_name
+            )
         spec = (
             fn.spec if isinstance(fn, LazyMagic) else self.lazy_magics.get(magic_name)
         )
@@ -623,12 +643,23 @@ class MagicsManager(Configurable):
         """
         fn = self.magics[magic_kind].get(magic_name)
         if isinstance(fn, LazyMagic) or (fn is None and magic_name in self.lazy_magics):
-            self.load_lazy(magic_name)
+            self.load_lazy(magic_name, magic_kind)
             fn = self.magics[magic_kind].get(magic_name)
             if isinstance(fn, LazyMagic):
-                # Declared but not delivered; drop the stale placeholder.
-                del self.magics[magic_kind][magic_name]
-                fn = None
+                # Declared but not delivered. If an older declaration for
+                # this kind was displaced, restore it and give it one
+                # chance rather than dropping the name entirely.
+                fallback = self._lazy_fallbacks.pop((magic_kind, magic_name), None)
+                if fallback is not None and fallback != fn.spec:
+                    self.magics[magic_kind][magic_name] = LazyMagic(
+                        self, fallback, magic_kind, magic_name
+                    )
+                    self.load_lazy(magic_name, magic_kind)
+                    fn = self.magics[magic_kind].get(magic_name)
+                if isinstance(fn, LazyMagic):
+                    # Still nothing delivered; drop the stale placeholder.
+                    del self.magics[magic_kind][magic_name]
+                    fn = None
         return t.cast("Callable[..., Any] | None", fn)
 
     def register(self, *magic_objects: type[Magics] | Magics) -> None:
