@@ -2151,6 +2151,62 @@ def test_lazy_magic_falls_back_through_two_declarations():
                     sys.modules.pop(mod, None)
 
 
+def test_load_all_lazy_magics_loads_both_kind_halves():
+    """`load_all_lazy_magics` loads every kind's provider, not just one.
+
+    One name may be declared with a different provider per kind, but
+    ``lazy_magics`` only remembers the last spec per name — so loading from
+    it alone (line-first) never imports the other half's class, and e.g.
+    ``%config CellHalf.trait`` fails until something else loads it.
+    See https://github.com/ipython/ipython/issues/15383.
+    """
+    mm = ip.magics_manager
+    with TemporaryDirectory() as tmpdir:
+        with prepended_to_syspath(tmpdir):
+            mod = "split_load_all_module"
+            Path(tmpdir, mod + ".py").write_text(
+                dedent(
+                    """
+                    from IPython.core.magic import Magics, line_magic, cell_magic, magics_class
+
+
+                    @magics_class
+                    class LineHalf(Magics):
+                        @line_magic
+                        def dual(self, line):
+                            \"\"\"The line half.\"\"\"
+
+
+                    @magics_class
+                    class CellHalf(Magics):
+                        @cell_magic
+                        def dual(self, line, cell):
+                            \"\"\"The cell half.\"\"\"
+                    """
+                )
+            )
+            invalidate_caches()
+            line_spec = f"{mod}:LineHalf"
+            cell_spec = f"{mod}:CellHalf"
+            try:
+                mm.register_lazy("dual", line_spec, "line")  # type: ignore[arg-type]
+                mm.register_lazy("dual", cell_spec, "cell")  # type: ignore[arg-type]
+                mm.load_all_lazy_magics()
+                assert "LineHalf" in mm.registry
+                assert "CellHalf" in mm.registry
+                assert not isinstance(mm.find("line", "dual"), magic.LazyMagic)
+                assert not isinstance(mm.find("cell", "dual"), magic.LazyMagic)
+            finally:
+                mm.magics["line"].pop("dual", None)
+                mm.magics["cell"].pop("dual", None)
+                mm.lazy_magics.pop("dual", None)
+                mm._loaded_lazy.discard(line_spec)
+                mm._loaded_lazy.discard(cell_spec)
+                mm.registry.pop("LineHalf", None)
+                mm.registry.pop("CellHalf", None)
+                sys.modules.pop(mod, None)
+
+
 TEST_MODULE = """
 print('Loaded my_tmp')
 if __name__ == "__main__":

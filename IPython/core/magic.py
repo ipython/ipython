@@ -637,6 +637,15 @@ class MagicsManager(Configurable):
         Only the ``module:MagicsClass`` ones: loading an extension can run
         arbitrary code, so that waits for the magic to actually be used.
         """
+        # Load per kind from the placeholders themselves: one name may be
+        # declared with a different provider per kind, and ``lazy_magics``
+        # only remembers the last spec per name. Extensions (specs without a
+        # ":") are still skipped: importing one can run arbitrary code.
+        for kind in magic_kinds:
+            for magic_name in list(self.magics[kind]):
+                fn = self.magics[kind].get(magic_name)
+                if isinstance(fn, LazyMagic) and ":" in fn.spec:
+                    self.load_lazy(magic_name, kind)
         for magic_name, spec in list(self.lazy_magics.items()):
             if ":" in spec:
                 self.load_lazy(magic_name)
