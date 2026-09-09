@@ -2035,8 +2035,6 @@ def test_lazy_magic_help_finds_both_kinds_first_try(line_first):
                 mm.magics["line"].pop("dual", None)
                 mm.magics["cell"].pop("dual", None)
                 mm.lazy_magics.pop("dual", None)
-                for key in [("line", "dual"), ("cell", "dual")]:
-                    mm._lazy_fallbacks.pop(key, None)
                 mm._loaded_lazy.discard(line_spec)
                 mm._loaded_lazy.discard(cell_spec)
                 mm.registry.pop("LineHalf", None)
@@ -2086,11 +2084,71 @@ def test_lazy_magic_falls_back_to_previous_declaration():
                 else:
                     mm.magics["cell"].pop("time", None)
                 mm.lazy_magics.pop("time", None)
-                mm._lazy_fallbacks.pop(("cell", "time"), None)
-                mm._lazy_fallbacks.pop(("line", "time"), None)
                 mm._loaded_lazy.discard(spec)
                 mm.registry.pop("LineOnly", None)
                 sys.modules.pop(mod, None)
+
+
+def test_lazy_magic_falls_back_through_two_declarations():
+    """The displaced chain unwinds to whatever declaration delivers.
+
+    Three lazy declarations for one name: the two newest provide no
+    ``time`` at all, so the lookup must walk past both and resolve the
+    oldest provider instead of giving up after one level.
+    See https://github.com/ipython/ipython/issues/15383.
+    """
+    mm = ip.magics_manager
+    with TemporaryDirectory() as tmpdir:
+        with prepended_to_syspath(tmpdir):
+            Path(tmpdir, "depth_first_mod.py").write_text(
+                dedent(
+                    """
+                    from IPython.core.magic import Magics, line_magic, magics_class
+
+
+                    @magics_class
+                    class First(Magics):
+                        @line_magic
+                        def mydepth(self, line):
+                            \"\"\"The original provider.\"\"\"
+                    """
+                )
+            )
+            for mod in ("depth_second_mod", "depth_third_mod"):
+                Path(tmpdir, mod + ".py").write_text(
+                    dedent(
+                        """
+                        from IPython.core.magic import Magics, magics_class
+
+
+                        @magics_class
+                        class Empty(Magics):
+                            pass
+                        """
+                    )
+                )
+            invalidate_caches()
+            specs = [
+                "depth_first_mod:First",
+                "depth_second_mod:Empty",
+                "depth_third_mod:Empty",
+            ]
+            try:
+                for spec in specs:
+                    mm.register_lazy("mydepth", spec, "line")
+                fn = mm.find("line", "mydepth")
+                assert fn is not None
+                assert not isinstance(fn, magic.LazyMagic)
+                assert fn.__doc__ == "The original provider."
+            finally:
+                mm.magics["line"].pop("mydepth", None)
+                mm.lazy_magics.pop("mydepth", None)
+                for spec in specs:
+                    mm._loaded_lazy.discard(spec)
+                mm.registry.pop("First", None)
+                mm.registry.pop("Empty", None)
+                for mod in ("depth_first_mod", "depth_second_mod", "depth_third_mod"):
+                    sys.modules.pop(mod, None)
 
 
 TEST_MODULE = """

@@ -361,11 +361,16 @@ class LazyMagic:
         spec: str,
         magic_kind: _MagicKind,
         magic_name: str,
+        shadowed: LazyMagic | Callable[..., Any] | None = None,
     ) -> None:
         self.spec = spec
         self._manager = manager
         self._kind = magic_kind
         self._name = magic_name
+        # The table entry this declaration displaced, if any. A name may be
+        # declared lazily any number of times; the chain is walked if a
+        # newer declaration never delivers the magic.
+        self.shadowed = shadowed
 
     def _resolve(self) -> Callable[..., Any]:
         fn = self._manager.find(self._kind, self._name)
@@ -486,11 +491,6 @@ class MagicsManager(Configurable):
         self.magics = dict(line={}, cell={})
         # Specs already loaded, so a class is never registered twice.
         self._loaded_lazy: set[str] = set()
-        # Previous lazy specs displaced by a newer declaration, keyed by
-        # (kind, name). If the newer declaration turns out not to deliver
-        # the magic ("declared but not delivered"), the previous one is
-        # restored instead of leaving the name unresolvable.
-        self._lazy_fallbacks: dict[tuple[str, str], str] = {}
         self.registry = _MagicsRegistry(self)
         # Let's add the user_magics to the registry for uniformity, so *all*
         # registered magic containers can be found there.
@@ -572,15 +572,19 @@ class MagicsManager(Configurable):
             existing = self.magics[kind].get(name)
             if existing is not None and not isinstance(existing, LazyMagic):
                 continue
+            shadowed = None
             if (
                 isinstance(existing, LazyMagic)
                 and existing.spec != fully_qualified_name
             ):
-                # A newer declaration displaces an older one for this kind;
-                # remember the old spec so it can be restored if the new
-                # declaration never delivers the magic.
-                self._lazy_fallbacks[(kind, name)] = existing.spec
-            self.magics[kind][name] = LazyMagic(self, fully_qualified_name, kind, name)
+                # A newer declaration displaces an older one for this kind.
+                # The displaced entry rides on the placeholder itself, so a
+                # name declared any number of times unwinds to whatever
+                # declaration actually delivers it.
+                shadowed = existing
+            self.magics[kind][name] = LazyMagic(
+                self, fully_qualified_name, kind, name, shadowed=shadowed
+            )
 
     def load_lazy(self, magic_name: str, magic_kind: _MagicKind | None = None) -> None:
         """Import and register whatever provides `magic_name`.
@@ -646,23 +650,24 @@ class MagicsManager(Configurable):
         """
         fn = self.magics[magic_kind].get(magic_name)
         if isinstance(fn, LazyMagic) or (fn is None and magic_name in self.lazy_magics):
-            self.load_lazy(magic_name, magic_kind)
-            fn = self.magics[magic_kind].get(magic_name)
-            if isinstance(fn, LazyMagic):
-                # Declared but not delivered. If an older declaration for
-                # this kind was displaced, restore it and give it one
-                # chance rather than dropping the name entirely.
-                fallback = self._lazy_fallbacks.pop((magic_kind, magic_name), None)
-                if fallback is not None and fallback != fn.spec:
-                    self.magics[magic_kind][magic_name] = LazyMagic(
-                        self, fallback, magic_kind, magic_name
-                    )
-                    self.load_lazy(magic_name, magic_kind)
-                    fn = self.magics[magic_kind].get(magic_name)
-                if isinstance(fn, LazyMagic):
-                    # Still nothing delivered; drop the stale placeholder.
+            while isinstance(fn, LazyMagic):
+                self.load_lazy(magic_name, magic_kind)
+                current = self.magics[magic_kind].get(magic_name)
+                if current is not fn:
+                    # The load delivered something (or cleared the name).
+                    fn = current
+                    continue
+                # Declared but not delivered: swap in whatever this
+                # declaration displaced and give that a chance instead of
+                # dropping the name entirely.
+                shadowed = fn.shadowed
+                if shadowed is None:
+                    # Nothing left in the chain; drop the stale placeholder.
                     del self.magics[magic_kind][magic_name]
                     fn = None
+                else:
+                    self.magics[magic_kind][magic_name] = shadowed
+                    fn = shadowed
         return t.cast("Callable[..., Any] | None", fn)
 
     def register(self, *magic_objects: type[Magics] | Magics) -> None:
