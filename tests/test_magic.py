@@ -23,11 +23,15 @@ from unittest import mock
 
 import pytest
 
+from traitlets.config import Config, Configurable
+
 from IPython import get_ipython
 from IPython.core import magic
 from IPython.core.error import UsageError
+from IPython.core.interactiveshell import InteractiveShellABC
 from IPython.core.magic import (
     Magics,
+    MagicsManager,
     cell_magic,
     line_magic,
     magics_class,
@@ -60,6 +64,22 @@ from tempfile import NamedTemporaryFile
 @magic.magics_class
 class DummyMagics(magic.Magics):
     pass
+
+
+class _UnconfiguredShell(Configurable):
+    """Just enough of a shell for a ``Magics`` class to be instantiated."""
+
+    def __init__(self):
+        super().__init__(config=Config())
+
+
+InteractiveShellABC.register(_UnconfiguredShell)
+
+
+@pytest.fixture
+def standalone_manager():
+    """A standalone MagicsManager, so tests don't disturb the shared shell."""
+    return MagicsManager(shell=_UnconfiguredShell())
 
 
 def test_extract_code_ranges():
@@ -2151,7 +2171,7 @@ def test_lazy_magic_falls_back_through_two_declarations():
                     sys.modules.pop(mod, None)
 
 
-def test_load_all_lazy_magics_loads_both_kind_halves():
+def test_load_all_lazy_magics_loads_both_kind_halves(standalone_manager):
     """`load_all_lazy_magics` loads every kind's provider, not just one.
 
     One name may be declared with a different provider per kind, but
@@ -2160,7 +2180,7 @@ def test_load_all_lazy_magics_loads_both_kind_halves():
     ``%config CellHalf.trait`` fails until something else loads it.
     See https://github.com/ipython/ipython/issues/15383.
     """
-    mm = ip.magics_manager
+    mm = standalone_manager
     with TemporaryDirectory() as tmpdir:
         with prepended_to_syspath(tmpdir):
             mod = "split_load_all_module"
@@ -2197,13 +2217,6 @@ def test_load_all_lazy_magics_loads_both_kind_halves():
                 assert not isinstance(mm.find("line", "dual"), magic.LazyMagic)
                 assert not isinstance(mm.find("cell", "dual"), magic.LazyMagic)
             finally:
-                mm.magics["line"].pop("dual", None)
-                mm.magics["cell"].pop("dual", None)
-                mm.lazy_magics.pop("dual", None)
-                mm._loaded_lazy.discard(line_spec)
-                mm._loaded_lazy.discard(cell_spec)
-                mm.registry.pop("LineHalf", None)
-                mm.registry.pop("CellHalf", None)
                 sys.modules.pop(mod, None)
 
 

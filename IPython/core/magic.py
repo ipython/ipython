@@ -402,10 +402,13 @@ class _MagicsRegistry(dict[str, Any]):
         self._manager = manager
 
     def __missing__(self, key: str) -> Any:
-        for magic_name, spec in list(self._manager.lazy_magics.items()):
+        for magic_name, magic_kind, spec in self._manager._lazy_declarations():
             if spec.endswith(":" + key):
-                self._manager.load_lazy(magic_name)
-                break
+                self._manager.load_lazy(magic_name, magic_kind)
+                # A matching spec declared once per kind
+                # has one spec per kind, so keep going until `key` shows up.
+                if key in self:
+                    break
         if key not in self:
             # A second miss must not loop back here.
             raise KeyError(key)
@@ -631,24 +634,36 @@ class MagicsManager(Configurable):
             self._loaded_lazy.discard(spec)
             raise
 
+    def _lazy_declarations(self) -> list[tuple[str, _MagicKind | None, str]]:
+        """Every live lazy declaration, as ``(name, kind, spec)``.
+
+        The placeholders in :attr:`magics` are the source of truth, because
+        :attr:`lazy_magics` is keyed by name alone and so keeps only the last
+        spec for a name declared once per kind. A name declared only through
+        the trait has no placeholder, and so no known kind.
+        """
+        seen: set[tuple[str, str]] = set()
+        declarations: list[tuple[str, _MagicKind | None, str]] = []
+        for kind in magic_kinds:
+            for name, fn in list(self.magics[kind].items()):
+                if isinstance(fn, LazyMagic) and (name, fn.spec) not in seen:
+                    seen.add((name, fn.spec))
+                    declarations.append((name, kind, fn.spec))
+        for name, spec in list(self.lazy_magics.items()):
+            if (name, spec) not in seen:
+                seen.add((name, spec))
+                declarations.append((name, None, spec))
+        return declarations
+
     def load_all_lazy_magics(self) -> None:
         """Import and register every magic still declared lazily.
 
         Only the ``module:MagicsClass`` ones: loading an extension can run
         arbitrary code, so that waits for the magic to actually be used.
         """
-        # Load per kind from the placeholders themselves: one name may be
-        # declared with a different provider per kind, and ``lazy_magics``
-        # only remembers the last spec per name. Extensions (specs without a
-        # ":") are still skipped: importing one can run arbitrary code.
-        for kind in magic_kinds:
-            for magic_name in list(self.magics[kind]):
-                fn = self.magics[kind].get(magic_name)
-                if isinstance(fn, LazyMagic) and ":" in fn.spec:
-                    self.load_lazy(magic_name, kind)
-        for magic_name, spec in list(self.lazy_magics.items()):
+        for magic_name, magic_kind, spec in self._lazy_declarations():
             if ":" in spec:
-                self.load_lazy(magic_name)
+                self.load_lazy(magic_name, magic_kind)
 
     def find(
         self, magic_kind: _MagicKind, magic_name: str
