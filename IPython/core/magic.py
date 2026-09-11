@@ -363,13 +363,16 @@ class LazyMagic:
         magic_name: str,
         shadowed: LazyMagic | Callable[..., Any] | None = None,
     ) -> None:
+        """Create a lazy magic, optionally preserving a displaced entry.
+
+        ``shadowed`` is the table entry displaced by this declaration, if
+        any. It can be another lazy declaration or an already registered
+        callable.
+        """
         self.spec = spec
         self._manager = manager
         self._kind = magic_kind
         self._name = magic_name
-        # The table entry this declaration displaced, if any. A name may be
-        # declared lazily any number of times; the chain is walked if a
-        # newer declaration never delivers the magic.
         self.shadowed = shadowed
 
     def _resolve(self) -> Callable[..., Any]:
