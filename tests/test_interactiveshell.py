@@ -453,6 +453,28 @@ def test_ofind_cell_magic():
     assert find == info
 
 
+@pytest.mark.parametrize(
+    "source",
+    [
+        "# setup\n%%commented_cell_magic arg\n# body\n\n  content\n",
+        "In [1]: # setup\n   ...: %%commented_cell_magic arg\n"
+        "   ...: # body\n   ...: \n   ...:   content\n",
+    ],
+)
+def test_run_cell_magic_after_comments(source):
+    received = []
+
+    def commented_cell_magic(line, cell):
+        received.append((line, cell))
+
+    with mock.patch.dict(ip.magics_manager.magics["cell"]):
+        ip.register_magic_function(commented_cell_magic, magic_kind="cell")
+        result = ip.run_cell(source)
+
+    assert result.success
+    assert received == [("arg", "# body\n\n  content\n")]
+
+
 def test_ofind_property_with_error():
     class A(object):
         @property
