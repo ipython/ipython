@@ -58,7 +58,7 @@ Highlights:
 - Various focus jumping and scrolling fixes in the notebook.
 - Various message ordering and widget fixes in the notebook.
 - Images in markdown and output are confined to the notebook width.
-  An `.unconfined` CSS class is added to disable this behavior per-image.
+  An ``.unconfined`` CSS class is added to disable this behavior per-image.
   The resize handle on output images is removed.
 - Improved ordering of tooltip content for Python functions, putting the signature at the top.
 - Fix UnicodeErrors when displaying some objects with unicode reprs on Python 2.
@@ -93,7 +93,7 @@ while Python-specific projects (interactive Python shell, Python kernel, IPython
 will remain under IPython, and be split into a few smaller packages.
 To reflect this, IPython is in a bit of a transition state.
 The logo on the notebook is now the Jupyter logo.
-When installing kernels system-wide, they go in a `jupyter` directory.
+When installing kernels system-wide, they go in a ``jupyter`` directory.
 We are going to do our best to ease this transition for users and developers.
 
 Big changes are ahead.
@@ -162,7 +162,7 @@ Other new features
 
   __ https://pypi.python.org/pypi/cloud
 
-* Added a .ipynb exporter to nbconvert.  It can be used by passing `--to notebook`
+* Added a .ipynb exporter to nbconvert.  It can be used by passing ``--to notebook``
   as a commandline argument to nbconvert.
 
 * New nbconvert preprocessor called :class:`~.ClearOutputPreprocessor`. This
@@ -202,7 +202,7 @@ Other new features
   doing it automatically for every change of the parameter widgets. This should
   be useful for long-running functions.
 
-* The ``%cython`` magic is now part of the Cython module. Use `%load_ext Cython` with a version of Cython >= 0.21 to have access to the magic now.
+* The ``%cython`` magic is now part of the Cython module. Use ``%load_ext Cython`` with a version of Cython >= 0.21 to have access to the magic now.
 
 * The Notebook application now offers integrated terminals on Unix platforms,
   intended for when it is used on a remote server. To enable these, install
@@ -267,8 +267,8 @@ Other new features
 * Enhanced support for :magic:`env` magic.  As before, :magic:`env` with no
   arguments displays all environment variables and values.  Additionally,
   :magic:`env` can be used to get or set individual environment variables. To
-  display an individual value, use the `%env var` syntax. To set a value, use
-  `env var val` or `env var=val`. Python value expansion using `$` works as usual.
+  display an individual value, use the ``%env var`` syntax. To set a value, use
+  ``env var val`` or ``env var=val``. Python value expansion using ``$`` works as usual.
 
 
 Backwards incompatible changes
@@ -296,30 +296,30 @@ Backwards incompatible changes
 
 * :func:`IPython.core.oinspect.getsource` call specification has changed:
 
-  * `oname` keyword argument has been added for property source formatting
-  * `is_binary` keyword argument has been dropped, passing :py:data:`True` had
+  * ``oname`` keyword argument has been added for property source formatting
+  * ``is_binary`` keyword argument has been dropped, passing :py:data:`True` had
     previously short-circuited the function to return :py:data:`None` unconditionally
 
 * Removed the octavemagic extension: it is now available as ``oct2py.ipython``.
 
 * Creating PDFs with LaTeX no longer uses a post processor.
-  Use `nbconvert --to pdf` instead of `nbconvert --to latex --post pdf`.
+  Use ``nbconvert --to pdf`` instead of ``nbconvert --to latex --post pdf``.
 
 * Used https://github.com/jdfreder/bootstrap2to3 to migrate the Notebook to Bootstrap 3.
 
   Additional changes:
 
-  - Set `.tab-content .row` `0px;` left and right margin (bootstrap default is `-15px;`)
-  - Removed `height: @btn_mini_height;` from `.list_header>div, .list_item>div` in `tree.less`
-  - Set `#header` div `margin-bottom: 0px;`
-  - Set `#menus` to `float: left;`
-  - Set `#maintoolbar .navbar-text` to `float: none;`
+  - Set ``.tab-content .row`` ``0px;`` left and right margin (bootstrap default is ``-15px;``)
+  - Removed ``height: @btn_mini_height;`` from ``.list_header>div, .list_item>div`` in ``tree.less``
+  - Set ``#header`` div ``margin-bottom: 0px;``
+  - Set ``#menus`` to ``float: left;``
+  - Set ``#maintoolbar .navbar-text`` to ``float: none;``
   - Added no-padding convenience class.
   - Set border of #maintoolbar to 0px
 
-* Accessing the `container` DOM object when displaying javascript has been
-  deprecated in IPython 2.0 in favor of accessing `element`. Starting with
-  IPython 3.0 trying to access `container` will raise an error in browser
+* Accessing the ``container`` DOM object when displaying javascript has been
+  deprecated in IPython 2.0 in favor of accessing ``element``. Starting with
+  IPython 3.0 trying to access ``container`` will raise an error in browser
   javascript console.
 
 * ``IPython.utils.py3compat.open`` was removed: :func:`io.open` provides all
@@ -338,16 +338,16 @@ Backwards incompatible changes
 * :meth:`~.KernelManager.start_kernel` and :meth:`~.KernelManager.format_kernel_cmd`
   no longer accept a ``executable`` parameter. Use the kernelspec machinery instead.
 
-* The widget classes have been renamed from `*Widget` to `*`.  The old names are
+* The widget classes have been renamed from ``*Widget`` to ``*``.  The old names are
   still functional, but are deprecated.  i.e. `IntSliderWidget` has been renamed
   to `IntSlider`.
 * The ContainerWidget was renamed to Box and no longer defaults as a flexible
   box in the web browser.  A new FlexBox widget was added, which allows you to
   use the flexible box model.
 
-* The notebook now uses a single websocket at `/kernels/<kernel-id>/channels` instead of separate
-  `/kernels/<kernel-id>/{shell|iopub|stdin}` channels. Messages on each channel are identified by a
-  `channel` key in the message dict, for both send and recv.
+* The notebook now uses a single websocket at ``/kernels/<kernel-id>/channels`` instead of separate
+  ``/kernels/<kernel-id>/{shell|iopub|stdin}`` channels. Messages on each channel are identified by a
+  ``channel`` key in the message dict, for both send and recv.
 
 
 Content Security Policy
