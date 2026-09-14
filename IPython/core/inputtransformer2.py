@@ -38,6 +38,17 @@ def leading_empty_lines(lines):
     return lines
 
 
+def leading_comment_lines(lines):
+    """Remove leading comments and blank lines before a cell magic."""
+    for i, line in enumerate(lines):
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        if line.startswith("%%"):
+            return lines[i:]
+        break
+    return lines
+
+
 def leading_indent(lines):
     """Remove leading indentation.
 
@@ -708,6 +719,7 @@ class TransformerManager:
             leading_indent,
             classic_prompt,
             ipython_prompt,
+            leading_comment_lines,
         ]
         self.line_transforms = [
             cell_magic,
