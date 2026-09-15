@@ -3076,11 +3076,17 @@ class IPCompleter(Completer):
         # the regular expression captures everything before the bracket.
         # Only the expression after the last operator or keyword is subscripted.
         try:
-            expr = self._strip_code_before_operator(expr)
+            stripped_expr = self._strip_code_before_operator(expr)
         except tokenize.TokenError:
-            pass
+            stripped_expr = expr
 
-        obj = self._evaluate_expr(expr)
+        obj = self._evaluate_expr(stripped_expr)
+
+        if obj is not_found and stripped_expr != expr:
+            # stripping joins tokens that were separated by whitespace, so
+            # `%timeit d` becomes `timeitd`, which `_evaluate_expr` does not
+            # trim because it is a valid name rather than a syntax error
+            obj = self._evaluate_expr(expr)
 
         if obj is not_found:
             return []

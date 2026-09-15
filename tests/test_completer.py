@@ -1481,6 +1481,7 @@ def test_dict_key_completion_contexts():
         assert_completion(line_buffer="get()['ab")
         assert_completion(line_buffer="get()['abc")
 
+
 @pytest.mark.parametrize(
     "line",
     [
@@ -1528,6 +1529,27 @@ def test_dataframe_key_completion_after_statement_or_operator(line):
     with jedi_status(False):
         _, matches = ip.Completer.complete(line_buffer=line)
     assert "Year" in matches
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        '%timeit d["comp',
+        '%timeit -n 2 -r 1 d["comp',
+        '%time d["comp',
+        '%prun d["comp',
+        '%%timeit d["comp',
+        # implicit magic, with flags
+        'timeit -n 2 -r 1 d["comp',
+    ],
+)
+def test_dict_key_completion_in_magic_argument(line):
+    """Dict key completion in the code argument of a line or cell magic."""
+    ip = get_ipython()
+    ip.user_ns["d"] = {"complete_me": 1, "bar": 2}
+    with jedi_status(False):
+        _, matches = ip.Completer.complete(line_buffer=line)
+    assert "complete_me" in matches
 
 
 def test_completion_autoimport():
