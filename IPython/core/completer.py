@@ -973,6 +973,11 @@ class CompletionSplitter:
         return self._delim_re.split(cut_line)[-1]
 
 
+# keywords which end the expression before them (`x if c else d`, `k in d`),
+# as opposed to the constant keywords which are expressions (`None`, `True`)
+_KEYWORDS_ENDING_EXPRESSION = frozenset(keyword.kwlist) - {"True", "False", "None"}
+
+
 class Completer(Configurable):
 
     greedy = Bool(
@@ -1265,6 +1270,16 @@ class Completer(Configurable):
                     encountered_operator = True
                     after_operator = []
                     continue
+            elif (
+                t.type == tokenize.NAME
+                and nesting_level == 0
+                and t.string in _KEYWORDS_ENDING_EXPRESSION
+            ):
+                # a keyword (`in`, `else`, `lambda`, `not`, ...) ends the
+                # expression before it just like an operator does
+                encountered_operator = True
+                after_operator = []
+                continue
 
             if encountered_operator:
                 after_operator.append(t.string)
@@ -3057,6 +3072,13 @@ class IPCompleter(Completer):
             return []
 
         expr, prior_tuple_keys, key_prefix = match.groups()
+
+        # the regular expression captures everything before the bracket.
+        # Only the expression after the last operator or keyword is subscripted.
+        try:
+            expr = self._strip_code_before_operator(expr)
+        except tokenize.TokenError:
+            pass
 
         obj = self._evaluate_expr(expr)
 
