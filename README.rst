@@ -13,9 +13,6 @@
 .. image:: https://raster.shields.io/badge/Follows-SPEC--0000-brightgreen.png
     :target: https://scientific-python.org/specs/spec-0000/
 
-.. image:: https://tidelift.com/badges/package/pypi/ipython?style=flat
-    :target: https://tidelift.com/subscription/pkg/pypi-ipython
-
 
 ===========================================
  IPython: Productive Interactive Computing
