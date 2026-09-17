@@ -482,6 +482,17 @@ class InteractiveShellApp(Configurable):
                     self.exit(2)
             try:
                 self._exec_file(fname, shell_futures=True)
+            except SystemExit as e:
+                if not self.interact:
+                    # Preserve the exit code requested by the script (issue
+                    # #15132). SystemExit is not an Exception, so we handle it
+                    # before the bare except: below which is for real errors.
+                    exit_code = 1
+                    if isinstance(e.code, int):
+                        exit_code = e.code
+                    elif e.code is None:
+                        exit_code = 0
+                    self.exit(exit_code)
             except Exception:
                 self.shell.showtraceback(tb_offset=4)
                 if not self.interact:
