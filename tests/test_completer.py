@@ -987,7 +987,7 @@ def test_line_magics_with_code_argument_shadowing():
     # shadow
     ip.run_cell("timeit = 1")
 
-    # should not suggest on implict magic when shadowed
+    # should not suggest on implicit magic when shadowed
     text, matches = c.complete("timeit -n 2 -r 1 flo")
     assert matches == []
 

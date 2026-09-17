@@ -915,7 +915,7 @@ As usual, you can find the full list of PRs on GitHub under `the 9.8
 IPython 9.7
 -----------
 
-As ususal this new version of IPython brings a number of bugfixes:
+As usual this new version of IPython brings a number of bugfixes:
 
 
 - :ghpull:`15012` Fix ``Exception.text`` may be None

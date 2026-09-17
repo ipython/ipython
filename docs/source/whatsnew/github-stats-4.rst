@@ -44,7 +44,7 @@ The following 52 authors contributed 468 commits.
 * Alexandre Avanian
 * Anthony Sottile
 * Antony Lee
-* Arthur Loder
+* Arthur Loader
 * Ben Kasel
 * Ben Rousch
 * Benjamin Ragan-Kelley

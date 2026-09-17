@@ -1225,7 +1225,7 @@ if hasattr(os, "register_at_fork"):
 @contextmanager
 def hold(ref: ReferenceType[HistoryManager]) -> Iterator[ReferenceType[HistoryManager]]:
     """
-    Context manger that hold a reference to a weak ref to make sure it
+    Context manager that hold a reference to a weak ref to make sure it
     is not GC'd during it's context.
     """
     r = ref()

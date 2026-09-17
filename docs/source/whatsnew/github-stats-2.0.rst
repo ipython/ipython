@@ -566,7 +566,7 @@ Pull Requests (687):
 * :ghpull:`5268`: Refactoring Notebook.command_mode
 * :ghpull:`5226`: Don't run PYTHONSTARTUP file if a file or code is passed
 * :ghpull:`5283`: Remove Widget.closed attribute
-* :ghpull:`5279`: nbconvert: Make sure node is atleast version 0.9.12
+* :ghpull:`5279`: nbconvert: Make sure node is at least version 0.9.12
 * :ghpull:`5281`: fix a typo introduced by a rebased PR
 * :ghpull:`5280`: append Firefox overflow-x fix
 * :ghpull:`5277`: check that PIL can save JPEG to BytesIO
@@ -842,7 +842,7 @@ Pull Requests (687):
 * :ghpull:`4608`: transparent background match ... all colors
 * :ghpull:`4678`: allow ipython console to handle text/plain display
 * :ghpull:`4706`: remove irunner, iplogger
-* :ghpull:`4701`: Delete an old dictionary available for selecting the aligment of text.
+* :ghpull:`4701`: Delete an old dictionary available for selecting the alignment of text.
 * :ghpull:`4702`: Making reveal font-size a relative unit.
 * :ghpull:`4649`: added a quiet option to %cpaste to suppress output
 * :ghpull:`4690`: Option to spew subprocess streams during tests
@@ -887,7 +887,7 @@ Pull Requests (687):
 * :ghpull:`4569`: store cell toolbar preset in notebook metadata
 * :ghpull:`4609`: Fix bytes regex for Python 3.
 * :ghpull:`4581`: Writing unicode to stdout
-* :ghpull:`4591`: Documenting codemirror shorcuts.
+* :ghpull:`4591`: Documenting codemirror shortcuts.
 * :ghpull:`4607`: Tutorial doc should link to user config intro
 * :ghpull:`4601`: test that rename fails with 409 if it would clobber
 * :ghpull:`4599`: re-cast int/float subclasses to int/float in json_clean
@@ -1021,7 +1021,7 @@ Pull Requests (687):
 * :ghpull:`4315`: Explicitly state what version of Pandoc is supported in docs/install
 * :ghpull:`4316`: underscore missing on notebook_p4
 * :ghpull:`4295`: Implement boundary option for load magic (#1093)
-* :ghpull:`4300`: traits defauts are strings not object
+* :ghpull:`4300`: traits defaults are strings not object
 * :ghpull:`4297`: Remove an unreachable return statement.
 * :ghpull:`4260`: Use subprocess for system_raw
 * :ghpull:`4277`: add nbextensions
@@ -1189,13 +1189,13 @@ Issues (434):
 * :ghissue:`5447`: Add %%python2 cell magic
 * :ghissue:`5442`: Make a "python2" alias or rename the "python"cell magic.
 * :ghissue:`2495`: non-ascii characters in the path
-* :ghissue:`4554`: dictDB: Exception due to str to datetime comparission
+* :ghissue:`4554`: dictDB: Exception due to str to datetime comparison
 * :ghissue:`5006`: Comm code is not run in the same context as notebook code
 * :ghissue:`5118`: Weird interact behavior
 * :ghissue:`5401`: Empty code cells in nbconvert rst output cause problems
 * :ghissue:`5434`: fix check for empty cells in rst template
 * :ghissue:`4944`: Trouble finding ipynb path in Windows 8
-* :ghissue:`4605`: Change the url of Editor Shorcuts in the notebook menu.
+* :ghissue:`4605`: Change the url of Editor Shortcuts in the notebook menu.
 * :ghissue:`5425`: Update COPYING.txt
 * :ghissue:`5348`: BUG: HistoryAccessor.get_session_info(0) - exception
 * :ghissue:`5293`: Javascript("element.append()") looks broken.
@@ -1251,7 +1251,7 @@ Issues (434):
 * :ghissue:`5219`: Output images appear as small thumbnails (Notebook)
 * :ghissue:`4829`: Not able to connect qtconsole in Windows 8
 * :ghissue:`5152`: Hide __pycache__ in dashboard directory list
-* :ghissue:`5151`: Case-insesitive sort for dashboard list
+* :ghissue:`5151`: Case-insensitive sort for dashboard list
 * :ghissue:`4603`: Warn when overwriting a notebook with upload
 * :ghissue:`4895`: Improvements to %run completions
 * :ghissue:`3459`: Filename completion when run script with %run
@@ -1367,7 +1367,7 @@ Issues (434):
 * :ghissue:`4950`: Two fixes for file upload related bugs
 * :ghissue:`4871`: Notebook upload fails after Delete
 * :ghissue:`4825`: File Upload URL set incorrectly
-* :ghissue:`3867`: display.FileLinks should work in the exported html verion of a notebook
+* :ghissue:`3867`: display.FileLinks should work in the exported html version of a notebook
 * :ghissue:`4948`: reveal: ipython css overrides reveal themes
 * :ghissue:`4947`: reveal: slides that are too big?
 * :ghissue:`4051`: Test failures with Python 3 and enabled warnings
@@ -1560,7 +1560,7 @@ Issues (434):
 * :ghissue:`3622`: Drop fakemodule
 * :ghissue:`4122`: Nbconvert [windows]: Inconsistent line endings in markdown cells exported to latex
 * :ghissue:`3819`: nbconvert add extra blank line to code block on Windows.
-* :ghissue:`4203`: remove spurious print statement from parallel annoted functions
+* :ghissue:`4203`: remove spurious print statement from parallel annotated functions
 * :ghissue:`4200`: Notebook: merging a heading cell and markdown cell cannot be undone
 * :ghissue:`3747`: ipynb -> ipynb transformer
 * :ghissue:`4024`: nbconvert markdown issues
@@ -1574,7 +1574,7 @@ Issues (434):
 * :ghissue:`4134`: multi-line parser fails on ''' in comment, qtconsole and notebook.
 * :ghissue:`3998`: sample custom.js needs to be updated
 * :ghissue:`4078`: StoreMagic.autorestore not working in 1.0.0
-* :ghissue:`3990`: Buitlin `input` doesn't work over zmq
+* :ghissue:`3990`: Builtin `input` doesn't work over zmq
 * :ghissue:`4015`: nbconvert fails to convert all the content of a notebook
 * :ghissue:`4059`: Issues with Ellipsis literal in Python 3
 * :ghissue:`2310`: "ZMQError: Interrupted system call" from RichIPythonWidget

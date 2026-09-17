@@ -98,7 +98,7 @@ Pull Requests (38):
 * :ghissue:`4256`: IPython no longer handles unicode file names
 * :ghissue:`4122`: Nbconvert [windows]: Inconsistent line endings in markdown cells exported to latex
 * :ghissue:`3819`: nbconvert add extra blank line to code block on Windows.
-* :ghissue:`4203`: remove spurious print statement from parallel annoted functions
+* :ghissue:`4203`: remove spurious print statement from parallel annotated functions
 * :ghissue:`4200`: Notebook: merging a heading cell and markdown cell cannot be undone
 
 
@@ -656,7 +656,7 @@ Pull Requests (793):
 * :ghpull:`3433`: Update IPython\external\path\__init__.py
 * :ghpull:`3298`: Some fixes in IPython Sphinx directive
 * :ghpull:`3428`: process escapes in mathjax
-* :ghpull:`3420`: thansk -> thanks
+* :ghpull:`3420`: thanks -> thanks
 * :ghpull:`3416`: Fix doc: "principle" not "principal"
 * :ghpull:`3413`: more unique filename for test
 * :ghpull:`3364`: Inject requirejs in notebook and start using it.
@@ -737,7 +737,7 @@ Pull Requests (793):
 * :ghpull:`3229`: The HTML output type accidentally got removed from the OutputArea.
 * :ghpull:`3228`: Typo in IPython.Parallel documentation
 * :ghpull:`3226`: Text in rename dialog was way too big - making it <p>.
-* :ghpull:`3225`: Removing old restuctured text handler and web service.
+* :ghpull:`3225`: Removing old restructured text handler and web service.
 * :ghpull:`3222`: make BlockingKernelClient the default Client
 * :ghpull:`3223`: add missing mathjax_url to new settings dict
 * :ghpull:`3089`: add stdin to the notebook
@@ -947,7 +947,7 @@ Pull Requests (793):
 * :ghpull:`2741`: Add note to `%cython` Black-Scholes example warning of missing erf.
 * :ghpull:`2743`: BUG: Octavemagic inline plots not working on Windows: Fixed
 * :ghpull:`2740`: Following #2737 this error is now a name error
-* :ghpull:`2737`: Rmagic: error message when moving an non-existant variable from python to R
+* :ghpull:`2737`: Rmagic: error message when moving an non-existent variable from python to R
 * :ghpull:`2723`: diverse fixes for project url
 * :ghpull:`2731`: %Rpush: Look for variables in the local scope first.
 * :ghpull:`2544`: Infinite loop when multiple debuggers have been attached.
@@ -977,9 +977,9 @@ Pull Requests (793):
 * :ghpull:`2656`: Fix irunner tests when $PYTHONSTARTUP is set
 * :ghpull:`2312`: Add bracket matching to code cells in notebook
 * :ghpull:`2571`: Start to document Javascript
-* :ghpull:`2641`: undefinied that -> this
+* :ghpull:`2641`: undefined that -> this
 * :ghpull:`2638`: Fix %paste in Python 3 on Mac
-* :ghpull:`2301`: Ast transfomers
+* :ghpull:`2301`: Ast transformers
 * :ghpull:`2616`: Revamp API docs
 * :ghpull:`2572`: Make 'Paste Above' the default paste behavior.
 * :ghpull:`2574`: Fix #2244
@@ -1350,8 +1350,8 @@ Issues (691):
 * :ghissue:`2891`: In IPython for Python 3, system site-packages comes before user site-packages
 * :ghissue:`2928`: Add magic "watch" function (example)
 * :ghissue:`2931`: Problem rendering pandas dataframe in  Firefox for Windows
-* :ghissue:`2939`: [notebook] Figure legend not shown in inline backend if ouside the box of the axes
-* :ghissue:`2972`: [notebook] in Markdown mode, press Enter key at the end of <some http link>, the next line is indented unexpectly
+* :ghissue:`2939`: [notebook] Figure legend not shown in inline backend if outside the box of the axes
+* :ghissue:`2972`: [notebook] in Markdown mode, press Enter key at the end of <some http link>, the next line is indented unexpectedly
 * :ghissue:`3069`: Instructions for installing IPython notebook on Windows
 * :ghissue:`3444`: Encoding problem: cannot use if user's name is not ascii?
 * :ghissue:`3335`: Reenable bracket matching
@@ -1517,7 +1517,7 @@ Issues (691):
 * :ghissue:`3128`: qtconsole hangs on importing pylab (using X forwarding)
 * :ghissue:`3198`: Hitting recursive depth causing all notebook pages to hang
 * :ghissue:`3218`: race conditions in profile directory creation
-* :ghissue:`3177`: OverflowError execption in handlers.py
+* :ghissue:`3177`: OverflowError exception in handlers.py
 * :ghissue:`2563`: core.profiledir.check_startup_dir() doesn't work inside py2exe'd installation
 * :ghissue:`3207`: [Feature] folders for ipython notebook dashboard
 * :ghissue:`3178`: cell magics do not work with empty lines after #2447
@@ -1556,7 +1556,7 @@ Issues (691):
 * :ghissue:`3123`: Notebook crashed if unplugged ethernet cable
 * :ghissue:`3121`: NB should use normalize.css? was #3049
 * :ghissue:`3087`: Disable spellchecking in notebook
-* :ghissue:`3084`: ipython pyqt 4.10 incompatibilty, QTextBlockUserData
+* :ghissue:`3084`: ipython pyqt 4.10 incompatibility, QTextBlockUserData
 * :ghissue:`3113`: Fails to install under Jython 2.7 beta
 * :ghissue:`3110`: Render of h4 headers is not correct in notebook (error in renderedhtml.css)
 * :ghissue:`3109`: BUG: read_csv: dtype={'id' : np.str}: Datatype not understood
@@ -1573,7 +1573,7 @@ Issues (691):
 * :ghissue:`3061`: Bug handling Ellipsis
 * :ghissue:`3049`: NB css inconsistent behavior between ff and webkit
 * :ghissue:`3039`: unicode errors when opening a new notebook
-* :ghissue:`3048`: Installning ipython qtConsole should be easyer att Windows
+* :ghissue:`3048`: Installning ipython qtConsole should be easier att Windows
 * :ghissue:`3042`: Profile creation fails on 0.13.2 branch
 * :ghissue:`3035`: docstring typo/inconsistency: mention of an xml notebook format?
 * :ghissue:`3031`: HDF5 library segfault (possibly due to mismatching headers?)
@@ -1625,7 +1625,7 @@ Issues (691):
 * :ghissue:`2862`: %%timeit should warn of empty contents
 * :ghissue:`2485`: History navigation breaks in qtconsole
 * :ghissue:`2785`: gevent input hook
-* :ghissue:`2843`: Sliently running code in clipboard (with paste, cpaste and variants)
+* :ghissue:`2843`: Silently running code in clipboard (with paste, cpaste and variants)
 * :ghissue:`2784`: %run -t -N<N> error
 * :ghissue:`2732`: Test failure with FileLinks class on Windows
 * :ghissue:`2860`: ipython help notebook -> KeyError: 'KernelManager'
@@ -1668,7 +1668,7 @@ Issues (691):
 * :ghissue:`2505`: Markdown Cell incorrectly highlighting after "<"
 * :ghissue:`165`: Installer fails to create Start Menu entries on Windows
 * :ghissue:`2356`: failing traceback in terminal ipython for first exception
-* :ghissue:`2145`: Have dashboad show when server disconect
+* :ghissue:`2145`: Have dashboard show when server disconnect
 * :ghissue:`2098`: Do not crash on kernel shutdow if json file is missing
 * :ghissue:`2813`: Offline MathJax is broken on 0.14dev
 * :ghissue:`2807`: Test failure: IPython.parallel.tests.test_client.TestClient.test_purge_everything
