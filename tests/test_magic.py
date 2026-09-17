@@ -1968,7 +1968,7 @@ def test_registered_magic_beats_lazy_one():
         # `%load` comes from the same class as the core `%edit`.
         mm.load_lazy("load")
         assert mm.find("line", "edit").__self__.__class__ is OverridingMagics
-        # Neither does re-declaring the core one shadow it.
+        # Neither does redeclaring the core one shadow it.
         mm.register_lazy("edit", "IPython.core.magics.code:CodeMagics", "line")
         assert mm.find("line", "edit").__self__.__class__ is OverridingMagics
         mm.load_all_lazy_magics()

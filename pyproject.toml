@@ -268,7 +268,7 @@ disallow_untyped_decorators = false
 ignore_errors = false
 ignore_missing_imports = true
 
-# gloabl ignore error
+# global ignore error
 [[tool.mypy.overrides]]
 module = [
     "IPython",
@@ -489,7 +489,7 @@ ignore = [
     "UP032",       # 90    f-strings
     "C408",        # 33    unnecessary collection call
     "SIM201",      # 27    collapsible IF
-    "PLC0414",      # WRONG CONFLICT WITH EXPLICT REEXPORT
+    "PLC0414",      # WRONG CONFLICT WITH EXPLICIT REEXPORT
     "E713", #   1      Test for membership should be `not in`
     "F601", #   3      Dictionary key literal `True` repeated (`True` hashes to the same value as `1`)
     "E702", #   3      Multiple statements on one line (semicolon)
@@ -583,3 +583,27 @@ extend-exclude = ["tests"]
 [tool.black]
 # moved here from setup.cfg, where it had been in (ignored) INI syntax
 exclude = 'timing\.py'
+
+[tool.codespell]
+# Ref: https://github.com/codespell-project/codespell#using-a-config-file
+skip = '.git,.git-meta,.gitignore,.gitattributes,*.svg,*.css,./docs/source/whatsnew/*'
+check-hidden = true
+# Protect URLs from being "corrected" (e.g. typos in upstream URLs should not be changed)
+ignore-regex = 'https?://\S+'
+# Variable names, magic commands, and domain-specific terms that look like typos:
+# ans      - variable abbreviation for "answer"
+# strng    - variable abbreviation for "string" (legacy parameter name throughout codebase)
+# whos     - IPython %whos magic command (not "whose")
+# crasher  - function name meaning "a callable that raises an exception"
+# defaulty - parameter name for y-coordinate default (defaultx, defaulty in terminal.py)
+# dne      - variable abbreviation for "does not exist"
+# abd,fo,te,whe - test fixture strings used for completion/formatting tests
+# notin    - ast.NotIn (Python AST node; appears as NotIn in comments and code)
+# matchin  - variable name for "match input" in sphinxext/ipython_directive.py
+# promptin - attribute name for "prompt in" in sphinxext/ipython_directive.py
+# buss     - contributor name: Gerrit Buss
+# tham     - contributor name: Ivan Tham
+# oktober  - German "Oktober" in quoted email header (interactiveshell.py)
+# mis      - (mis)type parenthetical in docs (not a standalone word)
+# reenable - valid non-hyphenated form (vs re-enable) in historical commit titles
+ignore-words-list = 'ans,strng,whos,crasher,defaulty,dne,abd,fo,te,whe,notin,matchin,promptin,buss,tham,oktober,mis,reenable'

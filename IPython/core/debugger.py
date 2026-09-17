@@ -781,7 +781,7 @@ class Pdb(OldPdb):
                     bp,
                     (Token.LinenoEm, num),
                     (Token, " "),
-                    # TODO: investigate Toke.Line here, likely LineEm,
+                    # TODO: investigate Token.Line here, likely LineEm,
                     # Token is problematic here as line is already colored, a
                     # and this changes the full style of the colored line.
                     # ideally, __line_content returns the token and we modify the style.
@@ -792,7 +792,7 @@ class Pdb(OldPdb):
                     bp,
                     (Token.Lineno, num),
                     (Token, " "),
-                    # TODO: investigate Toke.Line here, likely Line
+                    # TODO: investigate Token.Line here, likely Line
                     # Token is problematic here as line is already colored, a
                     # and this changes the full style of the colored line.
                     # ideally, __line_content returns the token and we modify the style.

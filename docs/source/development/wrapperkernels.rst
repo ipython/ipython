@@ -3,7 +3,7 @@ Making simple Python wrapper kernels
 
 .. versionadded:: 3.0
 
-You can now re-use the kernel machinery in IPython to easily make new kernels.
+You can now reuse the kernel machinery in IPython to easily make new kernels.
 This is useful for languages that have Python bindings, such as `Octave
 <https://www.gnu.org/software/octave/>`_ (via
 `Oct2Py <https://oct2py.readthedocs.io/>`_), or languages
