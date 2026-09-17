@@ -2263,8 +2263,14 @@ class IPCompleter(Completer):
             lsplit = text
         else:
             try:
-                # arg_split ~ shlex.split, but with unicode bugs fixed by us
-                lsplit = arg_split(text_until_cursor)[-1]
+                # POSIX CLI escapes must keep a spaced path in one token.
+                split_posix = (
+                    sys.platform != "win32"
+                    and in_cli_context
+                    and not open_quotes
+                    and "\\" in text_until_cursor
+                )
+                lsplit = arg_split(text_until_cursor, posix=split_posix)[-1]
             except ValueError:
                 # typically an unmatched ", or backslash without escaped char.
                 if open_quotes:
@@ -2307,7 +2313,11 @@ class IPCompleter(Completer):
             # If we had protectables, we need to revert our changes to the
             # beginning of filename so that we don't double-write the part
             # of the filename we have so far
-            len_lsplit = len(lsplit)
+            if sys.platform == "win32":
+                len_lsplit = len(lsplit)
+            else:
+                # POSIX matching removes escape markers before slicing raw paths.
+                len_lsplit = len(lsplit.replace("\\", ""))
             matches = [text_prefix + text0 +
                        protect_filename(f[len_lsplit:]) for f in m0]
         else:
@@ -2321,11 +2331,14 @@ class IPCompleter(Completer):
                 matches = [text_prefix +
                            protect_filename(f) for f in m0]
 
-        # Mark directories in input list by appending '/' to their names.
+        # Mark directories using raw filesystem matches, before display escaping.
         return {
             "completions": [
-                SimpleCompletion(text=x + "/" if os.path.isdir(x) else x, type="path")
-                for x in matches
+                SimpleCompletion(
+                    text=x + "/" if os.path.isdir(f) else x,
+                    type="path",
+                )
+                for f, x in zip(m0, matches)
             ],
             "suppress": False,
         }
