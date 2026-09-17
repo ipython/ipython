@@ -84,6 +84,7 @@ Inheritance diagram:
 #-----------------------------------------------------------------------------
 import argparse
 import re
+import shlex
 
 # Our own imports
 from IPython.core.error import UsageError
@@ -92,6 +93,10 @@ from IPython.utils.process import arg_split
 from IPython.utils.text import dedent
 
 NAME_RE = re.compile(r"[a-zA-Z][a-zA-Z0-9_-]*$")
+QUOTED_ARG_VALUE_RE = re.compile(
+    r"""(?<!\S)(?P<option>[^\s=]+)=(?P<value>"(?:\\.|[^"\\])*"|'[^']*')(?=\s|$)"""
+)
+
 
 @undoc
 class MagicHelpFormatter(argparse.RawDescriptionHelpFormatter):
@@ -164,7 +169,26 @@ class MagicArgumentParser(argparse.ArgumentParser):
     def parse_argstring(self, argstring, *, partial=False):
         """ Split a string into an argument list and parse that argument list.
         """
-        argv = arg_split(argstring, strict=not partial)
+        replacements: dict[str, str] = {}
+
+        def replace_quoted_value(match):
+            action = self._option_string_actions.get(match.group("option"))
+            if action is None or action.nargs == 0:
+                return match.group()
+            # Keep the platform splitter from breaking an attached quoted value.
+            marker = f"__IPYTHON_MAGIC_ARG_{len(replacements)}__"
+            while marker in argstring:
+                marker += "_"
+            replacements[marker] = shlex.split(match.group("value"), posix=True)[0]
+            return f"{match.group('option')}={marker}"
+
+        masked = QUOTED_ARG_VALUE_RE.sub(replace_quoted_value, argstring)
+        argv = arg_split(masked, strict=not partial)
+        for index, token in enumerate(argv):
+            for marker, value in replacements.items():
+                if marker in token:
+                    argv[index] = token.replace(marker, value)
+                    break
         if partial:
             return self.parse_known_args(argv)
         return self.parse_args(argv)
