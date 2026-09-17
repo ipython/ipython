@@ -586,7 +586,24 @@ exclude = 'timing\.py'
 
 [tool.codespell]
 # Ref: https://github.com/codespell-project/codespell#using-a-config-file
-skip = '.git,.gitignore,.gitattributes,*.svg,*.css'
+skip = '.git,.git-meta,.gitignore,.gitattributes,*.svg,*.css'
 check-hidden = true
-# ignore-regex = ''
-# ignore-words-list = ''
+# Protect URLs from being "corrected" (e.g. typos in upstream URLs should not be changed)
+ignore-regex = 'https?://\S+'
+# Variable names, magic commands, and domain-specific terms that look like typos:
+# ans      - variable abbreviation for "answer"
+# strng    - variable abbreviation for "string" (legacy parameter name throughout codebase)
+# whos     - IPython %whos magic command (not "whose")
+# crasher  - function name meaning "a callable that raises an exception"
+# defaulty - parameter name for y-coordinate default (defaultx, defaulty in terminal.py)
+# dne      - variable abbreviation for "does not exist"
+# abd,fo,te,whe - test fixture strings used for completion/formatting tests
+# notin    - ast.NotIn (Python AST node; appears as NotIn in comments and code)
+# matchin  - variable name for "match input" in sphinxext/ipython_directive.py
+# promptin - attribute name for "prompt in" in sphinxext/ipython_directive.py
+# buss     - contributor name: Gerrit Buss
+# tham     - contributor name: Ivan Tham
+# oktober  - German "Oktober" in quoted email header (interactiveshell.py)
+# mis      - (mis)type parenthetical in docs (not a standalone word)
+# reenable - valid non-hyphenated form (vs re-enable) in historical commit titles
+ignore-words-list = 'ans,strng,whos,crasher,defaulty,dne,abd,fo,te,whe,notin,matchin,promptin,buss,tham,oktober,mis,reenable'

@@ -277,7 +277,7 @@ Pull requests (257):
 * `801 <https://github.com/ipython/ipython/issues/801>`_: Py3 notebook
 * `809 <https://github.com/ipython/ipython/issues/809>`_: use CFRunLoop directly in `ipython kernel --pylab osx`
 * `841 <https://github.com/ipython/ipython/issues/841>`_: updated old scipy.org links, other minor doc fixes
-* `837 <https://github.com/ipython/ipython/issues/837>`_: remove all trailling spaces
+* `837 <https://github.com/ipython/ipython/issues/837>`_: remove all trailing spaces
 * `834 <https://github.com/ipython/ipython/issues/834>`_: Issue https://github.com/ipython/ipython/issues/832 resolution
 * `746 <https://github.com/ipython/ipython/issues/746>`_: ENH: extensions: port autoreload to current API
 * `828 <https://github.com/ipython/ipython/issues/828>`_: fixed permissions (sub-modules should not be executable) + added shebang  for run_ipy_in_profiler.py

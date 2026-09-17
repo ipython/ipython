@@ -1159,7 +1159,7 @@ Issues (742):
 * :ghissue:`1279`: ImportError: cannot import name S1 (from logging)
 * :ghissue:`1276`: notebook menu item to send a KeyboardInterrupt to the kernel
 * :ghissue:`1213`: BUG: Minor typo in history_console_widget.py
-* :ghissue:`1248`: IPython notebook doesn't work with lastest version of tornado
+* :ghissue:`1248`: IPython notebook doesn't work with latest version of tornado
 * :ghissue:`1267`: add NoDB for non-recording Hub
 * :ghissue:`1222`: allow Reference as callable in map/apply
 * :ghissue:`1257`: use self.kernel_manager_class in qtconsoleapp
