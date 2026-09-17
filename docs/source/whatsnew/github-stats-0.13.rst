@@ -378,7 +378,7 @@ Pull Requests (373):
 * :ghpull:`1458`: use eval to uncan References
 * :ghpull:`1450`: load mathjax from CDN via https
 * :ghpull:`1451`: include heading level in JSON
-* :ghpull:`1444`: Fix python -> python typos
+* :ghpull:`1444`: Fix pyhton -> python typos
 * :ghpull:`1414`: ignore errors in shell.var_expand
 * :ghpull:`1430`: Fix for tornado check for tornado < 1.1.0
 * :ghpull:`1413`: get_home_dir expands symlinks, adjust test accordingly
@@ -969,7 +969,7 @@ Issues (742):
 * :ghissue:`1527`: Making a progress bar work in IPython Notebook
 * :ghissue:`1497`: __all__ functionality added to dir2(obj)
 * :ghissue:`1518`: Pretty printing exceptions is broken
-* :ghissue:`811`: Fixes for ipython unhandled OSError exception on failure of os.getcwdu()
+* :ghissue:`811`: Fixes for ipython unhandeled OSError exception on failure of os.getcwdu()
 * :ghissue:`1517`: Fix indentation bug in IPython/lib/pretty.py
 * :ghissue:`1519`: BUG: Include the name of the exception type in its pretty format.
 * :ghissue:`1525`: A hack for auto-complete numpy recarray
@@ -1027,7 +1027,7 @@ Issues (742):
 * :ghissue:`1182`: Qtconsole, multiwindow
 * :ghissue:`1439`: Notebook not storing heading celltype information
 * :ghissue:`1451`: include heading level in JSON
-* :ghissue:`1444`: Fix python -> python typos
+* :ghissue:`1444`: Fix pyhton -> python typos
 * :ghissue:`1412`: Input parsing issue with %prun
 * :ghissue:`1414`: ignore errors in shell.var_expand
 * :ghissue:`1441`: (1) Enable IPython.notebook.kernel.execute to publish display_* even it is not called with a code cell and (2) remove empty html element when execute "display_*"
@@ -1055,7 +1055,7 @@ Issues (742):
 * :ghissue:`1395`: Xunit & KnownFailure
 * :ghissue:`1396`: Fix for %tb magic.
 * :ghissue:`1397`: Stay or leave message not working, Safari session lost.
-* :ghissue:`1389`: pylab=inline inoperative through ssh tunnelling?
+* :ghissue:`1389`: pylab=inline inoperant through ssh tunnelling?
 * :ghissue:`1386`: Jsd3
 * :ghissue:`1388`: Add simple support for running inside a virtualenv
 * :ghissue:`826`: Add support for creation of parallel task when no engine is running
@@ -1159,7 +1159,7 @@ Issues (742):
 * :ghissue:`1279`: ImportError: cannot import name S1 (from logging)
 * :ghissue:`1276`: notebook menu item to send a KeyboardInterrupt to the kernel
 * :ghissue:`1213`: BUG: Minor typo in history_console_widget.py
-* :ghissue:`1248`: IPython notebook doesn't work with latest version of tornado
+* :ghissue:`1248`: IPython notebook doesn't work with lastest version of tornado
 * :ghissue:`1267`: add NoDB for non-recording Hub
 * :ghissue:`1222`: allow Reference as callable in map/apply
 * :ghissue:`1257`: use self.kernel_manager_class in qtconsoleapp
@@ -1172,7 +1172,7 @@ Issues (742):
 * :ghissue:`1256`: Dewijmoize
 * :ghissue:`1246`: Skip tests that require X, when importing pylab results in RuntimeError.
 * :ghissue:`1250`: Wijmoize
-* :ghissue:`1244`: can not input chinese word "造" , exit right now
+* :ghissue:`1244`: can not imput chinese word "造" , exit right now
 * :ghissue:`1194`: Adding Opera 11 as a compatible browser for ipython notebook
 * :ghissue:`1198`: Kernel Has Died error in Notebook
 * :ghissue:`1211`: serve local files in notebook-dir

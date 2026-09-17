@@ -277,7 +277,7 @@ Pull requests (257):
 * `801 <https://github.com/ipython/ipython/issues/801>`_: Py3 notebook
 * `809 <https://github.com/ipython/ipython/issues/809>`_: use CFRunLoop directly in `ipython kernel --pylab osx`
 * `841 <https://github.com/ipython/ipython/issues/841>`_: updated old scipy.org links, other minor doc fixes
-* `837 <https://github.com/ipython/ipython/issues/837>`_: remove all trailing spaces
+* `837 <https://github.com/ipython/ipython/issues/837>`_: remove all trailling spaces
 * `834 <https://github.com/ipython/ipython/issues/834>`_: Issue https://github.com/ipython/ipython/issues/832 resolution
 * `746 <https://github.com/ipython/ipython/issues/746>`_: ENH: extensions: port autoreload to current API
 * `828 <https://github.com/ipython/ipython/issues/828>`_: fixed permissions (sub-modules should not be executable) + added shebang  for run_ipy_in_profiler.py
@@ -519,7 +519,7 @@ Regular issues (258):
 * `211 <https://github.com/ipython/ipython/issues/211>`_: paste command not working
 * `900 <https://github.com/ipython/ipython/issues/900>`_: Tab key should insert 4 spaces in qt console
 * `513 <https://github.com/ipython/ipython/issues/513>`_: [Qt console] cannot insert new lines into console functions using tab
-* `906 <https://github.com/ipython/ipython/issues/906>`_: qtconsoleapp 'parse_command_line' doesn't like --existing anymore
+* `906 <https://github.com/ipython/ipython/issues/906>`_: qtconsoleapp 'parse_command_line' doen't like --existing anymore
 * `638 <https://github.com/ipython/ipython/issues/638>`_: Qt console --pylab=inline and getfigs(), etc.
 * `710 <https://github.com/ipython/ipython/issues/710>`_: unwanted unicode passed to args
 * `436 <https://github.com/ipython/ipython/issues/436>`_: Users should see tooltips for all buttons in the notebook UI

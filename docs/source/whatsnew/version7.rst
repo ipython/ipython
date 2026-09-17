@@ -487,7 +487,7 @@ Thanks
 Many thanks to all the contributors to this release you can find all individual
 contributions to this milestone `on github <https://github.com/ipython/ipython/milestone/86>`__.
 In particular MrMino for responding to almost all new issues, and triaging many
-of the old ones, as well as takluyver, minrk, willingc for reacting quickly when
+of the old ones, as well as takluyver, minrk, willingc for reacting quikly when
 we ran out of CI Hours.
 
 Thanks as well to organisations, QuantStack (martinRenou and SylvainCorlay) for
@@ -1540,17 +1540,17 @@ Added and removed character characters:
 
 Some sequences have seen their prefix removed:
 
- - 6 characters ``\text...<tab>`` should now be inputted with ``\...<tab>`` directly,
- - 45 characters ``\Elz...<tab>`` should now be inputted with ``\...<tab>`` directly,
- - 65 characters ``\B...<tab>`` should now be inputted with ``\...<tab>`` directly,
- - 450 characters ``\m...<tab>`` should now be inputted with ``\...<tab>`` directly,
+ - 6 characters ``\text...<tab>`` should now be inputed with ``\...<tab>`` directly,
+ - 45 characters ``\Elz...<tab>`` should now be inputed with ``\...<tab>`` directly,
+ - 65 characters ``\B...<tab>`` should now be inputed with ``\...<tab>`` directly,
+ - 450 characters ``\m...<tab>`` should now be inputed with ``\...<tab>`` directly,
 
 Some sequences have seen their prefix shortened:
 
- - 5 characters ``\mitBbb...<tab>`` should now be inputted with ``\bbi...<tab>`` directly,
- - 52 characters ``\mit...<tab>`` should now be inputted with ``\i...<tab>`` directly,
- - 216 characters ``\mbfit...<tab>`` should now be inputted with ``\bi...<tab>`` directly,
- - 222 characters ``\mbf...<tab>`` should now be inputted with ``\b...<tab>`` directly,
+ - 5 characters ``\mitBbb...<tab>`` should now be inputed with ``\bbi...<tab>`` directly,
+ - 52 characters ``\mit...<tab>`` should now be inputed with ``\i...<tab>`` directly,
+ - 216 characters ``\mbfit...<tab>`` should now be inputed with ``\bi...<tab>`` directly,
+ - 222 characters ``\mbf...<tab>`` should now be inputed with ``\b...<tab>`` directly,
 
 A couple of characters had their sequence simplified:
 

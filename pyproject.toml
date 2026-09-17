@@ -586,7 +586,7 @@ exclude = 'timing\.py'
 
 [tool.codespell]
 # Ref: https://github.com/codespell-project/codespell#using-a-config-file
-skip = '.git,.git-meta,.gitignore,.gitattributes,*.svg,*.css'
+skip = '.git,.git-meta,.gitignore,.gitattributes,*.svg,*.css,./docs/source/whatsnew/*'
 check-hidden = true
 # Protect URLs from being "corrected" (e.g. typos in upstream URLs should not be changed)
 ignore-regex = 'https?://\S+'

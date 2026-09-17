@@ -435,13 +435,13 @@ Regular issues (285):
 * `24 <https://github.com/ipython/ipython/issues/24>`_: ipcluster does not start all the engines
 * `240 <https://github.com/ipython/ipython/issues/240>`_: Incorrect method displayed in %psource
 * `120 <https://github.com/ipython/ipython/issues/120>`_: inspect.getsource fails for functions defined on command line
-* `212 <https://github.com/ipython/ipython/issues/212>`_: IPython ignores exceptions in the first evaluation of class attrs
+* `212 <https://github.com/ipython/ipython/issues/212>`_: IPython ignores exceptions in the first evaulation of class attrs
 * `108 <https://github.com/ipython/ipython/issues/108>`_: ipython disables python logger
 * `100 <https://github.com/ipython/ipython/issues/100>`_: Overzealous introspection
 * `18 <https://github.com/ipython/ipython/issues/18>`_: %cpaste freeze sync frontend
 * `200 <https://github.com/ipython/ipython/issues/200>`_: Unicode error when starting ipython in a folder with non-ascii path
 * `130 <https://github.com/ipython/ipython/issues/130>`_: Deadlock when importing a module that creates an IPython client
-* `134 <https://github.com/ipython/ipython/issues/134>`_: multiline block scrolling
+* `134 <https://github.com/ipython/ipython/issues/134>`_: multline block scrolling
 * `46 <https://github.com/ipython/ipython/issues/46>`_: Input to %timeit is not preparsed
 * `285 <https://github.com/ipython/ipython/issues/285>`_: ipcluster local -n 4 fails
 * `205 <https://github.com/ipython/ipython/issues/205>`_: In the Qt console, Tab should insert 4 spaces when not completing
@@ -463,7 +463,7 @@ Regular issues (285):
 * `50 <https://github.com/ipython/ipython/issues/50>`_: Ctrl-C with -gthread on Windows, causes uncaught IOError
 * `65 <https://github.com/ipython/ipython/issues/65>`_: Do not use .message attributes in exceptions, deprecated in 2.6
 * `76 <https://github.com/ipython/ipython/issues/76>`_: syntax error when raise is inside except process
-* `107 <https://github.com/ipython/ipython/issues/107>`_: bdist_rpm causes traceback looking for a non-existent file
+* `107 <https://github.com/ipython/ipython/issues/107>`_: bdist_rpm causes traceback looking for a non-existant file
 * `113 <https://github.com/ipython/ipython/issues/113>`_: initial magic ? (question mark) fails before wildcard
 * `128 <https://github.com/ipython/ipython/issues/128>`_: Pdb instance has no attribute 'curframe'
 * `139 <https://github.com/ipython/ipython/issues/139>`_: running with -pylab pollutes namespace
