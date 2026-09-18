@@ -6,9 +6,13 @@
 # Imports
 # -----------------------------------------------------------------------------
 
+from unittest import mock
+
 import pytest
+
 from IPython.core.error import TryNext
 from IPython.core.hooks import CommandChainDispatcher
+from IPython.core.hooks import editor as default_editor_hook
 
 # -----------------------------------------------------------------------------
 # Local utilities
@@ -145,3 +149,74 @@ def test_command_chain_dispatcher_passes_args():
     dp.add(capture)
     dp(1, 2, key="val")
     assert results == [((1, 2), {"key": "val"})]
+
+
+# -----------------------------------------------------------------------------
+# Tests for the default editor hook
+# -----------------------------------------------------------------------------
+
+
+class _FakeShell:
+    """Minimal stand-in for the IPython shell, providing just `.editor`."""
+
+    def __init__(self, editor):
+        self.editor = editor
+
+
+def test_default_editor_hook_quotes_filename_with_space():
+    shell = _FakeShell(editor="vi")
+    called = {}
+
+    def fake_popen(cmd, **kwargs):
+        called["cmd"] = cmd
+        return mock.MagicMock(**{"wait.return_value": 0})
+
+    with mock.patch("subprocess.Popen", fake_popen):
+        default_editor_hook(shell, "the file", linenum=None)
+
+    assert '"the file"' in called["cmd"]
+
+
+def test_default_editor_hook_no_quotes_needed():
+    shell = _FakeShell(editor="vi")
+    called = {}
+
+    def fake_popen(cmd, **kwargs):
+        called["cmd"] = cmd
+        return mock.MagicMock(**{"wait.return_value": 0})
+
+    with mock.patch("subprocess.Popen", fake_popen):
+        default_editor_hook(shell, "nofile.py", linenum=None)
+
+    assert '"nofile.py"' not in called["cmd"]
+    assert "nofile.py" in called["cmd"]
+
+
+def test_default_editor_hook_quotes_editor_path_if_file(tmp_path):
+    editor_path = tmp_path / "my editor.exe"
+    editor_path.write_text("", encoding="utf-8")  # must exist for os.path.isfile
+    shell = _FakeShell(editor=str(editor_path))
+    called = {}
+
+    def fake_popen(cmd, **kwargs):
+        called["cmd"] = cmd
+        return mock.MagicMock(**{"wait.return_value": 0})
+
+    with mock.patch("subprocess.Popen", fake_popen):
+        default_editor_hook(shell, "file.py", linenum=None)
+
+    assert f'"{editor_path}"' in called["cmd"]
+
+
+def test_default_editor_hook_quotes_filename_with_linenum():
+    shell = _FakeShell(editor="vi")
+    called = {}
+
+    def fake_popen(cmd, **kwargs):
+        called["cmd"] = cmd
+        return mock.MagicMock(**{"wait.return_value": 0})
+
+    with mock.patch("subprocess.Popen", fake_popen):
+        default_editor_hook(shell, "the file", linenum=64)
+
+    assert called["cmd"] == 'vi +64 "the file"'

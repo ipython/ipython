@@ -54,7 +54,6 @@ class EditorStub:
         self.side_effect = None
 
     def __call__(self, filename, line=None):
-        filename = filename.strip("'")
         self.calls.append((filename, line))
         if self.side_effect is not None:
             self.side_effect(filename)
@@ -396,16 +395,16 @@ def test_edit_x_does_not_execute(editor, tmp_path, capsys):
     assert editor.calls[-1] == (str(f), "3")
 
 
-@skip_win32
-def test_edit_filename_with_space_is_quoted(editor, tmp_path):
+def test_edit_filename_with_space_passed_raw(editor, tmp_path):
     ip = get_ipython()
     d = tmp_path / "dir with space"
     d.mkdir()
     f = d / "edit_space.py"
     f.write_text("x = 1\n", encoding="utf-8")
-    ip.run_line_magic("edit", "-x '%s'" % f)
-    # the stub strips the quotes added for filenames containing spaces
-    assert editor.calls[-1][0] == str(f)
+    ip.run_line_magic("edit", "-x %s" % f)
+    filename = editor.calls[-1][0]
+    assert filename == str(f.absolute())
+    assert not filename.startswith("'") and not filename.startswith('"')
 
 
 def test_edit_raw_option(editor, tmp_path):
