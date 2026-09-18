@@ -1708,6 +1708,65 @@ def test_alias_magic():
     assert "history_alias" in mm.magics["line"]
 
 
+def test_alias_magic_no_var_expand():
+    """Alias of a ``no_var_expand`` magic must not expand variables (GH #13064)."""
+    _ip.run_line_magic("alias_magic", "--line time_alias_no_expand time")
+    _ip.user_ns["a"] = 5
+    _ip.user_ns["b"] = []
+    _ip.run_line_magic("time_alias_no_expand", 'b.append("{a}")')
+    assert _ip.user_ns["b"] == ["{a}"]
+
+
+def test_alias_magic_cell_no_var_expand():
+    """Same as above for the cell-magic path (GH #13064).
+
+    The aliased ``%%timeit`` runs the rest of the first line as setup code,
+    so without flag propagation ``{a}`` is expanded from user_ns beforehand.
+    """
+    _ip.run_line_magic("alias_magic", "--cell time_cell_alias_no_expand timeit")
+    _ip.user_ns["a"] = 5
+    _ip.user_ns["b"] = []
+    _ip.run_cell_magic("time_cell_alias_no_expand", '-n1 -r1 b.append("{a}")', "pass")
+    assert _ip.user_ns["b"] == ["{a}"]
+
+
+def test_alias_magic_needs_local_scope():
+    """Alias must propagate ``needs_local_scope`` of the target (GH #13064)."""
+    _ip.run_line_magic("alias_magic", "--line time_alias_locals time")
+    _ip.user_ns["results"] = []
+
+    def f():
+        x = 42
+        _ip.run_line_magic("time_alias_locals", "results.append(x)")
+
+    f()
+    assert _ip.user_ns["results"] == [42]
+
+
+def test_alias_magic_fstring_loop():
+    """Exact repro from GH #13064: stale ``i`` from user_ns must not leak
+    into f-strings run through an alias of a ``no_var_expand`` magic."""
+    _ip.run_line_magic("alias_magic", "--line t time")
+    # Stale leftover from a previous loop, as in the issue.
+    _ip.user_ns["i"] = 2
+    for i in range(3):
+        with tt.AssertPrints(f"{i} {i}"):
+            _ip.run_line_magic("t", 'print(i, f"{i}")')
+
+
+def test_alias_magic_flag_lookup_on_self_loop():
+    """Flag lookup on a self-referencing alias must not recurse forever.
+
+    The alias cycle guard lives in ``MagicAlias.__call__``, but the shell
+    reads magic flags before the call — resolving flags through a cyclic
+    alias chain must terminate so the original ``UsageError`` is raised.
+    """
+    _ip.run_line_magic("alias_magic", "--line t_loop_cycle time")
+    _ip.run_line_magic("alias_magic", "--line t_loop_cycle t_loop_cycle")
+    with pytest.raises(UsageError, match="Infinite recursion"):
+        _ip.run_line_magic("t_loop_cycle", "pass")
+
+
 def test_save():
     """Test %save."""
     ip = get_ipython()
