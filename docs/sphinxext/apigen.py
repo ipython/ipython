@@ -263,7 +263,7 @@ class ApiDocWriter:
         # titles
         uri_short = re.sub(r'^%s\.' % self.package_name,'',uri)
 
-        ad = '.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n'
+        ad = ":github_url: hide\n\n.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n"
 
         # Set the chapter title to read 'Module:' for all modules except for the
         # main packages
