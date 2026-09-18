@@ -1,0 +1,40 @@
+{
+  "name": "pride",
+  "base": "pastie",
+  "extra_style": {
+    "Header": "#004CFF",
+    "LinenoEm": "#008026 italic",
+    "Lineno": "#008026 bold",
+    "ValEm": "#004CFF italic",
+    "VName": "ansicyan",
+    "Caret": "",
+    "Filename": "#FFED00",
+    "FilenameEm": "bg:#732982",
+    "ExcName": "#FF8C00",
+    "Topline": "#E40303",
+    "Normal": "",
+    "NormalEm": "bold",
+    "Line": "ansired",
+    "TB.Name": "ansibrightmagenta",
+    "TB.NameEm": "ansimagenta",
+    "Breakpoint": "",
+    "Breakpoint.Enabled": "ansibrightred",
+    "Breakpoint.Disabled": "ansired",
+    "Prompt": "ansibrightblue",
+    "Prompt.Continuation.L1": "ansiwhite bg:#E40303",
+    "Prompt.Continuation.L2": "ansiwhite bg:#FF8C00",
+    "Prompt.Continuation.L3": "ansiblack bg:#FFED00",
+    "Prompt.Continuation.L4": "ansiwhite bg:#008026",
+    "Prompt.Continuation.L5": "ansiwhite bg:#004CFF",
+    "Prompt.Continuation.L6": "ansiwhite bg:#732982",
+    "PromptNum": "ansiblue bold",
+    "OutPrompt": "ansibrightred",
+    "OutPromptNum": "ansired bold",
+    "TbHighlight": "bg:#FFED00"
+  },
+  "symbols": {
+    "top_line": "─",
+    "arrow_body": "─",
+    "arrow_head": "▶"
+  }
+}
