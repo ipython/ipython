@@ -434,10 +434,7 @@ def test_memory_error():
     iprc("(" * 200 + ")" * 200)
 
 
-@pytest.mark.xfail(reason="fail on curio 1.6 and before on Python 3.12")
-@pytest.mark.skip(
-    reason="skip_without(curio) fails on 3.12 for now even with other skip so must uncond skip"
-)
+@skip_without("curio")
 def test_autoawait_curio():
     iprc("%autoawait curio")
 
