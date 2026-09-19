@@ -271,6 +271,7 @@ class IFrame:
             src="{src}{params}"
             frameborder="0"
             allowfullscreen
+            referrerpolicy="strict-origin-when-cross-origin"
             {extras}
         ></iframe>
         """
