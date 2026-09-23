@@ -2062,15 +2062,15 @@ def test_lazy_magic_help_finds_both_kinds_first_try(line_first):
                 sys.modules.pop(mod, None)
 
 
-def test_lazy_magic_falls_back_to_previous_declaration():
-    """A declaration that delivers nothing restores the previous one.
+def test_lazy_magic_missing_implementation_raises(standalone_manager):
+    """A declaration that delivers nothing is an error, not a fallback.
 
-    Declaring ``time`` for both kinds displaces IPython's own lazy ``time``;
-    if the new class only provides the line half, the cell half must fall
-    back to the previously declared provider instead of vanishing.
+    If a lazily declared class only provides the line half of a magic,
+    asking for the cell half raises instead of silently falling back to
+    a previous provider.
     See https://github.com/ipython/ipython/issues/15383.
     """
-    mm = ip.magics_manager
+    mm = standalone_manager
     with TemporaryDirectory() as tmpdir:
         with prepended_to_syspath(tmpdir):
             mod = "line_only_lazy_magic_module"
@@ -2090,31 +2090,25 @@ def test_lazy_magic_falls_back_to_previous_declaration():
             )
             invalidate_caches()
             spec = f"{mod}:LineOnly"
-            original_cell = mm.magics["cell"].get("time")
             try:
                 mm.register_lazy("time", spec)
                 assert mm.find("line", "time") is not None
-                cell_fn = mm.find("cell", "time")
-                assert cell_fn is not None
-                assert not isinstance(cell_fn, magic.LazyMagic)
-                assert ip._ofind("%%time").found
+                with pytest.raises(UsageError):
+                    mm.find("cell", "time")
             finally:
-                if original_cell is not None:
-                    mm.magics["cell"]["time"] = original_cell
-                else:
-                    mm.magics["cell"].pop("time", None)
+                mm.magics["cell"].pop("time", None)
+                mm.magics["line"].pop("time", None)
                 mm.lazy_magics.pop("time", None)
                 mm._loaded_lazy.discard(spec)
                 mm.registry.pop("LineOnly", None)
                 sys.modules.pop(mod, None)
 
 
-def test_lazy_magic_falls_back_through_two_declarations():
-    """The displaced chain unwinds to whatever declaration delivers.
+def test_lazy_magic_missing_implementation_raises_at_any_depth():
+    """Stacked declarations that deliver nothing still raise.
 
-    Three lazy declarations for one name: the two newest provide no
-    ``time`` at all, so the lookup must walk past both and resolve the
-    oldest provider instead of giving up after one level.
+    Three lazy declarations for one name where none provides ``mydepth``:
+    the lookup raises instead of giving up quietly or returning nothing.
     See https://github.com/ipython/ipython/issues/15383.
     """
     mm = ip.magics_manager
@@ -2156,10 +2150,8 @@ def test_lazy_magic_falls_back_through_two_declarations():
             try:
                 for spec in specs:
                     mm.register_lazy("mydepth", spec, "line")
-                fn = mm.find("line", "mydepth")
-                assert fn is not None
-                assert not isinstance(fn, magic.LazyMagic)
-                assert fn.__doc__ == "The original provider."
+                with pytest.raises(UsageError):
+                    mm.find("line", "mydepth")
             finally:
                 mm.magics["line"].pop("mydepth", None)
                 mm.lazy_magics.pop("mydepth", None)
