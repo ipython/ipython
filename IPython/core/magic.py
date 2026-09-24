@@ -570,9 +570,7 @@ class MagicsManager(Configurable):
             existing = self.magics[kind].get(name)
             if existing is not None and not isinstance(existing, LazyMagic):
                 continue
-            self.magics[kind][name] = LazyMagic(
-                self, fully_qualified_name, kind, name
-            )
+            self.magics[kind][name] = LazyMagic(self, fully_qualified_name, kind, name)
 
     def load_lazy(self, magic_name: str, magic_kind: _MagicKind | None = None) -> None:
         """Import and register whatever provides `magic_name`.
@@ -656,16 +654,24 @@ class MagicsManager(Configurable):
         """Return a registered magic, importing its implementation if needed.
 
         Returns None if there is no such magic.
+
+        Raises
+        ------
+        UsageError
+            If `magic_name` is declared lazily for `magic_kind` but what the
+            declaration names does not provide it.
         """
-        fn = self.magics[magic_kind].get(magic_name)
-        if isinstance(fn, LazyMagic) or (fn is None and magic_name in self.lazy_magics):
-            while isinstance(fn, LazyMagic):
-                self.load_lazy(magic_name, magic_kind)
-                current = self.magics[magic_kind].get(magic_name)
-                if current is not fn:
-                    # The load delivered something (or cleared the name).
-                    fn = current
-                    continue
+        table = self.magics[magic_kind]
+        fn = table.get(magic_name)
+        if fn is None and magic_name in self.lazy_magics:
+            # Declared straight into `lazy_magics` as configuration, so there
+            # is no placeholder for this kind to carry the spec.
+            self.load_lazy(magic_name, magic_kind)
+            fn = table.get(magic_name)
+        if isinstance(fn, LazyMagic):
+            self.load_lazy(magic_name, magic_kind)
+            fn = table.get(magic_name)
+            if isinstance(fn, LazyMagic):
                 # Declared but not delivered: the provider does not
                 # implement this kind, and that is an error rather than a
                 # cue to fall back to an older declaration.
