@@ -40,9 +40,10 @@ syntax error in the Python REPL::
 
     Libraries like ``aiohttp`` require a running event loop at the moment an
     object such as ``ClientSession`` is constructed. IPython only starts an
-    event loop when a cell contains an ``await`` expression, so the example
-    below uses ``await asyncio.sleep(0)`` to force the loop to start before
-    ``aiohttp.ClientSession()`` is called.
+    event loop when a cell contains an ``await`` expression, and only for
+    that cell, so the example below puts ``await asyncio.sleep(0)`` in the
+    same cell as ``aiohttp.ClientSession()``. Awaiting in an earlier cell
+    doesn't help, since a cell without ``await`` runs outside the loop.
 
 Should behave as expected in the IPython REPL::
 
