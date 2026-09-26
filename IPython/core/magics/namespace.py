@@ -245,7 +245,10 @@ class NamespaceMagics(Magics):
     @skip_doctest
     @line_magic
     def who_ls(self, parameter_s=''):
-        """Return a sorted list of all interactive variables.
+        """Return a sorted list of interactive variable names.
+
+        Names beginning with an underscore and names hidden by IPython are
+        excluded.
 
         If arguments are given, only variables of types matching these
         arguments are returned.
