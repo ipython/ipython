@@ -227,6 +227,16 @@ The default themes included are the same, except lowercase, for ease of typing.
 to celebrate the inclusively of this project (I welcome update to the pride
 theme as I'm not a designer myself).
 
+To set a default theme for a profile, add the following to its
+``ipython_config.py``:
+
+.. code-block:: python
+
+    c.InteractiveShell.colors = "gruvbox-dark"
+
+The configuration setting is named ``colors`` even though the command-line
+flag is also available as ``--theme``.
+
 In addition, the ``--theme=pride`` theme, is the first to make use of unicode
 symbols for the traceback separation line, and the debugger and traceback arrow,
 as well as making some use of ``bold``, and ``italic`` formatting, and not limit
