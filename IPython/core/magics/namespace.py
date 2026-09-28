@@ -16,6 +16,8 @@
 import gc
 import re
 import sys
+from contextlib import redirect_stdout
+from io import StringIO
 
 # Our own packages
 from IPython.core import page
@@ -366,6 +368,8 @@ class NamespaceMagics(Magics):
           - Everything else: a string representation, snipping their middle if
             too long.
 
+        Pass ``--pager`` to send the output to the pager instead of printing it.
+
         Examples
         --------
         Define two variables and list them with whos::
@@ -386,6 +390,13 @@ class NamespaceMagics(Magics):
           df         DataFrame   Shape: (10, 2)
           s          Series      Shape: (10, )
         """
+        args = parameter_s.split()
+        if "--pager" in args:
+            args.remove("--pager")
+            with redirect_stdout(StringIO()) as buf:
+                self.whos(" ".join(args))
+            page.page(buf.getvalue())
+            return
 
         varnames = self.who_ls(parameter_s)
         if not varnames:

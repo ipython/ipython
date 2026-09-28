@@ -16,10 +16,12 @@
 import os
 import sys
 from io import open as io_open
+from io import StringIO
 import fnmatch
 
 # Our own packages
-from IPython.core.error import StdinNotImplementedError
+from IPython.core import page
+from IPython.core.error import StdinNotImplementedError, UsageError
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.core.magic_arguments import (argument, magic_arguments,
                                           parse_argstring)
@@ -105,6 +107,12 @@ class HistoryMagics(Magics):
         help="""
         when searching history using `-g`, show only unique history.
         """)
+    @argument(
+        "--pager",
+        action="store_true",
+        default=False,
+        help="send the output to the pager instead of printing it.",
+    )
     @argument('range', nargs='*')
     @skip_doctest
     @line_magic
@@ -163,7 +171,12 @@ class HistoryMagics(Magics):
 
         # Check if output to specific file was requested.
         outfname = args.filename
-        if not outfname:
+        if args.pager and outfname:
+            raise UsageError("--pager and -f cannot be used together")
+        if args.pager:
+            outfile = StringIO()
+            close_at_end = False
+        elif not outfname:
             outfile = sys.stdout  # default
             # We don't want to close stdout at the end!
             close_at_end = False
@@ -247,6 +260,8 @@ class HistoryMagics(Magics):
 
         if close_at_end:
             outfile.close()
+        if args.pager:
+            page.page(outfile.getvalue())
 
     @line_magic
     def recall(self, arg):

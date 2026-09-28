@@ -802,6 +802,22 @@ def test_whos_len_namedtuple():
     assert stdout == expected.strip() + "\n"
 
 
+def test_whos_pager():
+    _ip = get_ipython()
+    _ip.run_line_magic("reset", "-f")
+    _ip.user_ns["alpha"] = 123
+    _ip.user_ns["beta"] = "test"
+    with capture_output() as expected:
+        _ip.run_line_magic("whos", "int")
+    with mock.patch("IPython.core.page.page") as mocked_page:
+        with capture_output() as captured:
+            _ip.run_line_magic("whos", "--pager int")
+    assert captured.stdout == ""
+    mocked_page.assert_called_once_with(expected.stdout)
+    assert "alpha" in expected.stdout
+    assert "beta" not in expected.stdout
+
+
 @dec.skip_without("pandas")
 def test_whos_len_pandas():
     import pandas as pd
