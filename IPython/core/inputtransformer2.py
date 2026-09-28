@@ -663,6 +663,10 @@ def make_tokens_by_line(lines: list[str]):
             tokens_by_line[-1].append(token)
             if (token.type == NEWLINE) or ((token.type == NL) and (parenlev <= 0)):
                 tokens_by_line.append([])
+            elif token.type != tokenize.OP:
+                # Brackets in f-string text (FSTRING_MIDDLE, Python 3.12+) are
+                # not real brackets.
+                continue
             elif token.string in {"(", "[", "{"}:
                 parenlev += 1
             elif token.string in {")", "]", "}"}:
@@ -682,6 +686,8 @@ def has_sunken_brackets(tokens: list[tokenize.TokenInfo]):
     """Check if the depth of brackets in the list of tokens drops below 0"""
     parenlev = 0
     for token in tokens:
+        if token.type != tokenize.OP:
+            continue
         if token.string in {"(", "[", "{"}:
             parenlev += 1
         elif token.string in {")", "]", "}"}:

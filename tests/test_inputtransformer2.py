@@ -337,6 +337,10 @@ examples = [
     pytest.param("def a():\n x=1\n global x", "invalid", None),
     pytest.param("a \\ ", "invalid", None),  # Nothing allowed after backslash,
     pytest.param("1\\\n+2", "complete", None),
+    # Brackets inside f-string text are not real brackets (ipython/ipython#14481)
+    pytest.param('for i in range(3):\n    x = f"[{i}] "\n    #', "incomplete", 4),
+    pytest.param('x = f"]"', "complete", None),
+    pytest.param('print(f"{1})")', "complete", None),
 ]
 
 
