@@ -337,6 +337,9 @@ examples = [
     pytest.param("def a():\n x=1\n global x", "invalid", None),
     pytest.param("a \\ ", "invalid", None),  # Nothing allowed after backslash,
     pytest.param("1\\\n+2", "complete", None),
+    # Leading comments before a cell magic should be ignored for completeness
+    pytest.param("# setup\n%%foo\n", "incomplete", 0),
+    pytest.param("# setup\n%%foo\n\n", "complete", None),
 ]
 
 
