@@ -1244,6 +1244,22 @@ def test_cell_magic_func_deco(underscore_not_in_builtins):
     check_ident("cellm")
 
 
+def test_cell_magic_after_leading_comment(underscore_not_in_builtins):
+    """Leading comments must not turn a cell magic into a line magic named %name."""
+
+    @register_cell_magic
+    def cellm_comment(line, cell):
+        return line, cell
+
+    result = _ip.run_cell("# setup\n%%cellm_comment a\nb\n")
+    assert result.success
+    assert _ip.user_ns["_"] == ("a", "b\n")
+
+    result = _ip.run_cell("# setup\n\n# more\n%%cellm_comment c\nd\n")
+    assert result.success
+    assert _ip.user_ns["_"] == ("c", "d\n")
+
+
 def test_cell_magic_reg(underscore_not_in_builtins):
     "Cell magic manually registered"
 

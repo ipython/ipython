@@ -38,6 +38,33 @@ def leading_empty_lines(lines):
     return lines
 
 
+def leading_comment_lines(lines):
+    """Drop leading comments when the first code line is a cell magic.
+
+    Cell magics are only recognised on the first line of a cell. A narration
+    comment (or blank line) above ``%%magic`` used to make the magic parse as a
+    line magic named ``%name``, which then failed with a confusing error.
+
+    If the first non-empty, non-comment line starts with ``%%``, those leading
+    comments and blanks are stripped so the cell magic is recognised. Other
+    cells are left unchanged.
+    """
+    if not lines:
+        return lines
+    first_code = None
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        first_code = i
+        break
+    if first_code is None:
+        return lines
+    if lines[first_code].startswith("%%"):
+        return lines[first_code:]
+    return lines
+
+
 def leading_indent(lines):
     """Remove leading indentation.
 
@@ -708,6 +735,7 @@ class TransformerManager:
             leading_indent,
             classic_prompt,
             ipython_prompt,
+            leading_comment_lines,
         ]
         self.line_transforms = [
             cell_magic,
