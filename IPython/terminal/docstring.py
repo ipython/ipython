@@ -1,6 +1,7 @@
 """
 Docstring and signature popup for terminal IPython.
 """
+
 from __future__ import annotations
 
 import asyncio

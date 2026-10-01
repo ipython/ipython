@@ -439,11 +439,13 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Highlight matching brackets.",
     ).tag(config=True)
 
-    display_docstring_popup = Bool(True,
+    display_docstring_popup = Bool(
+        True,
         help="Display function docstrings and signatures in a popup after opening parentheses.",
     ).tag(config=True)
 
-    docstring_popup_delay = Float(0.2,
+    docstring_popup_delay = Float(
+        0.2,
         help="Delay in seconds before displaying the docstring popup.",
     ).tag(config=True)
     docstring_tooltip: Any = None
@@ -454,7 +456,10 @@ class TerminalInteractiveShell(InteractiveShell):
             if change.new:
                 if self.docstring_tooltip is None:
                     from .docstring import DocstringTooltip
-                    self.docstring_tooltip = DocstringTooltip(self, delay=self.docstring_popup_delay)
+
+                    self.docstring_tooltip = DocstringTooltip(
+                        self, delay=self.docstring_popup_delay
+                    )
                     self.docstring_tooltip.connect(self.pt_app)
             else:
                 if self.docstring_tooltip is not None:
@@ -880,7 +885,10 @@ class TerminalInteractiveShell(InteractiveShell):
             self.auto_suggest.connect(self.pt_app)
         if self.display_docstring_popup:
             from .docstring import DocstringTooltip
-            self.docstring_tooltip = DocstringTooltip(self, delay=self.docstring_popup_delay)
+
+            self.docstring_tooltip = DocstringTooltip(
+                self, delay=self.docstring_popup_delay
+            )
             self.docstring_tooltip.connect(self.pt_app)
         else:
             self.docstring_tooltip = None
