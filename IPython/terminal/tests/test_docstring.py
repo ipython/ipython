@@ -253,10 +253,50 @@ async def test_docstring_tooltip_debounced_lookup(mock_shell):
     buf = Buffer()
     buf.document = Document("custom_function(", cursor_position=16)
 
-    await tooltip._debounced_lookup(buf)
+    tooltip._request_id = 1
+    await tooltip._debounced_lookup(buf, req_id=1)
     assert tooltip.doc_info is not None
     assert tooltip.doc_info["name"] == "custom_function"
     assert tooltip.visible is True
+
+
+@pytest.mark.asyncio
+async def test_docstring_tooltip_stale_request_discarded(mock_shell):
+    session = PromptSession(output=DummyOutput())
+    tooltip = DocstringTooltip(mock_shell, delay=0.01)
+    tooltip.connect(session)
+
+    buf = Buffer()
+    buf.document = Document("custom_function(", cursor_position=16)
+
+    # Simulate request_id being incremented by a newer request
+    tooltip._request_id = 5
+    # Stale request with req_id=4 should be discarded
+    await tooltip._debounced_lookup(buf, req_id=4)
+    assert tooltip.doc_info is None
+    assert tooltip.visible is False
+
+
+def test_get_doc_info_custom_signature_attribute(mock_shell):
+    class CustomSig:
+        def __call__(self, *args, **kwargs):
+            pass
+
+        @property
+        def __signature__(self):
+            return inspect.signature(custom_function)
+
+    mock_shell.user_ns["custom_sig_obj"] = CustomSig()
+    res = get_doc_info("custom_sig_obj(", 15, [mock_shell.user_ns], mock_shell)
+    assert res is not None
+    assert "a: int" in res["signature"]
+
+
+def test_get_doc_info_builtin_bound_methods(mock_shell):
+    mock_shell.user_ns["my_str"] = "hello"
+    res = get_doc_info("my_str.upper(", 13, [mock_shell.user_ns], mock_shell)
+    assert res is not None
+    assert res["name"] == "upper"
 
 
 def test_terminal_interactiveshell_traits():
@@ -267,4 +307,3 @@ def test_terminal_interactiveshell_traits():
     assert hasattr(shell, "docstring_popup_delay")
     assert shell.display_docstring_popup is True
     assert shell.docstring_popup_delay == 0.2
-

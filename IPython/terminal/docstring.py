@@ -145,6 +145,7 @@ class DocstringTooltip:
         self.max_width = max_width
         self.doc_info: dict[str, Any] | None = None
         self._pending_task: asyncio.Task[None] | None = None
+        self._request_id: int = 0
         self._connected = False
         self._app: Any = None
 
@@ -222,6 +223,9 @@ class DocstringTooltip:
             self._pending_task.cancel()
             self._pending_task = None
 
+        self._request_id += 1
+        req_id = self._request_id
+
         try:
             app = get_app()
         except Exception:
@@ -229,13 +233,16 @@ class DocstringTooltip:
 
         if app is not None and getattr(app, "is_running", False):
             self._pending_task = app.create_background_task(
-                self._debounced_lookup(buffer)
+                self._debounced_lookup(buffer, req_id)
             )
 
-    async def _debounced_lookup(self, buffer: Buffer) -> None:
+    async def _debounced_lookup(self, buffer: Buffer, req_id: int) -> None:
         try:
             if self.delay > 0:
                 await asyncio.sleep(self.delay)
+
+            if req_id != self._request_id:
+                return
 
             doc = buffer.document
             loop = asyncio.get_running_loop()
@@ -252,9 +259,10 @@ class DocstringTooltip:
                 self.shell,
             )
 
-            # Check that the buffer has not changed during lookup
+            # Check that the request is still current and the buffer has not changed during lookup
             if (
-                buffer.document.text == doc.text
+                req_id == self._request_id
+                and buffer.document.text == doc.text
                 and buffer.document.cursor_position == doc.cursor_position
             ):
                 self.doc_info = doc_info
