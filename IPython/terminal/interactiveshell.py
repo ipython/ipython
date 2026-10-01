@@ -439,6 +439,32 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Highlight matching brackets.",
     ).tag(config=True)
 
+    display_docstring_popup = Bool(True,
+        help="Display function docstrings and signatures in a popup after opening parentheses.",
+    ).tag(config=True)
+
+    docstring_popup_delay = Float(0.2,
+        help="Delay in seconds before displaying the docstring popup.",
+    ).tag(config=True)
+    docstring_tooltip: Any = None
+
+    @observe("display_docstring_popup")
+    def _display_docstring_popup_changed(self, change):
+        if self.pt_app:
+            if change.new:
+                if self.docstring_tooltip is None:
+                    from .docstring import DocstringTooltip
+                    self.docstring_tooltip = DocstringTooltip(self, delay=self.docstring_popup_delay)
+                    self.docstring_tooltip.connect(self.pt_app)
+            else:
+                if self.docstring_tooltip is not None:
+                    self.docstring_tooltip.clear()
+
+    @observe("docstring_popup_delay")
+    def _docstring_popup_delay_changed(self, change):
+        if self.docstring_tooltip is not None:
+            self.docstring_tooltip.delay = change.new
+
     extra_open_editor_shortcuts = Bool(False,
         help="Enable vi (v) or Emacs (C-X C-E) shortcuts to open an external editor. "
              "This is in addition to the F2 binding, which is always enabled."
@@ -852,6 +878,12 @@ class TerminalInteractiveShell(InteractiveShell):
         )
         if isinstance(self.auto_suggest, NavigableAutoSuggestFromHistory):
             self.auto_suggest.connect(self.pt_app)
+        if self.display_docstring_popup:
+            from .docstring import DocstringTooltip
+            self.docstring_tooltip = DocstringTooltip(self, delay=self.docstring_popup_delay)
+            self.docstring_tooltip.connect(self.pt_app)
+        else:
+            self.docstring_tooltip = None
 
     def _make_style_from_name_or_cls(self, name_or_cls):
         """
@@ -970,25 +1002,29 @@ class TerminalInteractiveShell(InteractiveShell):
         # If we don't do this, people could spawn coroutine with a
         # while/true inside which will freeze the prompt.
 
-        with patch_stdout(raw=True):
-            if self._use_asyncio_inputhook:
-                # When we integrate the asyncio event loop, run the UI in the
-                # same event loop as the rest of the code. don't use an actual
-                # input hook. (Asyncio is not made for nesting event loops.)
-                asyncio_loop = get_asyncio_loop()
-                text = asyncio_loop.run_until_complete(
-                    self.pt_app.prompt_async(
-                        default=default, **self._extra_prompt_options()
+        try:
+            with patch_stdout(raw=True):
+                if self._use_asyncio_inputhook:
+                    # When we integrate the asyncio event loop, run the UI in the
+                    # same event loop as the rest of the code. don't use an actual
+                    # input hook. (Asyncio is not made for nesting event loops.)
+                    asyncio_loop = get_asyncio_loop()
+                    text = asyncio_loop.run_until_complete(
+                        self.pt_app.prompt_async(
+                            default=default, **self._extra_prompt_options()
+                        )
                     )
-                )
-            else:
-                text = self.pt_app.prompt(
-                    default=default,
-                    inputhook=self._inputhook,
-                    **self._extra_prompt_options(),
-                )
+                else:
+                    text = self.pt_app.prompt(
+                        default=default,
+                        inputhook=self._inputhook,
+                        **self._extra_prompt_options(),
+                    )
 
-        return text
+            return text
+        finally:
+            if self.docstring_tooltip is not None:
+                self.docstring_tooltip.clear()
 
     def init_io(self):
         if sys.platform not in {'win32', 'cli'}:
