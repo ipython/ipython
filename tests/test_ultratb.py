@@ -505,6 +505,31 @@ def testSyntaxError():
     with tt.AssertPrints(expected):
         ip.run_cell(cell)
 
+def test_exec_non_mapping_locals_traceback():
+    """Non-mapping exec locals must not crash traceback formatting (gh-12551)."""
+    try:
+        exec("a = 5", {}, [])
+    except TypeError:
+        etype, evalue, etb = sys.exc_info()
+    else:
+        raise AssertionError("exec() with a list locals should raise TypeError")
+
+    text = "".join(
+        VerboseTB(theme_name="nocolor", include_vars=False).structured_traceback(
+            etype, evalue, etb
+        )
+    )
+    assert "AttributeError" not in text
+    assert "TypeError" in text
+
+    with tt.AssertNotPrints(
+        ["AttributeError", "Unexpected exception formatting exception"]
+    ):
+        with tt.AssertPrints("TypeError", suppress=False):
+            result = ip.run_cell("exec('a = 5', {}, [])")
+    assert isinstance(result.error_in_exec, TypeError)
+
+
 def test_xmode_doctest():
     """Test that %xmode doctest produces doctest-friendly output."""
     ip.run_cell("%xmode doctest")

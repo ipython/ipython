@@ -488,6 +488,19 @@ _sentinel = object()
 _default = "default"
 
 
+def _get_tracebackhide(frame: types.FrameType) -> Any:
+    """Return ``__tracebackhide__`` from a frame, or 0 if locals are not a mapping.
+
+    ``exec`` can run with a non-mapping locals object (for example a list).
+    That object is then exposed as ``f_locals`` and has no ``.get`` (gh-12551).
+    """
+    f_locals = frame.f_locals
+    get = getattr(f_locals, "get", None)
+    if not callable(get):
+        return 0
+    return get("__tracebackhide__", 0)
+
+
 # ----------------------------------------------------------------------------
 class VerboseTB(TBTools):
     """A port of Ka-Ping Yee's cgitb.py module that outputs color text instead
@@ -830,10 +843,7 @@ class VerboseTB(TBTools):
                 not isinstance(record._sd, stack_data.RepeatedFrames)
                 and self.skip_hidden
             ):
-                if (
-                    record.frame.f_locals.get("__tracebackhide__", 0)
-                    and i != lastrecord
-                ):
+                if _get_tracebackhide(record.frame) and i != lastrecord:
                     skipped += 1
                     continue
             if skipped:
