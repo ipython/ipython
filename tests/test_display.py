@@ -16,6 +16,7 @@ from os.path import split, join as pjoin, dirname
 import pathlib
 from unittest import mock
 import struct
+import sys
 import wave
 from io import BytesIO
 
@@ -258,6 +259,33 @@ def test_audio_data_without_normalization():
         audio = display.Audio(test_tone, rate=44100, normalize=False)
         actual_max_value = numpy.max(numpy.abs(read_wav(audio.data)))
         assert actual_max_value == expected_max_value
+
+
+@pytest.mark.filterwarnings("error::RuntimeWarning")
+@pytest.mark.parametrize("normalize", [True, False])
+@pytest.mark.parametrize("channels", [1, 2])
+@skipif_not_numpy
+def test_audio_silence(channels, normalize):
+    samples = 16
+    data = numpy.zeros(samples if channels == 1 else (channels, samples))
+    audio = display.Audio(data, rate=8000, normalize=normalize)
+    with wave.open(BytesIO(audio.data)) as wave_file:
+        assert wave_file.getnchannels() == channels
+        assert wave_file.getnframes() == samples
+        assert wave_file.getframerate() == 8000
+        assert wave_file.readframes(samples) == bytes(samples * channels * 2)
+
+
+@pytest.mark.parametrize("normalize", [True, False])
+def test_audio_silence_no_numpy(monkeypatch, normalize):
+    monkeypatch.setitem(sys.modules, "numpy", None)
+    samples = 16
+    audio = display.Audio([0.0] * samples, rate=8000, normalize=normalize)
+    with wave.open(BytesIO(audio.data)) as wave_file:
+        assert wave_file.getnchannels() == 1
+        assert wave_file.getnframes() == samples
+        assert wave_file.getframerate() == 8000
+        assert wave_file.readframes(samples) == bytes(samples * 2)
 
 
 def test_audio_data_without_normalization_raises_for_invalid_data():
