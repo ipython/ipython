@@ -4,7 +4,7 @@ master_doc = "index"
 project = "IPython"
 copyright = "The IPython Development Team"
 github_project_url = "https://github.com/ipython/ipython"
-exclude_patterns = ["**.ipynb_checkpoints"]
+exclude_patterns = ["**.ipynb_checkpoints", "config/options/terminal.rst"]
 pygments_style = "sphinx"
 extensions = [
     "sphinx.ext.autodoc",
