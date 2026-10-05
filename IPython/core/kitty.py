@@ -108,7 +108,11 @@ def _supports_kitty_graphics() -> bool:
     if forced is not None:
         return forced
 
-    if sys.platform not in ("darwin", "linux"):
+    # Compare a copy of sys.platform: mypy treats checks on sys.platform itself as
+    # constant for the target platform, and with --platform win32 it would then
+    # flag the rest of this function as unreachable.
+    platform = sys.platform
+    if platform not in ("darwin", "linux"):
         return False
 
     isatty = getattr(sys.stdout, "isatty", None)
