@@ -339,7 +339,7 @@ Some changes that we're aware of, with suggestions on how to handle them:
 
 IPython no longer uses readline configuration (``~/.inputrc``). We hope that
 the functionality you want (e.g. vi input mode) will be available by configuring
-IPython directly (see :doc:`/config/options/terminal`).
+IPython directly (see :doc:`/config/options/index`).
 If something's missing, please file an issue.
 
 The ``PromptManager`` class has been removed, and the prompt machinery simplified.
