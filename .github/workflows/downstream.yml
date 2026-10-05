@@ -52,7 +52,8 @@ jobs:
         cd ..
         git clone https://github.com/ipython/ipykernel
         cd ipykernel
-        pip install -e .[test]
+        # ipykernel moved its test requirements to a dependency group (ipython/ipykernel#1563)
+        pip install -e . --group test
         cd ..
     - name: Install and update Python dependencies
       run: |
