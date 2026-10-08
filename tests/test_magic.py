@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Tests for various magic functions."""
 
+import ast
 import collections
 import gc
 import io
@@ -2031,4 +2032,8 @@ def test_run_glob_arguments_with_dash_m_in_line():
         with capture_output() as captured:
             _ip.run_line_magic("run", "script.py data-mm-*.txt")
 
-        assert captured.stdout.strip() == "['data-mm-1.txt', 'data-mm-2.txt']"
+        # glob order follows the filesystem, so compare without relying on it
+        assert sorted(ast.literal_eval(captured.stdout.strip())) == [
+            "data-mm-1.txt",
+            "data-mm-2.txt",
+        ]
