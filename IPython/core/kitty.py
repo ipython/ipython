@@ -2,9 +2,14 @@
 
 from base64 import b64encode, b64decode
 from collections.abc import Iterator
+import logging
 import os
 import sys
 import warnings
+
+#: Module logger ``IPython.core.kitty``
+#: We don't have a global logger so let's use a module leveled one.
+_log = logging.getLogger(__name__)
 
 #: Set ``IPYTHON_KITTY_GRAPHICS`` to ``1``/``true`` or ``0``/``false`` to state
 #: outright whether the terminal speaks the kitty graphics protocol. Unset (or
@@ -71,7 +76,13 @@ def _proc_ancestor_names() -> Iterator[str]:
 
 def _psutil_ancestor_names() -> Iterator[str]:
     """Yield ancestor process names, nearest first, using psutil."""
-    import psutil
+    try:
+        import psutil
+    except ImportError as exc_import:
+        _log.error(
+            "Cannot import `psutil`(%s). Image rendering is disabled.", exc_import
+        )
+        return
 
     try:
         process = psutil.Process()
@@ -97,7 +108,7 @@ def _ancestor_process_names() -> Iterator[str]:
     Everywhere else -- macOS, or a Linux without ``/proc`` -- fall back to
     psutil, which IPython depends on anyway.
     """
-    if sys.platform == "linux" and os.path.isdir("/proc/self"):
+    if sys.platform in ("linux", "android") and os.path.isdir("/proc/self"):
         yield from _proc_ancestor_names()
     else:
         yield from _psutil_ancestor_names()
@@ -108,7 +119,13 @@ def _supports_kitty_graphics() -> bool:
     if forced is not None:
         return forced
 
-    if sys.platform not in ("darwin", "linux"):
+    # Platforms including "android" can actually run shells like kitty and
+    # render images. See also
+    # https://github.com/ipython/ipython/issues/15422 .
+    # Thus, instead of a whitelist, let's build a blacklist.
+    # Make the linter happy. A tuple includes platform names should be placed
+    # here.
+    if sys.platform == "win32":
         return False
 
     isatty = getattr(sys.stdout, "isatty", None)
@@ -128,9 +145,6 @@ def _supports_kitty_graphics() -> bool:
         "yakuake",
     }
     return any(name in supported_terminals for name in _ancestor_process_names())
-
-
-supports_kitty_graphics = _supports_kitty_graphics()
 
 
 def png_to_kitty_ansi(png: bytes) -> str:
@@ -162,9 +176,11 @@ def kitty_png_render(png: bytes | str, _md_dict: object) -> None:
 
 display_formatter_default_active_types = [
     "text/plain",
-    *(["image/png"] if supports_kitty_graphics else []),
 ]
 
 terminal_default_mime_renderers = {
-    "image/png": kitty_png_render,
 }
+
+if _supports_kitty_graphics():
+    display_formatter_default_active_types.append("image/png")
+    terminal_default_mime_renderers["image/png"] = kitty_png_render
