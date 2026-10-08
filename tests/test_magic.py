@@ -2017,3 +2017,18 @@ def test_run_module_from_import_hook():
         assert output == captured.stdout
 
         sys.meta_path.pop(0)
+
+
+def test_run_glob_arguments_with_dash_m_in_line():
+    """A '-m' inside another argument must not stop wildcards from expanding."""
+    with TemporaryWorkingDirectory():
+        Path("script.py").write_text(
+            "import sys\nprint(sys.argv[1:])\n", encoding="utf-8"
+        )
+        for name in ("data-mm-1.txt", "data-mm-2.txt"):
+            Path(name).write_text("", encoding="utf-8")
+
+        with capture_output() as captured:
+            _ip.run_line_magic("run", "script.py data-mm-*.txt")
+
+        assert captured.stdout.strip() == "['data-mm-1.txt', 'data-mm-2.txt']"
