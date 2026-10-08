@@ -80,8 +80,7 @@ def _psutil_ancestor_names() -> Iterator[str]:
         import psutil
     except ImportError as exc_import:
         _log.error(
-            "Cannot import `psutil`(%s). Image rendering is disabled.",
-            exc_import
+            "Cannot import `psutil`(%s). Image rendering is disabled.", exc_import
         )
         return
 
@@ -109,10 +108,7 @@ def _ancestor_process_names() -> Iterator[str]:
     Everywhere else -- macOS, or a Linux without ``/proc`` -- fall back to
     psutil, which IPython depends on anyway.
     """
-    if sys.platform in (
-        "linux",
-        "android"
-     ) and os.path.isdir("/proc/self"):
+    if sys.platform in ("linux", "android") and os.path.isdir("/proc/self"):
         yield from _proc_ancestor_names()
     else:
         yield from _psutil_ancestor_names()
@@ -127,7 +123,9 @@ def _supports_kitty_graphics() -> bool:
     # render images. See also
     # https://github.com/ipython/ipython/issues/15422 .
     # Thus, instead of a whitelist, let's build a blacklist.
-    if sys.platform in ("win32", ):
+    # Make the linter happy. A tuple includes platform names should be placed
+    # here.
+    if sys.platform == "win32": 
         return False
 
     isatty = getattr(sys.stdout, "isatty", None)
