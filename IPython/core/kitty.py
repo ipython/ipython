@@ -125,7 +125,7 @@ def _supports_kitty_graphics() -> bool:
     # Thus, instead of a whitelist, let's build a blacklist.
     # Make the linter happy. A tuple includes platform names should be placed
     # here.
-    if sys.platform == "win32": 
+    if sys.platform == "win32":
         return False
 
     isatty = getattr(sys.stdout, "isatty", None)
