@@ -694,11 +694,11 @@ class ExecutionMagics(Magics):
                 if arg and arg.startswith('-') and arg != '-':
                     if arg == '-m':
                         argv.insert(idx + 2, '--')
+                        parameter_s = shlex.join(argv)
                         break
                 else:
                     # Positional arg, break
                     break
-            parameter_s = shlex.join(argv)
 
         # get arguments and set sys.argv for program to be run.
         opts, arg_lst = self.parse_options(parameter_s,
