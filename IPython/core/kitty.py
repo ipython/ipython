@@ -124,7 +124,7 @@ def _supports_kitty_graphics() -> bool:
         return forced
 
     # Platforms including "android" can actually run shells like kitty and
-    # render images. See also 
+    # render images. See also
     # https://github.com/ipython/ipython/issues/15422 .
     # Thus, instead of a whitelist, let's build a blacklist.
     if sys.platform in ("win32", ):
