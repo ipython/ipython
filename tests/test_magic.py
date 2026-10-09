@@ -2017,3 +2017,14 @@ def test_run_module_from_import_hook():
         assert output == captured.stdout
 
         sys.meta_path.pop(0)
+
+
+def test_run_path_containing_dash_m_is_not_module_option():
+    """%run must not treat a path containing the substring -m as -m (#14849)."""
+    ip = get_ipython()
+    with TemporaryDirectory() as tmpdir:
+        script = Path(tmpdir) / "test-main.py"
+        script.write_text("print('ran-script')\n", encoding="utf-8")
+        with capture_output() as captured:
+            ip.run_line_magic("run", str(script))
+        assert "ran-script" in captured.stdout

@@ -688,17 +688,19 @@ class ExecutionMagics(Magics):
 
         # Logic to handle issue #3664
         # Add '--' after '-m <module_name>' to ignore additional args passed to a module.
-        if '-m' in parameter_s and '--' not in parameter_s:
-            argv = shlex.split(parameter_s, posix=(os.name == 'posix'))
+        # Only an exact argv token is the module option; a path like test-main.py
+        # contains the substring '-m' but is not -m (#14849).
+        argv = shlex.split(parameter_s, posix=(os.name == "posix"))
+        if "-m" in argv and "--" not in argv:
             for idx, arg in enumerate(argv):
                 if arg and arg.startswith('-') and arg != '-':
                     if arg == '-m':
                         argv.insert(idx + 2, '--')
+                        parameter_s = shlex.join(argv)
                         break
                 else:
                     # Positional arg, break
                     break
-            parameter_s = shlex.join(argv)
 
         # get arguments and set sys.argv for program to be run.
         opts, arg_lst = self.parse_options(parameter_s,
