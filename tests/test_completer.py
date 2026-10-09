@@ -1481,6 +1481,77 @@ def test_dict_key_completion_contexts():
         assert_completion(line_buffer="get()['ab")
         assert_completion(line_buffer="get()['abc")
 
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        # the cases from https://github.com/ipython/ipython/issues/15392
+        'd["comp',
+        'print(d["comp',
+        'd["bar"]; d["comp',
+        'x = d["comp',
+        'd["k"] = d["comp',
+        'for k in d["comp',
+        'lambda: d["comp',
+        'd["bar"] * d["comp',
+        # the same shapes with other keywords and operators
+        'not d["comp',
+        'x = 1 if y else d["comp',
+        '[k for k in d["comp',
+        'f(a=d["comp',
+        'x: dict = d["comp',
+        'await d["comp',
+    ],
+)
+def test_dict_key_completion_after_statement_or_operator(line):
+    """Dict key completion when the subscript follows an assignment, keyword or operator."""
+    ip = get_ipython()
+    ip.user_ns["d"] = {"complete_me": 1, "bar": 2}
+    with jedi_status(False):
+        _, matches = ip.Completer.complete(line_buffer=line)
+    assert "complete_me" in matches
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        'x = df["Ye',
+        'df["k"] = df["Ye',
+        'df["b"] * df["Ye',
+        'x = df.loc[:, "Ye',
+    ],
+)
+def test_dataframe_key_completion_after_statement_or_operator(line):
+    """Same as above for a DataFrame, as reported in issue #15392."""
+    pandas = pytest.importorskip("pandas")
+    ip = get_ipython()
+    ip.user_ns["df"] = pandas.DataFrame({"Year": [1], "Yield": [2], "b": [3]})
+    with jedi_status(False):
+        _, matches = ip.Completer.complete(line_buffer=line)
+    assert "Year" in matches
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        '%timeit d["comp',
+        '%timeit -n 2 -r 1 d["comp',
+        '%time d["comp',
+        '%prun d["comp',
+        '%%timeit d["comp',
+        # implicit magic, with flags
+        'timeit -n 2 -r 1 d["comp',
+    ],
+)
+def test_dict_key_completion_in_magic_argument(line):
+    """Dict key completion in the code argument of a line or cell magic."""
+    ip = get_ipython()
+    ip.user_ns["d"] = {"complete_me": 1, "bar": 2}
+    with jedi_status(False):
+        _, matches = ip.Completer.complete(line_buffer=line)
+    assert "complete_me" in matches
+
+
 def test_completion_autoimport():
     ip = get_ipython()
     complete = ip.Completer.complete
