@@ -12,6 +12,7 @@ import functools
 import os
 import re
 import shlex
+import subprocess
 import sys
 from pathlib import Path
 
@@ -75,6 +76,18 @@ def _get_conda_like_executable(command):
     return command
 
 
+def _python_module_argv(module: str, line: str) -> list[str]:
+    """Build argv for ``python -m <module> ...`` without a shell.
+
+    Wrapping ``sys.executable`` with POSIX ``shlex.quote`` (or Windows
+    double quotes) only works when the command is later parsed by a
+    Bourne-like shell. Nushell treats a quoted path as data, so
+    ``%pip`` / ``%uv`` fail when the interpreter path contains spaces.
+    Passing an argv list to ``subprocess`` avoids that.
+    """
+    return [sys.executable, "-m", module, *shlex.split(line)]
+
+
 CONDA_COMMANDS_REQUIRING_PREFIX = {
     'install', 'list', 'remove', 'uninstall', 'update', 'upgrade',
 }
@@ -89,6 +102,19 @@ CONDA_YES_FLAGS = {'-y', '--y'}
 class PackagingMagics(Magics):
     """Magics related to packaging & installation"""
 
+    def _run_python_module(self, module, line):
+        cmd = _python_module_argv(module, line)
+        completed = subprocess.run(cmd, check=False)
+        user_ns = getattr(self.shell, "user_ns", None)
+        if user_ns is not None:
+            user_ns["_exit_code"] = completed.returncode
+        if (
+            getattr(self.shell, "system_raise_on_error", False)
+            and completed.returncode != 0
+        ):
+            raise subprocess.CalledProcessError(completed.returncode, cmd)
+        print("Note: you may need to restart the kernel to use updated packages.")
+
     @line_magic
     def pip(self, line):
         """Run the pip package manager within the current kernel.
@@ -96,15 +122,7 @@ class PackagingMagics(Magics):
         Usage:
           %pip install [pkgs]
         """
-        python = sys.executable
-        if sys.platform == "win32":
-            python = '"' + python + '"'
-        else:
-            python = shlex.quote(python)
-
-        self.shell.system(" ".join([python, "-m", "pip", line]))
-
-        print("Note: you may need to restart the kernel to use updated packages.")
+        self._run_python_module("pip", line)
 
     def _run_command(self, cmd, line):
         args = shlex.split(line)
@@ -170,12 +188,4 @@ class PackagingMagics(Magics):
         Usage:
           %uv pip install [pkgs]
         """
-        python = sys.executable
-        if sys.platform == "win32":
-            python = '"' + python + '"'
-        else:
-            python = shlex.quote(python)
-
-        self.shell.system(" ".join([python, "-m", "uv", line]))
-
-        print("Note: you may need to restart the kernel to use updated packages.")
+        self._run_python_module("uv", line)
