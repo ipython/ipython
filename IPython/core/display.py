@@ -325,7 +325,7 @@ class DisplayObject:
                 url = data
                 filename = None
                 data = None
-            elif _safe_exists(data) and filename is None:
+            elif _safe_exists(data) and not os.path.isdir(data) and filename is None:
                 url = None
                 filename = data
                 data = None

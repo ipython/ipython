@@ -323,6 +323,58 @@ def test_displayobject_repr():
     assert repr(j) == "<IPython.core.display.Javascript object>"
 
 
+@pytest.mark.parametrize("display_class", [display.Markdown, display.HTML])
+@pytest.mark.parametrize("data", [".", "..", "notes"])
+def test_displayobject_directory_text(display_class, data, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "notes").mkdir()
+
+    obj = display_class(data)
+
+    assert obj.data == data
+    assert obj.filename is None
+
+
+@pytest.mark.parametrize(
+    "display_class, path_type",
+    [(display.Markdown, str), (display.Markdown, Path), (display.HTML, str)],
+)
+def test_displayobject_file_data(display_class, path_type, tmp_path):
+    path = tmp_path / "notes.txt"
+    path.write_text("Some text", encoding="utf-8")
+
+    obj = display_class(path_type(path))
+
+    assert obj.data == "Some text"
+    assert obj.filename == str(path)
+
+
+@dec.skip_win32
+@pytest.mark.parametrize("is_directory", [False, True])
+def test_displayobject_symlink_data(is_directory, tmp_path):
+    target = tmp_path / "target"
+    if is_directory:
+        target.mkdir()
+    else:
+        target.write_text("Some text", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(target, target_is_directory=is_directory)
+
+    obj = display.Markdown(str(link))
+
+    if is_directory:
+        assert obj.data == str(link)
+        assert obj.filename is None
+    else:
+        assert obj.data == "Some text"
+        assert obj.filename == str(link)
+
+
+def test_displayobject_explicit_directory_filename(tmp_path):
+    with pytest.raises(OSError):
+        display.Markdown(filename=tmp_path)
+
+
 @mock.patch("warnings.warn")
 def test_encourage_iframe_over_html(m_warn):
     display.HTML()
