@@ -666,6 +666,25 @@ def test_history_magic_range_with_pattern(hist_magic_shell, capsys):
     assert "beta_nomatch" not in out
 
 
+def test_history_magic_pager(hist_magic_shell, capsys, monkeypatch, tmp_path):
+    from IPython.core.error import UsageError
+
+    ip = hist_magic_shell
+    hm = ip.history_manager
+    hm.store_inputs(1, "paged_a = 1")
+    hm.store_inputs(2, "paged_b = 2")
+    capsys.readouterr()
+
+    paged = []
+    monkeypatch.setattr("IPython.core.page.page", paged.append)
+    ip.run_line_magic("history", "-n --pager 1-2")
+    assert capsys.readouterr().out == ""
+    assert paged == ["   1: paged_a = 1\n   2: paged_b = 2\n"]
+
+    with pytest.raises(UsageError):
+        ip.run_line_magic("history", "--pager -f %s" % (tmp_path / "out.txt"))
+
+
 class _FakeTTYStdin:
     def isatty(self):
         return True
