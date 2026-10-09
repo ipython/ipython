@@ -23,11 +23,15 @@ from unittest import mock
 
 import pytest
 
+from traitlets.config import Config, Configurable
+
 from IPython import get_ipython
 from IPython.core import magic
 from IPython.core.error import UsageError
+from IPython.core.interactiveshell import InteractiveShellABC
 from IPython.core.magic import (
     Magics,
+    MagicsManager,
     cell_magic,
     line_magic,
     magics_class,
@@ -60,6 +64,22 @@ from tempfile import NamedTemporaryFile
 @magic.magics_class
 class DummyMagics(magic.Magics):
     pass
+
+
+class _UnconfiguredShell(Configurable):
+    """Just enough of a shell for a ``Magics`` class to be instantiated."""
+
+    def __init__(self):
+        super().__init__(config=Config())
+
+
+InteractiveShellABC.register(_UnconfiguredShell)
+
+
+@pytest.fixture
+def standalone_manager():
+    """A standalone MagicsManager, so tests don't disturb the shared shell."""
+    return MagicsManager(shell=_UnconfiguredShell())
 
 
 def test_extract_code_ranges():
@@ -1976,6 +1996,220 @@ def test_registered_magic_beats_lazy_one():
     finally:
         mm.magics["line"]["edit"] = original
         mm.registry.pop("OverridingMagics", None)
+
+
+SPLIT_LAZY_MAGIC = """
+from IPython.core.magic import Magics, cell_magic, line_magic, magics_class
+
+
+@magics_class
+class LineHalf(Magics):
+    @line_magic
+    def dual(self, line):
+        \"\"\"The line half of the dual magic.\"\"\"
+
+
+@magics_class
+class CellHalf(Magics):
+    @cell_magic
+    def dual(self, line, cell):
+        \"\"\"The cell half of the dual magic.\"\"\"
+"""
+
+
+@pytest.mark.parametrize("line_first", [True, False])
+def test_lazy_magic_help_finds_both_kinds_first_try(line_first):
+    """`?` help resolves a lazily declared magic on the first attempt.
+
+    The same name may be declared with a different provider per kind; the
+    lookup must load the provider for the kind that was asked for, no
+    matter in which order the declarations were registered.
+    See https://github.com/ipython/ipython/issues/15383.
+    """
+    mm = ip.magics_manager
+    with TemporaryDirectory() as tmpdir:
+        with prepended_to_syspath(tmpdir):
+            mod = "split_lazy_magic_module"
+            Path(tmpdir, mod + ".py").write_text(dedent(SPLIT_LAZY_MAGIC))
+            invalidate_caches()
+            line_spec = f"{mod}:LineHalf"
+            cell_spec = f"{mod}:CellHalf"
+            first, second = (
+                (("line", line_spec), ("cell", cell_spec))
+                if line_first
+                else (("cell", cell_spec), ("line", line_spec))
+            )
+            try:
+                mm.register_lazy("dual", first[1], first[0])  # type: ignore[arg-type]
+                mm.register_lazy("dual", second[1], second[0])  # type: ignore[arg-type]
+                # Both kinds resolve on the very first lookup ...
+                assert "dual" in mm.magics["cell"]
+                assert mm.find("cell", "dual") is not None
+                assert not isinstance(mm.find("cell", "dual"), magic.LazyMagic)
+                assert mm.find("line", "dual") is not None
+                assert not isinstance(mm.find("line", "dual"), magic.LazyMagic)
+                # ... and so does `?` help in both spellings.
+                assert ip._ofind("%%dual").found
+                assert ip._ofind("%dual").found
+            finally:
+                mm.magics["line"].pop("dual", None)
+                mm.magics["cell"].pop("dual", None)
+                mm.lazy_magics.pop("dual", None)
+                mm._loaded_lazy.discard(line_spec)
+                mm._loaded_lazy.discard(cell_spec)
+                mm.registry.pop("LineHalf", None)
+                mm.registry.pop("CellHalf", None)
+                sys.modules.pop(mod, None)
+
+
+def test_lazy_magic_missing_implementation_raises(standalone_manager):
+    """A declaration that delivers nothing is an error, not a fallback.
+
+    If a lazily declared class only provides the line half of a magic,
+    asking for the cell half raises instead of silently falling back to
+    a previous provider.
+    See https://github.com/ipython/ipython/issues/15383.
+    """
+    mm = standalone_manager
+    with TemporaryDirectory() as tmpdir:
+        with prepended_to_syspath(tmpdir):
+            mod = "line_only_lazy_magic_module"
+            Path(tmpdir, mod + ".py").write_text(
+                dedent(
+                    """
+                    from IPython.core.magic import Magics, line_magic, magics_class
+
+
+                    @magics_class
+                    class LineOnly(Magics):
+                        @line_magic
+                        def time(self, line):
+                            \"\"\"My own line-only time.\"\"\"
+                    """
+                )
+            )
+            invalidate_caches()
+            spec = f"{mod}:LineOnly"
+            try:
+                mm.register_lazy("time", spec)
+                assert mm.find("line", "time") is not None
+                with pytest.raises(UsageError):
+                    mm.find("cell", "time")
+            finally:
+                mm.magics["cell"].pop("time", None)
+                mm.magics["line"].pop("time", None)
+                mm.lazy_magics.pop("time", None)
+                mm._loaded_lazy.discard(spec)
+                mm.registry.pop("LineOnly", None)
+                sys.modules.pop(mod, None)
+
+
+def test_lazy_magic_missing_implementation_raises_at_any_depth():
+    """Stacked declarations that deliver nothing still raise.
+
+    Three lazy declarations for one name where none provides ``mydepth``:
+    the lookup raises instead of giving up quietly or returning nothing.
+    See https://github.com/ipython/ipython/issues/15383.
+    """
+    mm = ip.magics_manager
+    with TemporaryDirectory() as tmpdir:
+        with prepended_to_syspath(tmpdir):
+            Path(tmpdir, "depth_first_mod.py").write_text(
+                dedent(
+                    """
+                    from IPython.core.magic import Magics, line_magic, magics_class
+
+
+                    @magics_class
+                    class First(Magics):
+                        @line_magic
+                        def mydepth(self, line):
+                            \"\"\"The original provider.\"\"\"
+                    """
+                )
+            )
+            for mod in ("depth_second_mod", "depth_third_mod"):
+                Path(tmpdir, mod + ".py").write_text(
+                    dedent(
+                        """
+                        from IPython.core.magic import Magics, magics_class
+
+
+                        @magics_class
+                        class Empty(Magics):
+                            pass
+                        """
+                    )
+                )
+            invalidate_caches()
+            specs = [
+                "depth_first_mod:First",
+                "depth_second_mod:Empty",
+                "depth_third_mod:Empty",
+            ]
+            try:
+                for spec in specs:
+                    mm.register_lazy("mydepth", spec, "line")
+                with pytest.raises(UsageError):
+                    mm.find("line", "mydepth")
+            finally:
+                mm.magics["line"].pop("mydepth", None)
+                mm.lazy_magics.pop("mydepth", None)
+                for spec in specs:
+                    mm._loaded_lazy.discard(spec)
+                mm.registry.pop("First", None)
+                mm.registry.pop("Empty", None)
+                for mod in ("depth_first_mod", "depth_second_mod", "depth_third_mod"):
+                    sys.modules.pop(mod, None)
+
+
+def test_load_all_lazy_magics_loads_both_kind_halves(standalone_manager):
+    """`load_all_lazy_magics` loads every kind's provider, not just one.
+
+    One name may be declared with a different provider per kind, but
+    ``lazy_magics`` only remembers the last spec per name — so loading from
+    it alone (line-first) never imports the other half's class, and e.g.
+    ``%config CellHalf.trait`` fails until something else loads it.
+    See https://github.com/ipython/ipython/issues/15383.
+    """
+    mm = standalone_manager
+    with TemporaryDirectory() as tmpdir:
+        with prepended_to_syspath(tmpdir):
+            mod = "split_load_all_module"
+            Path(tmpdir, mod + ".py").write_text(
+                dedent(
+                    """
+                    from IPython.core.magic import Magics, line_magic, cell_magic, magics_class
+
+
+                    @magics_class
+                    class LineHalf(Magics):
+                        @line_magic
+                        def dual(self, line):
+                            \"\"\"The line half.\"\"\"
+
+
+                    @magics_class
+                    class CellHalf(Magics):
+                        @cell_magic
+                        def dual(self, line, cell):
+                            \"\"\"The cell half.\"\"\"
+                    """
+                )
+            )
+            invalidate_caches()
+            line_spec = f"{mod}:LineHalf"
+            cell_spec = f"{mod}:CellHalf"
+            try:
+                mm.register_lazy("dual", line_spec, "line")  # type: ignore[arg-type]
+                mm.register_lazy("dual", cell_spec, "cell")  # type: ignore[arg-type]
+                mm.load_all_lazy_magics()
+                assert "LineHalf" in mm.registry
+                assert "CellHalf" in mm.registry
+                assert not isinstance(mm.find("line", "dual"), magic.LazyMagic)
+                assert not isinstance(mm.find("cell", "dual"), magic.LazyMagic)
+            finally:
+                sys.modules.pop(mod, None)
 
 
 TEST_MODULE = """

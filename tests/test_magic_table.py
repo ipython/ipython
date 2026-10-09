@@ -22,6 +22,7 @@ import IPython.core.magics
 from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShellABC
 from IPython.core.magic import LazyMagic, Magics, MagicsManager
+from IPython.core.error import UsageError
 from IPython.core.magics import _table
 
 EXECUTION_SPEC = "IPython.core.magics.execution:ExecutionMagics"
@@ -200,13 +201,14 @@ def test_register_lazy_validates_the_kind(manager):
         manager.register_lazy("timeit", EXECUTION_SPEC, "both")
 
 
-def test_find_drops_a_placeholder_the_class_does_not_deliver(manager):
+def test_find_raises_when_the_class_does_not_deliver(manager):
     manager.register_lazy("dummy_lazy", EXECUTION_SPEC, "line")
     # ExecutionMagics provides no `%dummy_lazy`, so the declaration was wrong.
-    assert manager.find("line", "dummy_lazy") is None
-    assert "dummy_lazy" not in manager.magics["line"]
-    # And asking again does not resurrect it or re-register the class.
-    assert manager.find("line", "dummy_lazy") is None
+    with pytest.raises(UsageError):
+        manager.find("line", "dummy_lazy")
+    # And asking again raises the same way rather than going quiet.
+    with pytest.raises(UsageError):
+        manager.find("line", "dummy_lazy")
 
 
 def test_a_class_is_only_loaded_once(manager):
