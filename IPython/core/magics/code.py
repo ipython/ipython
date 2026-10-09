@@ -730,12 +730,8 @@ class CodeMagics(Magics):
         sys.stdout.flush()
         filepath = Path(filename)
         try:
-            # Quote filenames that may have spaces in them when opening
-            # the editor
-            quoted = filename = str(filepath.absolute())
-            if " " in quoted:
-                quoted = "'%s'" % quoted
-            self.shell.hooks.editor(quoted, lineno)
+            filename = str(filepath.absolute())
+            self.shell.hooks.editor(filename, lineno)
         except TryNext:
             warn('Could not open editor')
             return
