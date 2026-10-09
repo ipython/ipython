@@ -1,16 +1,15 @@
 """Tests for IPython.core.magics.packaging (%pip, %conda, %mamba, %micromamba, %uv).
 
-No package manager is ever executed. ``ip.system`` is replaced by a recorder
-so only the constructed command lines are asserted.
+No package manager is ever executed. ``ip.system`` and ``subprocess.run``
+are replaced by recorders so only the constructed commands are asserted.
 """
 
-import shlex
+import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
-
-from IPython.testing.decorators import skip_win32
 
 from IPython.core.magics import packaging
 
@@ -20,6 +19,19 @@ def recorded_commands(monkeypatch):
     """Capture command strings passed to ip.system instead of running them."""
     commands = []
     monkeypatch.setattr(ip, "system", commands.append)
+    return commands
+
+
+@pytest.fixture
+def recorded_subprocess(monkeypatch):
+    """Capture argv lists passed to subprocess.run instead of running them."""
+    commands = []
+
+    def fake_run(cmd, *args, **kwargs):
+        commands.append(list(cmd))
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr(packaging.subprocess, "run", fake_run)
     return commands
 
 
@@ -39,47 +51,90 @@ def fake_conda_env(monkeypatch, tmp_path):
     return tmp_path
 
 
-@skip_win32
-def test_pip_runs_current_interpreter(recorded_commands, capsys):
+def test_pip_runs_current_interpreter(recorded_subprocess, recorded_commands, capsys):
     ip.run_line_magic("pip", "install foo")
-    assert recorded_commands == [
-        "%s -m pip install foo" % shlex.quote(sys.executable)
-    ]
+    assert recorded_subprocess == [[sys.executable, "-m", "pip", "install", "foo"]]
+    assert recorded_commands == []
     assert "restart the kernel" in capsys.readouterr().out
 
 
-@skip_win32
-def test_pip_quotes_interpreter_path(recorded_commands, monkeypatch):
+def test_pip_keeps_spaces_in_interpreter_path(
+    recorded_subprocess, recorded_commands, monkeypatch
+):
     monkeypatch.setattr(sys, "executable", "/spa ced/python")
     ip.run_line_magic("pip", "install foo")
-    assert recorded_commands == ["'/spa ced/python' -m pip install foo"]
+    assert recorded_subprocess == [["/spa ced/python", "-m", "pip", "install", "foo"]]
+    assert recorded_commands == []
 
 
-def test_pip_windows_quoting(recorded_commands, monkeypatch):
+def test_pip_windows_path_with_spaces(
+    recorded_subprocess, recorded_commands, monkeypatch
+):
     monkeypatch.setattr(sys, "platform", "win32")
     monkeypatch.setattr(sys, "executable", r"C:\Program Files\python.exe")
     ip.run_line_magic("pip", "install foo")
-    assert recorded_commands == [
-        '"C:\\Program Files\\python.exe" -m pip install foo'
+    assert recorded_subprocess == [
+        [r"C:\Program Files\python.exe", "-m", "pip", "install", "foo"]
     ]
+    assert recorded_commands == []
 
 
-@skip_win32
-def test_uv_runs_current_interpreter(recorded_commands, capsys):
+def test_uv_runs_current_interpreter(recorded_subprocess, recorded_commands, capsys):
     ip.run_line_magic("uv", "pip install foo")
-    assert recorded_commands == [
-        "%s -m uv pip install foo" % shlex.quote(sys.executable)
+    assert recorded_subprocess == [
+        [sys.executable, "-m", "uv", "pip", "install", "foo"]
     ]
+    assert recorded_commands == []
     assert "restart the kernel" in capsys.readouterr().out
 
 
-def test_uv_windows_quoting(recorded_commands, monkeypatch):
+def test_uv_keeps_spaces_in_interpreter_path(
+    recorded_subprocess, recorded_commands, monkeypatch
+):
+    monkeypatch.setattr(sys, "executable", "/spa ced/python")
+    ip.run_line_magic("uv", "pip install foo")
+    assert recorded_subprocess == [
+        ["/spa ced/python", "-m", "uv", "pip", "install", "foo"]
+    ]
+    assert recorded_commands == []
+
+
+def test_uv_windows_path_with_spaces(
+    recorded_subprocess, recorded_commands, monkeypatch
+):
     monkeypatch.setattr(sys, "platform", "win32")
     monkeypatch.setattr(sys, "executable", r"C:\Program Files\python.exe")
     ip.run_line_magic("uv", "pip install foo")
-    assert recorded_commands == [
-        '"C:\\Program Files\\python.exe" -m uv pip install foo'
+    assert recorded_subprocess == [
+        [r"C:\Program Files\python.exe", "-m", "uv", "pip", "install", "foo"]
     ]
+    assert recorded_commands == []
+
+
+def test_pip_quoted_package_name(recorded_subprocess):
+    ip.run_line_magic("pip", 'install "foo bar"')
+    assert recorded_subprocess == [[sys.executable, "-m", "pip", "install", "foo bar"]]
+
+
+def test_pip_sets_exit_code(recorded_subprocess, monkeypatch):
+    def fake_run(cmd, *args, **kwargs):
+        recorded_subprocess.append(list(cmd))
+        return SimpleNamespace(returncode=7)
+
+    monkeypatch.setattr(packaging.subprocess, "run", fake_run)
+    ip.run_line_magic("pip", "install foo")
+    assert ip.user_ns["_exit_code"] == 7
+
+
+def test_pip_raises_on_error_when_configured(monkeypatch):
+    monkeypatch.setattr(
+        packaging.subprocess,
+        "run",
+        lambda *a, **k: SimpleNamespace(returncode=1),
+    )
+    monkeypatch.setattr(ip, "system_raise_on_error", True)
+    with pytest.raises(subprocess.CalledProcessError):
+        ip.run_line_magic("pip", "install foo")
 
 
 def test_conda_outside_conda_environment_raises(monkeypatch, tmp_path):
