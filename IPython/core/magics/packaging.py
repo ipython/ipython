@@ -39,7 +39,7 @@ def _get_conda_like_executable(command):
     Parameters
     ----------
 
-    executable: string
+    command: string
         Value should be: conda, mamba or micromamba
     """
     # Check for a environment variable bound to the base executable, both conda and mamba
