@@ -1206,3 +1206,34 @@ def test_import_from_tracker_multiple_resolved_names(autoreload_fixture):
     # Both resolved names should be tracked for the same original name
     assert "foo" in tracker.imports_froms[fake_mod_name]
     assert set(tracker.symbol_map[fake_mod_name]["foo"]) == {"bar", "foo"}
+
+
+def test_update_instances_skips_unchanged_imported_type():
+    """Don't assign __class__ when autoreload sees the same class object.
+
+    ``%autoreload 3`` reloads a module that did ``from functools import partial``
+    by calling ``update_instances(partial, partial)``. ``partial`` instances
+    reject ``__class__`` assignment, so that used to raise TypeError and abort
+    the reload (ipython/ipython#14984). A class that really was replaced still
+    migrates its instances.
+    """
+    from functools import partial
+
+    from IPython.extensions.autoreload import update_instances
+
+    instance = partial(str, "x")
+    update_instances(partial, partial)
+    assert instance() == "x"
+
+    class Old:
+        def value(self):
+            return "old"
+
+    class New:
+        def value(self):
+            return "new"
+
+    obj = Old()
+    update_instances(Old, New)
+    assert type(obj) is New
+    assert obj.value() == "new"
