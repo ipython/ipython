@@ -832,18 +832,21 @@ def _webpxy(data):
     """read the (width, height) from a WEBP header"""
     import struct
     if data[12:16] == b"VP8 ":
-        width, height = struct.unpack("<HH", data[24:30])
+        # lossy: 14 bits each, after the frame tag and the start code
+        width, height = struct.unpack("<HH", data[26:30])
         width = width & 0x3FFF
         height = height & 0x3FFF
         return (width, height)
     elif data[12:16] == b"VP8L":
+        # lossless: 14 bits each of (width - 1, height - 1), after the signature
         size_info = struct.unpack("<I", data[21:25])[0]
-        width = 1 + ((size_info & 0x3F) << 8) | (size_info >> 24)
-        height = 1 + (
-            (((size_info >> 8) & 0xF) << 10)
-            | (((size_info >> 14) & 0x3FC) << 2)
-            | ((size_info >> 22) & 0x3)
-        )
+        width = 1 + (size_info & 0x3FFF)
+        height = 1 + ((size_info >> 14) & 0x3FFF)
+        return (width, height)
+    elif data[12:16] == b"VP8X":
+        # extended: 24 bits each of (canvas width - 1, canvas height - 1)
+        width = 1 + int.from_bytes(data[24:27], "little")
+        height = 1 + int.from_bytes(data[27:30], "little")
         return (width, height)
     else:
         raise ValueError("Not a valid WEBP header")
@@ -863,7 +866,7 @@ class ImageFormat(_ImageFormat, Enum):
     jpeg = (b"\xff\xd8",), _jpegxy
     jpg = jpeg  # alias, has `.name == "jpeg"`
     gif = (b"GIF87a", b"GIF89a"), _gifxy
-    webp = (b"WEBP",), _webpxy
+    webp = (b"RIFF",), _webpxy
 
     @property
     def mime_type(self):
@@ -874,6 +877,10 @@ class ImageFormat(_ImageFormat, Enum):
         for fmt in cls:
             for magic in fmt.magics:
                 if data.startswith(magic):
+                    # RIFF is a generic container (WAV, AVI, ...), WEBP files
+                    # are identified by the form type after the size field.
+                    if fmt is cls.webp and data[8:12] != b"WEBP":
+                        continue
                     return fmt
         return None
 
