@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """Tests for various magic functions."""
 
+import bdb
 import collections
 import gc
+import importlib.util
 import io
 import json
 import os
@@ -870,6 +872,26 @@ def test_debug_magic_locals():
     1
     In [2]:
     """
+
+
+def test_debug_magic_breakpoint_quoted_path(tmp_path):
+    """%debug --breakpoint accepts a quoted FILE:LINE with spaces in the path"""
+    folder = tmp_path / "with space"
+    folder.mkdir()
+    module = folder / "spaced_module.py"
+    module.write_text("def f(x):\n    y = x + 1\n    return y\n", encoding="utf-8")
+    spec = importlib.util.spec_from_file_location("spaced_module", module)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    _ip.user_ns["spaced_f"] = mod.f
+    with tt.fake_input(["c", "c"]):
+        _ip.run_line_magic("debug", f'--breakpoint "{module}:3" spaced_f(1)')
+    hits = [
+        (bp.line, bp.hits)
+        for bp in bdb.Breakpoint.bpbynumber
+        if bp and bp.file.endswith("spaced_module.py")
+    ]
+    assert hits == [(3, 1)]
 
 
 def test_psearch():
