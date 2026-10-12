@@ -21,7 +21,7 @@ def bar(mode):
     elif mode == "exit":
         try:
             stat = int(sys.argv[2])
-        except:
+        except ValueError:
             stat = 1
         sysexit(stat, mode)
     else:
