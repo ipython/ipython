@@ -914,7 +914,8 @@ class Image(DisplayObject):
 
         filename : unicode
             Path to a local file to load the data from.
-            Images from a file are always embedded.
+            Images from a file are embedded unless you specify `embed=False`,
+            in which case the path is used as the image source.
 
         format : unicode
             The format of the image data (png/jpeg/jpg/gif/webp). If a filename or URL is given
@@ -1066,8 +1067,9 @@ class Image(DisplayObject):
                 klass = ' class="unconfined"'
             if self.alt:
                 alt = ' alt="%s"' % html.escape(self.alt)
+            url = self.url if self.url is not None else self.filename
             return '<img src="{url}"{width}{height}{klass}{alt}/>'.format(
-                url=html.escape(self.url or ""),
+                url=html.escape(url or ""),
                 width=width,
                 height=height,
                 klass=klass,

@@ -37,6 +37,15 @@ def test_image_size():
     assert '<img src="%s" class="unconfined"/>' % (thisurl) == img._repr_html_()
 
 
+def test_image_local_file_without_embedding():
+    """A local file shown with embed=False uses its path as the image source"""
+    filename = os.path.join(os.path.dirname(__file__), "2x2.png")
+    img = display.Image(filename=filename, embed=False, width=200)
+    assert '<img src="%s" width="200"/>' % filename == img._repr_html_()
+    img = display.Image(filename, embed=False)
+    assert {"text/html": '<img src="%s"/>' % filename} == img._repr_mimebundle_()
+
+
 def test_image_mimes():
     fmt = get_ipython().display_formatter.format
     for name, format in ImageFormat.__members__.items():
