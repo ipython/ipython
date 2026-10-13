@@ -398,7 +398,7 @@ class FileLink:
         """
         Parameters
         ----------
-        path : str
+        path : str or os.PathLike
             path to the file or directory that should be formatted
         url_prefix : str
             prefix to be prepended to all files to form a working link [default:
@@ -505,7 +505,7 @@ class FileLinks(FileLink):
               "Use FileLink to display '%s'." % path)
         self.included_suffixes = included_suffixes
         # remove trailing slashes for more consistent output formatting
-        path = path.rstrip('/')
+        path = fsdecode(path).rstrip('/')
 
         self.path = path
         self.url_prefix = url_prefix
