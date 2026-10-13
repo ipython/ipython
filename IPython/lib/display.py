@@ -505,7 +505,7 @@ class FileLinks(FileLink):
               "Use FileLink to display '%s'." % path)
         self.included_suffixes = included_suffixes
         # remove trailing slashes for more consistent output formatting
-        path = fsdecode(path).rstrip('/')
+        path = fsdecode(path).rstrip("/")
 
         self.path = path
         self.url_prefix = url_prefix
