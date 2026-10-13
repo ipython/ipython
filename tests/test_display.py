@@ -88,6 +88,17 @@ def test_instantiation_FileLinks():
     fls = display.FileLinks("example")
 
 
+@pytest.mark.parametrize("recursive", [True, False])
+@pytest.mark.parametrize("path_type", [pathlib.Path, pathlib.PurePath])
+def test_pathlike_FileLinks(tmp_path, recursive, path_type):
+    (tmp_path / "example.txt").touch()
+    expected = display.FileLinks(str(tmp_path), recursive=recursive)
+    actual = display.FileLinks(path_type(tmp_path), recursive=recursive)
+
+    assert actual._repr_html_() == expected._repr_html_()
+    assert repr(actual) == repr(expected)
+
+
 def test_warning_on_non_existent_path_FileLinks():
     """FileLinks: Calling _repr_html_ on non-existent files returns a warning"""
     fls = display.FileLinks("example")
