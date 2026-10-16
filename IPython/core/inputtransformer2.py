@@ -663,9 +663,9 @@ def make_tokens_by_line(lines: list[str]):
             tokens_by_line[-1].append(token)
             if (token.type == NEWLINE) or ((token.type == NL) and (parenlev <= 0)):
                 tokens_by_line.append([])
-            elif token.string in {"(", "[", "{"}:
+            elif token.type == tokenize.OP and token.string in {"(", "[", "{"}:
                 parenlev += 1
-            elif token.string in {")", "]", "}"}:
+            elif token.type == tokenize.OP and token.string in {")", "]", "}"}:
                 if parenlev > 0:
                     parenlev -= 1
     except tokenize.TokenError:
@@ -682,9 +682,9 @@ def has_sunken_brackets(tokens: list[tokenize.TokenInfo]):
     """Check if the depth of brackets in the list of tokens drops below 0"""
     parenlev = 0
     for token in tokens:
-        if token.string in {"(", "[", "{"}:
+        if token.type == tokenize.OP and token.string in {"(", "[", "{"}:
             parenlev += 1
-        elif token.string in {")", "]", "}"}:
+        elif token.type == tokenize.OP and token.string in {")", "]", "}"}:
             parenlev -= 1
             if parenlev < 0:
                 return True

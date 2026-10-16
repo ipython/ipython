@@ -451,3 +451,22 @@ def test_side_effects_II():
     manager.line_transforms.insert(0, counter)
     assert manager.check_complete("b=1\n") == ("complete", None)
     assert count == 0
+
+
+def test_fstring_literal_brackets_do_not_force_magic_onto_continued_line():
+    """F-string literal '[' must not leave parenlev sunk (gh-15436).
+
+    On Python 3.12+, f-strings emit FSTRING_MIDDLE tokens whose string can be
+    exactly '[' or '] '. Counting those as brackets prevented a following blank
+    line from splitting tokens, so a later %magic was left untransformed.
+    """
+    from IPython.core.inputtransformer2 import TransformerManager
+
+    mgr = TransformerManager()
+    for cell in [
+        'f"[{None}] "\n\n%ls\n',
+        'f"[{None} ]"\n\n%ls\n',
+        "f'[{None}] '\n\n%ls\n",
+    ]:
+        out = mgr.transform_cell(cell)
+        assert "run_line_magic" in out, repr(out)
