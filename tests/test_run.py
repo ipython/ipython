@@ -447,6 +447,7 @@ def run_with_package(tmp_path, monkeypatch):
     writefile(os.path.join(package, "relative.py"), "from .sub import x\n")
     writefile(os.path.join(package, "absolute.py"), f"from {package}.sub import x\n")
     writefile(os.path.join(package, "args.py"), 'import sys\na = " ".join(sys.argv[1:])\n')
+    writefile(os.path.join(package, "__main__.py"), f"x = {value!r}\n")
 
     return package, value
 
@@ -473,6 +474,29 @@ def test_run_submodule(run_with_package, submodule, opts):
 def test_debug_run_submodule(run_with_package, submodule):
     package, value = run_with_package
     _check_run_submodule(package, value, submodule, "-d")
+
+
+@pytest.mark.parametrize("opts", ["", "-p"])
+def test_run_package(run_with_package, opts):
+    """%run -m on a package runs its __main__, like python -m"""
+    package, value = run_with_package
+    _ip.user_ns.pop("x", None)
+    _ip.run_line_magic("run", f"{opts} -m {package}")
+    assert _ip.user_ns["x"] == value
+
+
+def test_debug_run_package(run_with_package, monkeypatch):
+    """%run -d -m on a package stops in its __main__ (#14372)"""
+    package, value = run_with_package
+    _ip.user_ns.pop("x", None)
+    _ip.user_ns.pop("stopped_in", None)
+    # Use a fresh debugger, without commands queued by earlier tests.
+    monkeypatch.setattr(_ip.InteractiveTB, "pdb", None)
+    # Record where the debugger stopped, then continue.
+    with tt.fake_input(["stopped_in = __file__", "c"]):
+        _ip.run_line_magic("run", f"-d -m {package}")
+    assert os.path.basename(_ip.user_ns["stopped_in"]) == "__main__.py"
+    assert _ip.user_ns["x"] == value
 
 
 def test_module_options(run_with_package):
