@@ -540,7 +540,7 @@ class ProgressBar(DisplayObject):
         self._display_id = hexlify(os.urandom(8)).decode('ascii')
 
     def __repr__(self):
-        fraction = self.progress / self.total
+        fraction = self.progress / self.total if self.total else 0
         filled = '=' * int(fraction * self.text_width)
         rest = ' ' * (self.text_width - len(filled))
         return '[{}{}] {}/{}'.format(
