@@ -354,13 +354,22 @@ def test_progress():
     )
 
 
-def test_progress_iter():
+def test_progress_zero_total():
+    p = display.ProgressBar(0)
+    assert repr(p) == "[{}] 0/0".format(" " * p.text_width)
+
+
+@pytest.mark.parametrize("total", [0, 5])
+def test_progress_iter(total):
+    values = []
     with capture_output(display=False) as captured:
-        for i in display.ProgressBar(5):
+        for i in display.ProgressBar(total):
+            values.append(i)
             out = captured.stdout
-            assert "{0}/5".format(i) in out
+            assert f"{i}/{total}" in out
     out = captured.stdout
-    assert "5/5" in out
+    assert values == list(range(total))
+    assert f"{total}/{total}" in out
 
 
 def test_json():
