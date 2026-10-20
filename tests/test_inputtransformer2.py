@@ -415,9 +415,6 @@ def test_check_complete_invalidates_sunken_brackets(value, expected):
     assert cc(value) == expected
 
 
-@pytest.mark.skipif(
-    sys.version_info < (3, 12), reason="PEP 701 tokenization is 3.12+ only"
-)
 @pytest.mark.parametrize(
     "cell",
     [
