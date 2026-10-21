@@ -293,7 +293,11 @@ def test_histmanager_memory_fallback_reopens_db(hmmax3, tmp_path, caplog):
         lock = sqlite3.connect(hist_file)
         lock.execute("BEGIN IMMEDIATE")
 
-        with HistoryManager(shell=ip, hist_file=hist_file) as hm2:
+        # Fail on the held lock right away instead of waiting out the 5s default timeout
+        connection_options = {"check_same_thread": False, "timeout": 0}
+        with HistoryManager(
+            shell=ip, hist_file=hist_file, connection_options=connection_options
+        ) as hm2:
             assert hm2.hist_file == ":memory:"
             assert hm2.db.execute("PRAGMA database_list").fetchall() == [
                 (0, "main", "")
