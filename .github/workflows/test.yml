@@ -35,10 +35,10 @@ jobs:
           - os: ubuntu-latest
             python-version: "3.14t"
             deps: test
-          # Tests latest development Python version
-          - os: ubuntu-latest
-            python-version: "3.16-dev"
-            deps: test
+          # Tests latest development Python version, re-enable once setup-python provides it
+          # - os: ubuntu-latest
+          #   python-version: "3.16-dev"
+          #   deps: test
           - os: ubuntu-latest
             python-version: "3.12"
             deps: test_extra
