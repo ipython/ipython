@@ -17,9 +17,7 @@ bug and regression fixes.  The previous version (0.12) was released on December
 - a diff of 114226 lines.
 
 The amount of work included in this release is so large, that we can only cover
-here the main highlights; please see our :ref:`detailed release statistics
-<issues_list_013>` for links to every issue and pull request closed on GitHub
-as well as a full list of individual contributors.
+here the main highlights.
 
 
 Major Notebook improvements: new user interface and more
@@ -635,7 +633,7 @@ Other new features and improvements
 Major Bugs fixed
 ----------------
 
-In this cycle, we have :ref:`closed over 740 issues <issues_list_013>`, but a
+In this cycle, we have closed over 740 issues, but a
 few major ones merit special mention:
 
 * The ``%pastebin`` magic has been updated to point to gist.github.com, since
