@@ -75,7 +75,8 @@ def _psutil_ancestor_names() -> Iterator[str]:
 
     try:
         process = psutil.Process()
-        while process := process.parent():
+        while (parent := process.parent()) is not None:
+            process = parent
             yield process.name()
     except (psutil.Error, OSError):
         # Walking the process tree can fail when /proc is mounted with
