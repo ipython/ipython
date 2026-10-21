@@ -17,6 +17,7 @@ exclude CONTRIBUTING.md
 exclude .editorconfig
 exclude SECURITY.md
 exclude .readthedocs.yaml
+exclude AGENTS.md
 
 graft scripts
 

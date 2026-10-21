@@ -24,7 +24,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.11", "3.12", "3.13", "3.14", "3.15"]
         deps: [test_extra]
         # Test all on ubuntu, test ends on macos
         include:
@@ -35,10 +35,10 @@ jobs:
           - os: ubuntu-latest
             python-version: "3.14t"
             deps: test
-          # Tests latest development Python version
-          - os: ubuntu-latest
-            python-version: "3.15-dev"
-            deps: test
+          # Tests latest development Python version, re-enable once setup-python provides it
+          # - os: ubuntu-latest
+          #   python-version: "3.16-dev"
+          #   deps: test
           - os: ubuntu-latest
             python-version: "3.12"
             deps: test_extra
