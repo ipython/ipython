@@ -1481,6 +1481,39 @@ def test_dict_key_completion_contexts():
         assert_completion(line_buffer="get()['ab")
         assert_completion(line_buffer="get()['abc")
 
+def test_func_kw_matches_respects_evaluation_policy():
+    ip = get_ipython()
+    complete = ip.Completer.complete
+    evaluated = []
+
+    class Proxy:
+        @property
+        def handler(self):
+            evaluated.append("handler")
+            return lambda timeout=1: None
+
+    def plain(alpha=1):
+        pass
+
+    ip.user_ns["proxy"] = Proxy()
+    ip.user_ns["plain"] = plain
+
+    with jedi_status(False):
+        with evaluation_policy("limited"):
+            _, matches = complete(line_buffer="proxy.handler(")
+            assert "timeout=" not in matches
+            assert evaluated == []
+
+            # plain callables are unaffected
+            _, matches = complete(line_buffer="plain(")
+            assert "alpha=" in matches
+
+        with evaluation_policy("unsafe"):
+            _, matches = complete(line_buffer="proxy.handler(")
+            assert "timeout=" in matches
+            assert evaluated == ["handler"]
+
+
 def test_completion_autoimport():
     ip = get_ipython()
     complete = ip.Completer.complete
