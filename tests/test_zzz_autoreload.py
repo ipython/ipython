@@ -116,34 +116,31 @@ def autoreload_fixture():
         file_name = os.path.join(ns.test_dir, module_name + ".py")
         return module_name, file_name
 
+    # Highest mtime given to a module so far, so a rewrite always moves past it
+    last_mtime = 0.0
+
     def write_file(filename, content):
         """
-        Write a file, and force a timestamp difference of at least one second
+        Write a file, and give it an mtime later than any module so far.
 
-        Notes
-        -----
-        Python's .pyc files record the timestamp of their compilation
-        with a time resolution of one second.
-
-        Therefore, we need to force a timestamp difference between .py
-        and .pyc, without having the .py file be timestamped in the
-        future, and without changing the timestamp of the .pyc file
-        (because that is stored in the file).  The only reliable way
-        to achieve this seems to be to sleep.
+        .pyc files store the source mtime in whole seconds, so a rewrite
+        has to move into a later second to be seen. Setting the mtime
+        explicitly avoids sleeping for it.
         """
+        nonlocal last_mtime
         content = textwrap.dedent(content)
-        # Sleep one second + eps
-        time.sleep(1.05)
-
-        # Write
         with open(filename, "w", encoding="utf-8") as f:
             f.write(content)
+        last_mtime = max(time.time(), int(last_mtime) + 1)
+        os.utime(filename, (last_mtime, last_mtime))
 
     def new_module(code):
+        nonlocal last_mtime
         code = textwrap.dedent(code)
         mod_name, mod_fn = get_module()
         with open(mod_fn, "w", encoding="utf-8") as f:
             f.write(code)
+        last_mtime = max(last_mtime, os.path.getmtime(mod_fn))
         return mod_name, mod_fn
 
     ns.get_module = get_module

@@ -764,6 +764,8 @@ class _ShellFixtureHelper:
         self.old_sys_path = list(sys.path)
         sys.path.insert(0, self.test_dir)
         self.shell = FakeShell()
+        # Highest mtime given to a module so far, so a rewrite always moves past it
+        self.last_mtime = 0.0
 
     def teardown(self):
         for mod_name in self.created_temp_modules:
@@ -780,30 +782,22 @@ class _ShellFixtureHelper:
 
     def write_file(self, filename, content):
         """
-        Write a file, and force a timestamp difference of at least one second
+        Write a file, and give it an mtime later than any module so far.
 
-        Notes
-        -----
-        Python's .pyc files record the timestamp of their compilation
-        with a time resolution of one second.
-
-        Therefore, we need to force a timestamp difference between .py
-        and .pyc, without having the .py file be timestamped in the
-        future, and without changing the timestamp of the .pyc file
-        (because that is stored in the file). The only reliable way
-        to achieve this seems to be to sleep.
-
-        Doesn't seem necessary on Darwin so we make this the exception.
+        .pyc files store the source mtime in whole seconds, so a rewrite
+        has to move into a later second to be seen. Setting the mtime
+        explicitly avoids sleeping for it.
         """
-        if platform.system().lower() != "darwin":
-            time.sleep(1.05)
         with open(filename, "w", encoding="utf-8") as f:
             f.write(squish_text(content))
+        self.last_mtime = max(time.time(), int(self.last_mtime) + 1)
+        os.utime(filename, (self.last_mtime, self.last_mtime))
 
     def new_module(self, code):
         mod_name, mod_fn = self.get_module()
         with open(mod_fn, "w", encoding="utf-8") as f:
             f.write(squish_text(code))
+        self.last_mtime = max(self.last_mtime, os.path.getmtime(mod_fn))
         self.created_temp_modules.add(mod_name)
         return mod_name, mod_fn
 
