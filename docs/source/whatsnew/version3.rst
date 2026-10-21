@@ -24,8 +24,6 @@ IPython 3.2.1 is a small bugfix release, primarily for cross-site security fixes
 Users are **strongly** encouraged to upgrade immediately.
 There are also a few small unicode and nbconvert-related fixes.
 
-See :ref:`issues_list_3` for details.
-
 
 IPython 3.2
 ===========
@@ -40,8 +38,6 @@ Highlights:
 - Enable mathjax safe mode by default
 - Fix XSS vulnerability in JSON error messages
 - Various widget-related fixes
-
-See :ref:`issues_list_3` for details.
 
 
 IPython 3.1
@@ -67,9 +63,6 @@ Highlights:
 - Allow setting custom SSL options for the tornado server with ``NotebookApp.ssl_options``,
   and protect against POODLE with default settings by disabling SSLv3.
 - Fix memory leak in the IPython.parallel Controller on Python 3.
-
-
-See :ref:`issues_list_3` for details.
 
 
 Release 3.0

@@ -195,8 +195,7 @@ series.  A huge diff and ~2200 commits make up this cycle::
     2200
 
 Since our move to github, 511 issues were closed, 226 of which were pull
-requests and 285 regular issues (:ref:`a full list with links
-<issues_list_011>` is available for those interested in the details).  Github's
+requests and 285 regular issues.  Github's
 pull requests are a fantastic mechanism for reviewing code and building a
 shared ownership of the project, and we are making enthusiastic use of it.
 
