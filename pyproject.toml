@@ -140,6 +140,13 @@ follow_imports = "skip"
 follow_imports_for_stubs = true
 
 [[tool.mypy.overrides]]
+# mypy narrows on `sys.platform`, so the platform guard in
+# `_supports_kitty_graphics` can be reported as unreachable in the
+# cross-platform CI runs. Turn that off for this module only.
+module = "IPython.core.kitty"
+warn_unreachable = false
+
+[[tool.mypy.overrides]]
 module = [
     "IPython.core.events",
     "IPython.core.magic",
