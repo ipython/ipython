@@ -1590,35 +1590,50 @@ def test_script_defaults(cmd):
 
 
 @pytest.mark.asyncio
-async def test_script_streams_continuously(capsys):
+async def test_script_streams_continuously(tmp_path, monkeypatch):
     ip = get_ipython()
-    # Windows is slow to start up a thread on CI
-    is_windows = os.name == "nt"
-    step = 3 if is_windows else 1
+    out = StringIO()
+    monkeypatch.setattr(sys, "stdout", out)
+    # The child prints each dot only after the parent has printed the matching
+    # number, so the interleaving is set by these files, not by timing. The dot
+    # must be flushed, or it stays in the pipe buffer and the parent never sees it.
+    flags = [tmp_path / f"flag{i}" for i in range(3)]
     code = dedent(
         f"""\
+    import os
     import time
-    for _ in range(3):
-        time.sleep({step})
+    for flag in {[str(flag) for flag in flags]!r}:
+        for _ in range(3000):  # give up after 30s, so a failure cannot hang
+            if os.path.exists(flag):
+                break
+            time.sleep(0.01)
+        else:
+            raise SystemExit("timed out waiting for parent")
         print(".", flush=True, end="")
     """
     )
 
+    def wait_for_dots(count):
+        for _ in range(30_000):
+            if out.getvalue().count(".") >= count:
+                return
+            sleep(0.001)
+        raise TimeoutError("child output was not streamed")
+
     def print_numbers():
-        for i in range(3):
-            sleep(step)
+        for i, flag in enumerate(flags):
             print(i, flush=True, end="")
+            flag.touch()
+            wait_for_dots(i + 1)
 
     thread = Thread(target=print_numbers)
     thread.start()
-    sleep(step / 2)
     ip.run_cell_magic("script", sys.executable, code)
     thread.join()
 
-    captured = capsys.readouterr()
     # If the streaming was line-wise or broken
     # we would get `012...`
-    assert captured.out == "0.1.2."
+    assert out.getvalue() == "0.1.2."
 
 
 def test_script_streams_multibyte_unicode(capsys):
