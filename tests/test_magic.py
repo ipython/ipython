@@ -1094,7 +1094,6 @@ def test_notebook_export_json_with_output():
         with TemporaryDirectory() as td:
             outfile = os.path.join(td, "nb.ipynb")
             _ip.run_cell(f"%notebook {outfile}", store_history=True)
-            sleep(2)
             actual_nb = nbformat.read(outfile, as_version=4)
 
         assert len(actual_nb["cells"]) == len(commands)
