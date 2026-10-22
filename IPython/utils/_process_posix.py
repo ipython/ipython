@@ -11,6 +11,7 @@ from __future__ import annotations
 # Stdlib
 import errno
 import os
+import signal
 import sys
 
 # Our own
@@ -113,6 +114,9 @@ class ProcessHandler:
         # content from the buffer.
         out_size = 0
         assert self.sh is not None
+        # Stays None if ^C arrives before pexpect has finished spawning the
+        # child, so the interrupt handler below knows there is nothing to stop.
+        child = None
         try:
             # Since we're not really searching the buffer for text patterns, we
             # can set pexpect's search window to be tiny and it won't matter.
@@ -135,6 +139,11 @@ class ProcessHandler:
                 # Update the pointer to what we've already printed
                 out_size = len(child.before)
         except KeyboardInterrupt:
+            if child is None:
+                # Interrupted while spawning: there is no child process to
+                # forward ^C to, so report it as killed by SIGINT.
+                print("^C", file=sys.stderr, end="")
+                return -signal.SIGINT
             # We need to send ^C to the process.  The ascii code for '^C' is 3
             # (the character is known as ETX for 'End of Text', see
             # curses.ascii.ETX).
