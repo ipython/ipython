@@ -35,7 +35,7 @@ jobs:
           python -m build
 
       - name: Upload wheel
-        uses: scientific-python/upload-nightly-action@c6cb9764a0ad3c63f9d1ae81d21975de3d65042a # main
+        uses: scientific-python/upload-nightly-action@c6cb9764a0ad3c63f9d1ae81d21975de3d65042a # v0.6.5
         with:
           artifacts_path: dist
           anaconda_nightly_upload_token: ${{secrets.UPLOAD_TOKEN}}
