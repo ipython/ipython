@@ -1,0 +1,29 @@
+{
+  "name": "linux",
+  "base": "monokai",
+  "extra_style": {
+    "Header": "ansibrightred",
+    "LinenoEm": "ansibrightgreen",
+    "Lineno": "ansigreen",
+    "ValEm": "ansibrightblue",
+    "VName": "ansicyan",
+    "Caret": "",
+    "Filename": "ansibrightgreen",
+    "ExcName": "ansibrightred",
+    "Topline": "ansibrightred",
+    "FilenameEm": "ansigreen",
+    "Normal": "",
+    "NormalEm": "ansibrightcyan",
+    "Line": "ansiyellow",
+    "TB.Name": "ansimagenta",
+    "TB.NameEm": "ansibrightmagenta",
+    "Breakpoint": "",
+    "Breakpoint.Enabled": "ansibrightred",
+    "Breakpoint.Disabled": "ansired",
+    "Prompt": "ansibrightgreen",
+    "PromptNum": "ansigreen bold",
+    "OutPrompt": "ansibrightred",
+    "OutPromptNum": "ansired bold",
+    "TbHighlight": "ansiblack bg:ansiyellow"
+  }
+}

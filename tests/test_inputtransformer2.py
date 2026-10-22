@@ -415,6 +415,21 @@ def test_check_complete_invalidates_sunken_brackets(value, expected):
     assert cc(value) == expected
 
 
+@pytest.mark.parametrize(
+    "cell",
+    [
+        'f"[{None}] "\n\n%ls\n',
+        'f"[{None} ]"\n\n%ls\n',
+        "f'[{None}] '\n\n%ls\n",
+    ],
+)
+def test_magic_after_fstring_with_brackets(cell):
+    """F-string literal brackets must not break magic detection (gh-15436)."""
+    tm = ipt2.TransformerManager()
+    transformed = tm.transform_cell(cell)
+    assert "get_ipython().run_line_magic" in transformed
+
+
 def test_null_cleanup_transformer():
     manager = ipt2.TransformerManager()
     manager.cleanup_transforms.insert(0, null_cleanup_transformer)

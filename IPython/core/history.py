@@ -234,7 +234,7 @@ class HistoryAccessorBase(LoggingConfigurable):
 
     def get_tail(
         self,
-        n: int = 10,
+        n: int | None = 10,
         raw: bool = True,
         output: bool = False,
         include_latest: bool = False,
@@ -541,7 +541,7 @@ class HistoryAccessor(HistoryAccessorBase):
     @catch_corrupt_db
     def get_tail(
         self,
-        n: int = 10,
+        n: int | None = 10,
         raw: bool = True,
         output: bool = False,
         include_latest: bool = False,
@@ -550,8 +550,9 @@ class HistoryAccessor(HistoryAccessorBase):
 
         Parameters
         ----------
-        n : int
-            The number of lines to get
+        n : int or None
+            The number of lines to get. None gets the default of 10, which a
+            kernel ``history_request`` without ``n`` asks for.
         raw, output : bool
             See :meth:`get_range`
         include_latest : bool
@@ -563,6 +564,8 @@ class HistoryAccessor(HistoryAccessorBase):
         -------
         Tuples as :meth:`get_range`
         """
+        if n is None:
+            n = 10
         self.writeout_cache()
         if not include_latest:
             n += 1
@@ -966,7 +969,7 @@ class HistoryManager(HistoryAccessor):
     @catch_corrupt_db
     def get_tail(
         self,
-        n: int = 10,
+        n: int | None = 10,
         raw: bool = True,
         output: bool = False,
         include_latest: bool = False,
@@ -980,8 +983,9 @@ class HistoryManager(HistoryAccessor):
 
         Parameters
         ----------
-        n : int
-            The number of lines to get
+        n : int or None
+            The number of lines to get. None gets the default of 10, which a
+            kernel ``history_request`` without ``n`` asks for.
         raw, output : bool
             See :meth:`get_range`
         include_latest : bool
@@ -993,6 +997,8 @@ class HistoryManager(HistoryAccessor):
         -------
         Tuples as :meth:`get_range`
         """
+        if n is None:
+            n = 10
         self.writeout_cache()
         if not include_latest:
             n += 1
