@@ -278,8 +278,8 @@ def indent(instr: str, nspaces: int = 4, ntabs: int = 0, flatten: bool = False) 
     else:
         pat = re.compile(r'^', re.MULTILINE)
     outstr = re.sub(pat, ind, instr)
-    if outstr.endswith(os.linesep+ind):
-        return outstr[:-len(ind)]
+    if ind and outstr.endswith(os.linesep + ind):
+        return outstr[: -len(ind)]
     else:
         return outstr
 
