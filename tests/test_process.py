@@ -219,8 +219,36 @@ def test_system_interrupt_during_spawn(monkeypatch):
     monkeypatch.delattr(pexpect, "spawnb", raising=False)
     monkeypatch.setattr(pexpect, "spawn", interrupted_spawn)
 
-    status = ProcessHandler().system("true")
+    try:
+        status = ProcessHandler().system("true")
+    except UnboundLocalError as e:  # what it used to raise
+        status = e
     assert status == -signal.SIGINT
+
+
+@dec.skip_win32
+def test_system_interrupt_after_spawn_forked(monkeypatch):
+    """A ^C that arrives once the child exists, but before spawn() returns,
+    must still stop that child.
+    """
+    import pexpect
+    from IPython.utils._process_posix import ProcessHandler
+
+    real_spawn = pexpect.spawn
+    children = []
+
+    def spawn_then_interrupt(*args, **kwargs):
+        child = real_spawn(*args, **kwargs)
+        children.append(child)
+        os.kill(os.getpid(), signal.SIGINT)
+        return child
+
+    monkeypatch.delattr(pexpect, "spawnb", raising=False)
+    monkeypatch.setattr(pexpect, "spawn", spawn_then_interrupt)
+
+    ProcessHandler().system("sleep 30")
+    assert len(children) == 1
+    assert not children[0].isalive()
 
 
 def test_getoutput(subprocess_tmpfile):
