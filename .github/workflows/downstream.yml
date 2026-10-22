@@ -52,7 +52,7 @@ jobs:
         cd ..
         git clone https://github.com/ipython/ipykernel
         cd ipykernel
-        pip install -e .[test]
+        pip install -e . --group test
         cd ..
     - name: Install and update Python dependencies
       run: |

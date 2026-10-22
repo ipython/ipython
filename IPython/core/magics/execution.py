@@ -484,6 +484,10 @@ class ExecutionMagics(Magics):
 
     def _debug_exec(self, code, breakpoint, local_ns=None):
         if breakpoint:
+            # A FILE:LINE with spaces has to be quoted, and the quotes are kept
+            # by the argument parser.
+            if breakpoint[0] in {'"', "'"} and breakpoint.endswith(breakpoint[0]):
+                breakpoint = breakpoint[1:-1]
             (filename, bp_line) = breakpoint.rsplit(':', 1)
             bp_line = int(bp_line)
         else:
@@ -694,11 +698,11 @@ class ExecutionMagics(Magics):
                 if arg and arg.startswith('-') and arg != '-':
                     if arg == '-m':
                         argv.insert(idx + 2, '--')
+                        parameter_s = shlex.join(argv)
                         break
                 else:
                     # Positional arg, break
                     break
-            parameter_s = shlex.join(argv)
 
         # get arguments and set sys.argv for program to be run.
         opts, arg_lst = self.parse_options(parameter_s,

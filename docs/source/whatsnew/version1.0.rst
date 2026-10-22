@@ -22,9 +22,7 @@ and in this development cycle we had:
 - ~4000 commits.
 
 The amount of work included in this release is so large that we can only cover
-here the main highlights; please see our :ref:`detailed release statistics
-<issues_list_100>` for links to every issue and pull request closed on GitHub
-as well as a full list of individual contributors.
+here the main highlights.
 It includes
 
 Reorganization

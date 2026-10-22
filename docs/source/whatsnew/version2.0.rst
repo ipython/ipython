@@ -16,9 +16,6 @@ January, 2014
 - support for PyQt5 in the kernel (not QtConsole)
 - support for Pygments 2.0
 
-For more information on what fixes have been backported to 2.4,
-see our :ref:`detailed release info <issues_list_200>`.
-
 
 Release 2.3.1
 =============
@@ -26,9 +23,6 @@ Release 2.3.1
 November, 2014
 
 - Fix CRCRLF line-ending bug in notebooks on Windows
-
-For more information on what fixes have been backported to 2.3.1,
-see our :ref:`detailed release info <issues_list_200>`.
 
 Release 2.3.0
 =============
@@ -38,9 +32,6 @@ October, 2014
 - improve qt5 support
 - prevent notebook data loss with atomic writes
 
-For more information on what fixes have been backported to 2.3,
-see our :ref:`detailed release info <issues_list_200>`.
-
 Release 2.2.0
 =============
 
@@ -48,19 +39,12 @@ August, 2014
 
 - Add CORS configuration
 
-For more information on what fixes have been backported to 2.2,
-see our :ref:`detailed release info <issues_list_200>`.
-
 Release 2.1.0
 =============
 
 May, 2014
 
 IPython 2.1 is the first bugfix release for 2.0.
-For more information on what fixes have been backported to 2.1,
-see our :ref:`detailed release info
-<issues_list_200>`.
-
 
 Release 2.0.0
 =============
@@ -87,9 +71,7 @@ Contribution summary since IPython 1.0 in August, 2013:
 - ~4000 commits
 
 The amount of work included in this release is so large that we can only cover
-here the main highlights; please see our :ref:`detailed release statistics
-<issues_list_200>` for links to every issue and pull request closed on GitHub
-as well as a full list of individual contributors.
+here the main highlights.
 
 New stuff in the IPython notebook
 ---------------------------------

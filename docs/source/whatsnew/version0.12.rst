@@ -8,8 +8,6 @@ Release 0.12.1
 IPython 0.12.1 is a bugfix release of 0.12, pulling only bugfixes and minor
 cleanup from 0.13, timed for the Ubuntu 12.04 LTS release.
 
-See the :ref:`list of fixed issues <issues_list_012>` for specific backported issues.
-
 
 Release 0.12
 ============
@@ -208,7 +206,7 @@ Other important new features
 Major Bugs fixed
 ----------------
 
-In this cycle, we have :ref:`closed over 500 issues <issues_list_012>`, but a
+In this cycle, we have closed over 500 issues, but a
 few major ones merit special mention:
 
 * Simple configuration errors should no longer crash IPython. In 0.11, errors
@@ -307,8 +305,7 @@ Development summary and credits
 
 The previous version (IPython 0.11) was released on July 31 2011, so this
 release cycle was roughly 4 1/2 months long, we closed a total of 515 issues,
-257 pull requests and 258 regular issues (a :ref:`detailed list
-<issues_list_012>` is available).
+257 pull requests and 258 regular issues.
 
 Many users and developers contributed code, features, bug reports and ideas to
 this release.  Please do not hesitate in contacting us if we've failed to

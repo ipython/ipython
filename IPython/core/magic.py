@@ -397,10 +397,13 @@ class _MagicsRegistry(dict[str, Any]):
         self._manager = manager
 
     def __missing__(self, key: str) -> Any:
-        for magic_name, spec in list(self._manager.lazy_magics.items()):
+        for magic_name, magic_kind, spec in self._manager._lazy_declarations():
             if spec.endswith(":" + key):
-                self._manager.load_lazy(magic_name)
-                break
+                self._manager.load_lazy(magic_name, magic_kind)
+                # A matching spec declared once per kind
+                # has one spec per kind, so keep going until `key` shows up.
+                if key in self:
+                    break
         if key not in self:
             # A second miss must not loop back here.
             raise KeyError(key)
@@ -569,16 +572,26 @@ class MagicsManager(Configurable):
                 continue
             self.magics[kind][name] = LazyMagic(self, fully_qualified_name, kind, name)
 
-    def load_lazy(self, magic_name: str) -> None:
+    def load_lazy(self, magic_name: str, magic_kind: _MagicKind | None = None) -> None:
         """Import and register whatever provides `magic_name`.
 
         Does nothing if `magic_name` was not declared through
         :meth:`register_lazy` or :attr:`lazy_magics`, or if what provides it
         has already been loaded.
+
+        When `magic_kind` is given, the placeholder for that kind decides
+        which spec to load: a name may be declared with a different provider
+        per kind, and the lookup must resolve the kind that was asked for,
+        not whichever placeholder happens to be checked first.
         """
         # `lazy_magics` is user-configurable and may have been replaced
         # wholesale, so prefer the spec the placeholder carries.
-        fn = self.magics["line"].get(magic_name) or self.magics["cell"].get(magic_name)
+        if magic_kind is not None:
+            fn = self.magics[magic_kind].get(magic_name)
+        else:
+            fn = self.magics["line"].get(magic_name) or self.magics["cell"].get(
+                magic_name
+            )
         spec = (
             fn.spec if isinstance(fn, LazyMagic) else self.lazy_magics.get(magic_name)
         )
@@ -604,15 +617,36 @@ class MagicsManager(Configurable):
             self._loaded_lazy.discard(spec)
             raise
 
+    def _lazy_declarations(self) -> list[tuple[str, _MagicKind | None, str]]:
+        """Every live lazy declaration, as ``(name, kind, spec)``.
+
+        The placeholders in :attr:`magics` are the source of truth, because
+        :attr:`lazy_magics` is keyed by name alone and so keeps only the last
+        spec for a name declared once per kind. A name declared only through
+        the trait has no placeholder, and so no known kind.
+        """
+        seen: set[tuple[str, str]] = set()
+        declarations: list[tuple[str, _MagicKind | None, str]] = []
+        for kind in magic_kinds:
+            for name, fn in list(self.magics[kind].items()):
+                if isinstance(fn, LazyMagic) and (name, fn.spec) not in seen:
+                    seen.add((name, fn.spec))
+                    declarations.append((name, kind, fn.spec))
+        for name, spec in list(self.lazy_magics.items()):
+            if (name, spec) not in seen:
+                seen.add((name, spec))
+                declarations.append((name, None, spec))
+        return declarations
+
     def load_all_lazy_magics(self) -> None:
         """Import and register every magic still declared lazily.
 
         Only the ``module:MagicsClass`` ones: loading an extension can run
         arbitrary code, so that waits for the magic to actually be used.
         """
-        for magic_name, spec in list(self.lazy_magics.items()):
+        for magic_name, magic_kind, spec in self._lazy_declarations():
             if ":" in spec:
-                self.load_lazy(magic_name)
+                self.load_lazy(magic_name, magic_kind)
 
     def find(
         self, magic_kind: _MagicKind, magic_name: str
@@ -620,15 +654,32 @@ class MagicsManager(Configurable):
         """Return a registered magic, importing its implementation if needed.
 
         Returns None if there is no such magic.
+
+        Raises
+        ------
+        UsageError
+            If `magic_name` is declared lazily for `magic_kind` but what the
+            declaration names does not provide it.
         """
-        fn = self.magics[magic_kind].get(magic_name)
-        if isinstance(fn, LazyMagic) or (fn is None and magic_name in self.lazy_magics):
-            self.load_lazy(magic_name)
-            fn = self.magics[magic_kind].get(magic_name)
+        table = self.magics[magic_kind]
+        fn = table.get(magic_name)
+        if fn is None and magic_name in self.lazy_magics:
+            # Declared straight into `lazy_magics` as configuration, so there
+            # is no placeholder for this kind to carry the spec.
+            self.load_lazy(magic_name, magic_kind)
+            fn = table.get(magic_name)
+        if isinstance(fn, LazyMagic):
+            self.load_lazy(magic_name, magic_kind)
+            fn = table.get(magic_name)
             if isinstance(fn, LazyMagic):
-                # Declared but not delivered; drop the stale placeholder.
-                del self.magics[magic_kind][magic_name]
-                fn = None
+                # Declared but not delivered: the provider does not
+                # implement this kind, and that is an error rather than a
+                # cue to fall back to an older declaration.
+                raise UsageError(
+                    "Magic `%s%s` is registered as lazy (%s) but loading it "
+                    "did not provide a %s implementation."
+                    % (magic_escapes[magic_kind], magic_name, fn.spec, magic_kind)
+                )
         return t.cast("Callable[..., Any] | None", fn)
 
     def register(self, *magic_objects: type[Magics] | Magics) -> None:

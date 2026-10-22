@@ -40,7 +40,8 @@ def fake_conda_env(monkeypatch, tmp_path):
 
 
 @skip_win32
-def test_pip_runs_current_interpreter(recorded_commands, capsys):
+def test_pip_runs_current_interpreter(recorded_commands, capsys, monkeypatch):
+    monkeypatch.setenv("SHELL", "/bin/bash")
     ip.run_line_magic("pip", "install foo")
     assert recorded_commands == [
         "%s -m pip install foo" % shlex.quote(sys.executable)
@@ -50,9 +51,26 @@ def test_pip_runs_current_interpreter(recorded_commands, capsys):
 
 @skip_win32
 def test_pip_quotes_interpreter_path(recorded_commands, monkeypatch):
+    monkeypatch.setenv("SHELL", "/bin/bash")
     monkeypatch.setattr(sys, "executable", "/spa ced/python")
     ip.run_line_magic("pip", "install foo")
     assert recorded_commands == ["'/spa ced/python' -m pip install foo"]
+
+
+@pytest.mark.parametrize(
+    ("magic", "line", "module"),
+    [("pip", "install foo", "pip"), ("uv", "pip install foo", "uv")],
+)
+@skip_win32
+def test_packaging_magic_nushell_quotes_external_command(
+    magic, line, module, recorded_commands, monkeypatch
+):
+    monkeypatch.setenv("SHELL", "/usr/bin/nu")
+    monkeypatch.setattr(sys, "executable", "/spa ced/python")
+    ip.run_line_magic(magic, line)
+    assert recorded_commands == [
+        f"^'/spa ced/python' -m {module} {line}"
+    ]
 
 
 def test_pip_windows_quoting(recorded_commands, monkeypatch):
@@ -65,7 +83,8 @@ def test_pip_windows_quoting(recorded_commands, monkeypatch):
 
 
 @skip_win32
-def test_uv_runs_current_interpreter(recorded_commands, capsys):
+def test_uv_runs_current_interpreter(recorded_commands, capsys, monkeypatch):
+    monkeypatch.setenv("SHELL", "/bin/bash")
     ip.run_line_magic("uv", "pip install foo")
     assert recorded_commands == [
         "%s -m uv pip install foo" % shlex.quote(sys.executable)

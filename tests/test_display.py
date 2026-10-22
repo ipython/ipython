@@ -44,7 +44,6 @@ from IPython.testing.decorators import skipif_not_numpy
 def test_instantiation_FileLink():
     """FileLink: Test class can be instantiated"""
     fl = display.FileLink("example.txt")
-    # TODO: remove if when only Python >= 3.6 is supported
     fl = display.FileLink(pathlib.PurePath("example.txt"))
 
 
@@ -86,6 +85,17 @@ def test_error_on_directory_to_FileLink():
 def test_instantiation_FileLinks():
     """FileLinks: Test class can be instantiated"""
     fls = display.FileLinks("example")
+
+
+@pytest.mark.parametrize("recursive", [True, False])
+@pytest.mark.parametrize("path_type", [pathlib.Path, pathlib.PurePath])
+def test_pathlike_FileLinks(tmp_path, recursive, path_type):
+    (tmp_path / "example.txt").touch()
+    expected = display.FileLinks(str(tmp_path), recursive=recursive)
+    actual = display.FileLinks(path_type(tmp_path), recursive=recursive)
+
+    assert actual._repr_html_() == expected._repr_html_()
+    assert repr(actual) == repr(expected)
 
 
 def test_warning_on_non_existent_path_FileLinks():
