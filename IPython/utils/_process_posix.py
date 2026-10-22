@@ -123,10 +123,27 @@ class ProcessHandler:
             # We only search for the 'patterns' timeout or EOF, which aren't in
             # the text itself.
             #child = pexpect.spawn(pcmd, searchwindowsize=1)
-            if hasattr(pexpect, 'spawnb'):
-                child = pexpect.spawnb(self.sh, args=['-c', cmd]) # Pexpect-U
-            else:
-                child = pexpect.spawn(self.sh, args=['-c', cmd])  # Vanilla Pexpect
+            # Hold back ^C while spawning: pexpect may already have forked the
+            # child when it arrives, and we would lose the handle to stop it.
+            # It is raised again as soon as spawn() has returned.
+            deferred = []
+            try:
+                previous_handler = signal.signal(
+                    signal.SIGINT, lambda signum, frame: deferred.append(signum)
+                )
+            except ValueError:
+                # Not the main thread, where Python never raises ^C anyway.
+                previous_handler = None
+            try:
+                if hasattr(pexpect, 'spawnb'):
+                    child = pexpect.spawnb(self.sh, args=['-c', cmd]) # Pexpect-U
+                else:
+                    child = pexpect.spawn(self.sh, args=['-c', cmd])  # Vanilla Pexpect
+            finally:
+                if previous_handler is not None:
+                    signal.signal(signal.SIGINT, previous_handler)
+            if deferred:
+                raise KeyboardInterrupt
             flush = sys.stdout.flush
             while True:
                 # res is the index of the pattern that caused the match, so we
@@ -151,7 +168,8 @@ class ProcessHandler:
             # Read and print any more output the program might produce on its
             # way out.
             try:
-                out_size = len(child.before)
+                # child.before is None until the first expect has returned.
+                out_size = len(child.before or b"")
                 child.expect_list(patterns, self.terminate_timeout)
                 print(child.before[out_size:].decode(enc, 'replace'), end='')
                 sys.stdout.flush()
