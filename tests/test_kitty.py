@@ -271,3 +271,47 @@ assert "psutil" not in sys.modules
         env=env,
     )
     assert result.returncode == 0, result.stderr
+
+
+def test_ancestor_process_names_on_android_reads_proc(monkeypatch):
+    """android joins linux on the /proc walk, out of psutil's reach."""
+    from IPython.core import kitty
+
+    monkeypatch.setattr(sys, "platform", "android")
+    monkeypatch.setattr(os.path, "isdir", lambda path: path == "/proc/self")
+    monkeypatch.setattr(os, "getppid", lambda: 42)
+
+    def no_psutil():
+        raise AssertionError("android with /proc must not fall back to psutil")
+
+    monkeypatch.setattr(kitty, "_psutil_ancestor_names", no_psutil)
+    monkeypatch.setattr(
+        kitty,
+        "_read_proc_stat",
+        _fake_proc({42: ("bash", 7), 7: ("kitty", 1), 1: ("init", 0)}),
+    )
+    assert list(kitty._ancestor_process_names()) == ["bash", "kitty", "init"]
+
+
+@pytest.mark.parametrize(
+    "platform, expected",
+    [
+        ("win32", False),
+        ("android", True),
+        ("freebsd", True),
+    ],
+)
+def test_supports_kitty_graphics_platform_gate(monkeypatch, platform, expected):
+    """Only platforms known not to speak the protocol are ruled out.
+
+    Detection used to whitelist darwin/linux, which locked out Termux and
+    friends (ipython/ipython#15422); it is a win32 blacklist now.
+    """
+    from IPython.core import kitty
+
+    monkeypatch.delenv("IPYTHON_KITTY_GRAPHICS", raising=False)
+    monkeypatch.setattr(sys, "platform", platform)
+    monkeypatch.setattr(sys, "stdout", StdoutTTY())
+    monkeypatch.setattr(kitty, "_ancestor_process_names", lambda: iter(["kitty"]))
+
+    assert kitty._supports_kitty_graphics() is expected
