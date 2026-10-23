@@ -346,6 +346,25 @@ def test_check_complete_param(code, expected, number):
     assert cc(code) == (expected, number)
 
 
+@pytest.mark.parametrize(
+    "code,expected",
+    [
+        ("# setup\n%%foo", ("incomplete", 0)),
+        ("# setup\n%%foo\n", ("incomplete", 0)),
+        ("# setup\n%%foo\nbody\n", ("incomplete", 0)),
+        ("# setup\n%%foo\n  body\n", ("incomplete", 2)),
+        ("# setup\n\n%%foo\nbody\n\n", ("complete", None)),
+        ("In [1]: # setup\n   ...: %%foo\n   ...: body\n", ("incomplete", 0)),
+        (
+            "In [1]: # setup\n   ...: %%foo\n   ...: body\n   ...: \n",
+            ("complete", None),
+        ),
+    ],
+)
+def test_check_complete_cell_magic_after_comments(code, expected):
+    assert ipt2.TransformerManager().check_complete(code) == expected
+
+
 @pytest.mark.xfail(platform.python_implementation() == "PyPy", reason="fail on pypy")
 def test_check_complete():
     cc = ipt2.TransformerManager().check_complete
