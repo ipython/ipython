@@ -9,6 +9,13 @@
 import argparse
 import sys
 
+from IPython.core.magic import (
+    Magics,
+    cell_magic,
+    line_cell_magic,
+    line_magic,
+    magics_class,
+)
 from IPython.core.magic_arguments import (
     argument,
     argument_group,
@@ -143,3 +150,41 @@ def test_magic_arguments():
     assert real_name(foo) == "foo"
     assert foo(None, "") == argparse.Namespace(foo=None)
     assert hasattr(foo, "has_arguments")
+
+
+@magics_class
+class KindMagics(Magics):
+    @magic_arguments()
+    @argument('-f', '--foo', help="an argument")
+    @line_magic
+    def linefoo(self, line):
+        """ A docstring.
+        """
+
+    @magic_arguments()
+    @argument('-f', '--foo', help="an argument")
+    @cell_magic
+    def cellfoo(self, line, cell):
+        """ A docstring.
+        """
+
+    @magic_arguments()
+    @argument('-f', '--foo', help="an argument")
+    @cell_magic("cellbar")
+    def cellbar(self, line, cell):
+        """ A docstring.
+        """
+
+    @magic_arguments()
+    @argument('-f', '--foo', help="an argument")
+    @line_cell_magic
+    def bothfoo(self, line, cell=None):
+        """ A docstring.
+        """
+
+
+def test_magic_arguments_usage_escape_follows_magic_kind():
+    assert KindMagics.linefoo.__doc__.startswith("::\n\n  %linefoo [-f FOO]\n")
+    assert KindMagics.cellfoo.__doc__.startswith("::\n\n  %%cellfoo [-f FOO]\n")
+    assert KindMagics.cellbar.__doc__.startswith("::\n\n  %%cellbar [-f FOO]\n")
+    assert KindMagics.bothfoo.__doc__.startswith("::\n\n  %bothfoo [-f FOO]\n")

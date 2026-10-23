@@ -217,12 +217,14 @@ def _method_magic_marker(
             func = arg
             name = func.__name__
             retval = arg
+            setattr(func, MAGIC_KIND_ATTR, magic_kind)
             record_magic(magics, magic_kind, name, name)
         elif isinstance(arg, str):
             # Decorator called with arguments (@foo('bar'))
             name = arg
 
             def mark(func: _F, *a: Any, **kw: Any) -> _F:
+                setattr(func, MAGIC_KIND_ATTR, magic_kind)
                 record_magic(magics, magic_kind, name, func.__name__)
                 return func
 
@@ -264,6 +266,7 @@ def _function_magic_marker(
             # "Naked" decorator call (just @foo, no args)
             func = arg
             name = func.__name__
+            setattr(func, MAGIC_KIND_ATTR, magic_kind)
             ip.register_magic_function(func, magic_kind, name)  # type: ignore[arg-type]
             retval = arg
         elif isinstance(arg, str):
@@ -271,6 +274,7 @@ def _function_magic_marker(
             name = arg
 
             def mark(func: _F, *a: Any, **kw: Any) -> _F:
+                setattr(func, MAGIC_KIND_ATTR, magic_kind)
                 ip.register_magic_function(func, magic_kind, name)  # type: ignore[arg-type]
                 return func
 
@@ -299,6 +303,7 @@ def _function_magic_marker(
 
 MAGIC_NO_VAR_EXPAND_ATTR = "_ipython_magic_no_var_expand"
 MAGIC_OUTPUT_CAN_BE_SILENCED = "_ipython_magic_output_can_be_silenced"
+MAGIC_KIND_ATTR = "_ipython_magic_kind"
 
 
 def no_var_expand(magic_func: _F) -> _F:
