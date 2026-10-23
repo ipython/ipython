@@ -1,5 +1,7 @@
 .. _license:
 
+.. highlight:: none
+
 ======================
 Licenses and Copyright
 ======================
