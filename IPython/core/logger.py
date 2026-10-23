@@ -48,6 +48,17 @@ class Logger:
         # whether to put timestamps before each log entry
         self.timestamp = False
 
+        # input filters, see logstart()
+        self.skip_magics = False
+        self.skip_errors = False
+        self.skip_duplicates = False
+        self._logged: set[str] = set()
+        # Entries held back by skip_errors: (line_mod, line_ori, outputs).
+        # A stack, since magics like %%capture run cells from inside a cell.
+        self._pending: list[tuple[str, str, list[str]]] = []
+        # Whether output belongs to an input the filters dropped.
+        self._drop_output = False
+
         # activity control flags
         self.log_active = False
 
@@ -63,10 +74,25 @@ class Logger:
             raise ValueError('invalid log mode %s given' % mode)
         self._logmode = mode
 
-    def logstart(self, logfname: str | None = None, loghead: str | None = None,
-                 logmode: str | None = None, log_output: bool = False,
-                 timestamp: bool = False, log_raw_input: bool = False) -> None:
+    def logstart(
+        self,
+        logfname: str | None = None,
+        loghead: str | None = None,
+        logmode: str | None = None,
+        log_output: bool = False,
+        timestamp: bool = False,
+        log_raw_input: bool = False,
+        skip_magics: bool = False,
+        skip_errors: bool = False,
+        skip_duplicates: bool = False,
+    ) -> None:
         """Generate a new log-file with a default header.
+
+        The ``skip_*`` flags filter the input logged from now on:
+        ``skip_magics`` drops input that IPython rewrites into ``get_ipython()``
+        calls (magics, shell escapes, help lookups), ``skip_errors`` drops input
+        that raised (the caller must report each result with ``log_pending``),
+        and ``skip_duplicates`` drops input already written to this log.
 
         Raises RuntimeError if the log has already been started"""
 
@@ -83,6 +109,12 @@ class Logger:
         self.timestamp = timestamp
         self.log_output = log_output
         self.log_raw_input = log_raw_input
+        self.skip_magics = skip_magics
+        self.skip_errors = skip_errors
+        self.skip_duplicates = skip_duplicates
+        self._logged = set()
+        self._pending = []
+        self._drop_output = False
 
         # init depending on the log mode requested
         isfile = os.path.isfile
@@ -159,13 +191,16 @@ which already exists. But you must first start the logging process with
         if self.logfile is None:
             print('Logging has not been activated.')
         else:
-            state = self.log_active and 'active' or 'temporarily suspended'
-            print('Filename       :', self.logfname)
-            print('Mode           :', self.logmode)
-            print('Output logging :', self.log_output)
-            print('Raw input log  :', self.log_raw_input)
-            print('Timestamping   :', self.timestamp)
-            print('State          :', state)
+            state = self.log_active and "active" or "temporarily suspended"
+            print("Filename       :", self.logfname)
+            print("Mode           :", self.logmode)
+            print("Output logging :", self.log_output)
+            print("Raw input log  :", self.log_raw_input)
+            print("Timestamping   :", self.timestamp)
+            print("Skip magics    :", self.skip_magics)
+            print("Skip errors    :", self.skip_errors)
+            print("Skip duplicates:", self.skip_duplicates)
+            print("State          :", state)
 
     def log(self, line_mod: str, line_ori: str) -> None:
         """Write the sources to a log.
@@ -180,16 +215,51 @@ which already exists. But you must first start the logging process with
           necessarily valid Python.
         """
 
+        if self.skip_errors:
+            # Written or dropped by log_pending once the result is known.
+            self._pending.append((line_mod, line_ori, []))
+        else:
+            self.log_input(line_mod, line_ori)
+
+    def log_input(self, line_mod: str, line_ori: str) -> bool:
+        """Write one input entry now, honoring the skip filters.
+
+        Returns whether the entry was written. Output logged after a dropped
+        entry is dropped with it."""
         # Write the log line, but decide which one according to the
         # log_raw_input flag, set when the log is started.
-        if self.log_raw_input:
-            self.log_write(line_ori)
-        else:
-            self.log_write(line_mod)
+        data = line_ori if self.log_raw_input else line_mod
+        written = bool(self.log_active and data)
+        if self.skip_magics and "get_ipython()." in line_mod:
+            written = False
+        if self.skip_duplicates and data in self._logged:
+            written = False
+        self._drop_output = not written
+        if written:
+            if self.skip_duplicates:
+                self._logged.add(data)
+            self.log_write(data)
+        return written
+
+    def log_pending(self, success: bool) -> None:
+        """Write the input held back by ``skip_errors`` if it succeeded."""
+        if not self._pending:
+            return
+        line_mod, line_ori, outputs = self._pending.pop()
+        if success and self.log_input(line_mod, line_ori):
+            for output in outputs:
+                self.log_write(output, "output")
 
     def log_write(self, data: str, kind: str = 'input') -> None:
         """Write data to the log file, if active"""
 
+        if kind == "output":
+            if self._pending:
+                # Held until the input it belongs to is written or dropped.
+                self._pending[-1][2].append(data)
+                return
+            if self._drop_output:
+                return
         # print('data: %r' % data)  # dbg
         if self.log_active and data:
             write = self.logfile.write
@@ -225,6 +295,9 @@ which already exists. But you must first start the logging process with
         else:
             print("Logging hadn't been started.")
         self.log_active = False
+        self.skip_magics = self.skip_errors = self.skip_duplicates = False
+        self._pending = []
+        self._drop_output = False
 
     # For backwards compatibility, in case anyone was using this.
     close_log = logstop
