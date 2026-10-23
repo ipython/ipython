@@ -6,7 +6,12 @@
 # Imports
 # -----------------------------------------------------------------------------
 
+import shlex
+import sys
+from unittest import mock
+
 import pytest
+from IPython.core import hooks
 from IPython.core.error import TryNext
 from IPython.core.hooks import CommandChainDispatcher
 
@@ -145,3 +150,31 @@ def test_command_chain_dispatcher_passes_args():
     dp.add(capture)
     dp(1, 2, key="val")
     assert results == [((1, 2), {"key": "val"})]
+
+
+class _EditorSelf:
+    """Minimal stand-in for the shell, exposing only what ``editor`` reads."""
+
+    editor = "myeditor"
+
+
+def test_default_editor_quotes_filename():
+    """The default editor hook must not let shell metacharacters in the
+    filename reach the shell unquoted."""
+    called = []
+
+    def fake_popen(cmd, **kwargs):
+        called.append(cmd)
+        return mock.MagicMock(**{"wait.return_value": 0})
+
+    dangerous = "notes.py;touch pwned"
+    with mock.patch("subprocess.Popen", fake_popen):
+        hooks.editor(_EditorSelf(), dangerous, linenum=7)
+
+    assert len(called) == 1
+    cmd = called[0]
+    if sys.platform.startswith("win"):
+        # cmd is an argv list; the whole filename stays a single element
+        assert dangerous in cmd
+    else:
+        assert cmd == "myeditor +7 %s" % shlex.quote(dangerous)
