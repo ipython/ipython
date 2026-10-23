@@ -135,10 +135,10 @@ class ProcessHandler:
                 # Not the main thread, where Python never raises ^C anyway.
                 previous_handler = None
             try:
-                if hasattr(pexpect, 'spawnb'):
-                    child = pexpect.spawnb(self.sh, args=['-c', cmd]) # Pexpect-U
+                if hasattr(pexpect, "spawnb"):
+                    child = pexpect.spawnb(self.sh, args=["-c", cmd])  # Pexpect-U
                 else:
-                    child = pexpect.spawn(self.sh, args=['-c', cmd])  # Vanilla Pexpect
+                    child = pexpect.spawn(self.sh, args=["-c", cmd])  # Vanilla Pexpect
             finally:
                 if previous_handler is not None:
                     signal.signal(signal.SIGINT, previous_handler)
