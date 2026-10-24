@@ -23,6 +23,16 @@ def test_indent_spaces(text, nspaces, expected):
     assert indent(text, nspaces=nspaces) == expected
 
 
+@pytest.mark.parametrize("text", ["", "hello\n", "one\ntwo\n", "one\r\ntwo\r\n"])
+@pytest.mark.parametrize("flatten", [False, True])
+def test_indent_zero_spaces(text: str, flatten: bool) -> None:
+    assert indent(text, nspaces=0, flatten=flatten) == text
+
+
+def test_indent_zero_spaces_flatten() -> None:
+    assert indent("  one\n    two\n", nspaces=0, flatten=True) == "one\ntwo\n"
+
+
 def test_indent_tabs():
     result = indent("hello", ntabs=1, nspaces=0)
     assert result == "\thello"
