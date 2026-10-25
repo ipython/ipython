@@ -58,7 +58,6 @@ black = [
 ]
 doc = [
     "docrepr",
-    "exceptiongroup",
     "intersphinx_registry",
     "ipykernel",
     "ipython[test,matplotlib]",
