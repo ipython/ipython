@@ -7,14 +7,10 @@ from tempfile import TemporaryDirectory
 from IPython.testing import tools as tt
 
 
-def _exceptiongroup_common(
-    outer_chain: str,
-    inner_chain: str,
-    native: bool,
-) -> None:
-    pre_raise = "exceptiongroup." if not native else ""
+@pytest.mark.parametrize("outer_chain", ["none", "from", "another"])
+@pytest.mark.parametrize("inner_chain", ["none", "from", "another"])
+def test_native_exceptiongroup(outer_chain, inner_chain) -> None:
     filestr = f"""
-    {"import exceptiongroup" if not native else ""}
     import pytest
 
     def f(): raise ValueError("From f()")
@@ -29,14 +25,14 @@ def _exceptiongroup_common(
                 excs.append(err)
         if excs:
             if inner_chain == "none":
-                raise {pre_raise}BaseExceptionGroup("Oops", excs)
+                raise BaseExceptionGroup("Oops", excs)
             try:
                 raise SyntaxError()
             except SyntaxError as e:
                 if inner_chain == "from":
-                    raise {pre_raise}BaseExceptionGroup("Oops", excs) from e
+                    raise BaseExceptionGroup("Oops", excs) from e
                 else:
-                    raise {pre_raise}BaseExceptionGroup("Oops", excs)
+                    raise BaseExceptionGroup("Oops", excs)
 
     def outer(outer_chain, inner_chain):
         try:
@@ -85,7 +81,6 @@ def _exceptiongroup_common(
 
     error_lines = cap.stderr.split("\n")
 
-    err_index = match_index = 0
     for expected in match_lines:
         for i, actual in enumerate(error_lines):
             if actual == expected:
@@ -93,16 +88,3 @@ def _exceptiongroup_common(
                 break
         else:
             assert False, f"{expected} not found in cap.stderr"
-
-
-@pytest.mark.parametrize("outer_chain", ["none", "from", "another"])
-@pytest.mark.parametrize("inner_chain", ["none", "from", "another"])
-def test_native_exceptiongroup(outer_chain, inner_chain) -> None:
-    _exceptiongroup_common(outer_chain, inner_chain, native=True)
-
-
-@pytest.mark.parametrize("outer_chain", ["none", "from", "another"])
-@pytest.mark.parametrize("inner_chain", ["none", "from", "another"])
-def test_native_exceptiongroup(outer_chain, inner_chain) -> None:
-    pytest.importorskip("exceptiongroup")
-    _exceptiongroup_common(outer_chain, inner_chain, native=False)

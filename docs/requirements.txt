@@ -3,7 +3,6 @@ sphinx>7
 setuptools
 sphinx_rtd_theme>=1.2.0
 numpy
-exceptiongroup
 testpath
 matplotlib
 docrepr
