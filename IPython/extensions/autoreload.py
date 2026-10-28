@@ -373,6 +373,10 @@ def update_instances(old, new):
     """Use garbage collector to find all instances that refer to the old
     class definition and update their __class__ to point to the new class
     definition"""
+    # Imported types such as functools.partial are the same object after a
+    # reload. Their instances reject __class__ assignment (ipython/ipython#14984).
+    if old is new:
+        return
 
     refs = gc.get_referrers(old)
 
