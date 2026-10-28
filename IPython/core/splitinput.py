@@ -9,8 +9,10 @@ prefilter.
 
 import re
 import warnings
+from typing import TYPE_CHECKING
 
-from IPython.core.oinspect import OInfo
+if TYPE_CHECKING:
+    from IPython.core.oinspect import OInfo
 
 # -----------------------------------------------------------------------------
 # Main function
@@ -123,7 +125,7 @@ class LineInfo:
         else:
             self.pre_whitespace = self.pre
 
-    def ofind(self, ip) -> OInfo:
+    def ofind(self, ip) -> "OInfo":
         """Do a full, attribute-walking lookup of the ifun in the various
         namespaces for the given IPython InteractiveShell instance.
 

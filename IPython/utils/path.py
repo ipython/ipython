@@ -8,12 +8,7 @@ Utilities for path handling.
 import os
 import sys
 import errno
-import shutil
-import random
-import glob
 import warnings
-
-from IPython.utils.process import system
 
 #-----------------------------------------------------------------------------
 # Code
@@ -283,6 +278,8 @@ def shellglob(args):
     expanded = []
     # Do not unescape backslash in Windows as it is interpreted as
     # path separator:
+    import glob
+
     unescape = unescape_glob if sys.platform != 'win32' else lambda x: x
     for a in args:
         expanded.extend(glob.glob(a) or [unescape(a)])
@@ -328,6 +325,7 @@ def link_or_copy(src, dst):
             # anyway, we get duplicate files - see http://bugs.python.org/issue21876
             return
 
+        import random
         new_dst = dst + "-temp-%04X" %(random.randint(1, 16**4), )
         try:
             link_or_copy(src, new_dst)
@@ -341,6 +339,7 @@ def link_or_copy(src, dst):
     elif link_errno != 0:
         # Either link isn't supported, or the filesystem doesn't support
         # linking, or 'src' and 'dst' are on different filesystems.
+        import shutil
         shutil.copy(src, dst)
 
 def ensure_dir_exists(path: str, mode: int=0o755):

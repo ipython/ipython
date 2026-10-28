@@ -96,7 +96,6 @@ Inheritance diagram:
 from contextlib import contextmanager
 import datetime
 import os
-import platform
 import re
 import sys
 import types
@@ -705,6 +704,8 @@ def _super_pprint(obj, p, cycle):
     p.pretty(obj.__thisclass__)
     p.text(',')
     p.breakable()
+    import platform
+
     if platform.python_implementation() == "PyPy": # In PyPy, super() objects don't have __self__ attributes
         dself = obj.__repr__.__self__
         p.pretty(None if dself is obj else dself)

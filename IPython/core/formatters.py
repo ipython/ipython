@@ -29,7 +29,7 @@ We can now define our own formatter and register it:
 
     >>> llm_formatter = LLMFormatter(parent=ip.display_formatter)
 
-    >>> ip.display_formatter.formatters[LLMFormatter.format_type] = llm_formatter
+    >>> ip.display_formatter.register_formatter(llm_formatter)
 
 Now any class that define `_repr_llm_` will return a x-vendor/llm as part of
 it's display data:
@@ -66,7 +66,6 @@ Inheritance diagram:
 
 import abc
 import sys
-import traceback
 import warnings
 from io import StringIO
 
@@ -144,6 +143,14 @@ class DisplayFormatter(Configurable):
             f = cls(parent=self)
             d[f.format_type] = f
         return d
+
+    def register_formatter(self, formatter):
+        if formatter.format_type in self.formatters:
+            warnings.warn(
+                f"Replacing formatter {type(self.formatters[formatter.format_type])} with {type(formatter)}",
+                FormatterWarning,
+            )
+        self.formatters[formatter.format_type] = formatter
 
     def format(self, obj, include=None, exclude=None):
         """Return a format data dict for an object.
@@ -286,6 +293,7 @@ def catch_format_error(method):
             if ip is not None:
                 ip.showtraceback(exc_info)
             else:
+                import traceback
                 traceback.print_exception(*exc_info)
             return self._check_return(None, args[0])
         return self._check_return(r, args[0])

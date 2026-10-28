@@ -39,7 +39,7 @@ def _get_conda_like_executable(command):
     Parameters
     ----------
 
-    executable: string
+    command: string
         Value should be: conda, mamba or micromamba
     """
     # Check for a environment variable bound to the base executable, both conda and mamba
@@ -85,6 +85,17 @@ CONDA_ENV_FLAGS = {'-p', '--prefix', '-n', '--name'}
 CONDA_YES_FLAGS = {'-y', '--y'}
 
 
+def _quote_executable_for_shell(executable: str) -> str:
+    if sys.platform == "win32":
+        return '"' + executable + '"'
+
+    quoted = shlex.quote(executable)
+    if Path(os.environ.get("SHELL", "")).name.lower() == "nu":
+        # Nushell needs the external-command prefix even for a quoted executable.
+        return "^" + quoted
+    return quoted
+
+
 @magics_class
 class PackagingMagics(Magics):
     """Magics related to packaging & installation"""
@@ -96,11 +107,7 @@ class PackagingMagics(Magics):
         Usage:
           %pip install [pkgs]
         """
-        python = sys.executable
-        if sys.platform == "win32":
-            python = '"' + python + '"'
-        else:
-            python = shlex.quote(python)
+        python = _quote_executable_for_shell(sys.executable)
 
         self.shell.system(" ".join([python, "-m", "pip", line]))
 
@@ -170,11 +177,7 @@ class PackagingMagics(Magics):
         Usage:
           %uv pip install [pkgs]
         """
-        python = sys.executable
-        if sys.platform == "win32":
-            python = '"' + python + '"'
-        else:
-            python = shlex.quote(python)
+        python = _quote_executable_for_shell(sys.executable)
 
         self.shell.system(" ".join([python, "-m", "uv", line]))
 

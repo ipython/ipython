@@ -24,7 +24,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.11", "3.12", "3.13", "3.14", "3.15"]
         deps: [test_extra]
         # Test all on ubuntu, test ends on macos
         include:
@@ -35,28 +35,28 @@ jobs:
           - os: ubuntu-latest
             python-version: "3.14t"
             deps: test
-          # Tests latest development Python version
-          - os: ubuntu-latest
-            python-version: "3.15-dev"
-            deps: test
+          # Tests latest development Python version, re-enable once setup-python provides it
+          # - os: ubuntu-latest
+          #   python-version: "3.16-dev"
+          #   deps: test
           - os: ubuntu-latest
             python-version: "3.12"
             deps: test_extra
             want-latest-entry-point-code: true
 
     steps:
-    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       with:
         persist-credentials: false
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
       with:
         python-version: ${{ matrix.python-version }}
         cache: pip
         cache-dependency-path: |
           pyproject.toml
     - name: Install uv
-      uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
     - name: Install latex
       if: runner.os == 'Linux' && matrix.deps == 'test_extra'
       run: echo "disable latex for now, issues in mirros" #sudo apt-get -yq -o Acquire::Retries=3 --no-install-suggests --no-install-recommends install texlive dvipng
@@ -105,7 +105,7 @@ jobs:
         pytest --color=yes -raXxs ${{ startsWith(matrix.python-version, 'pypy') && ' ' || '--cov --cov-report=xml' }} --ff --maxfail=5
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6
+      uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
       with:
          token: ${{ secrets.CODECOV_TOKEN }}
          name: Test
@@ -129,11 +129,11 @@ jobs:
           - windows-latest
 
     steps:
-    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       with:
         persist-credentials: false
     - name: Set up uv with Python 3.11
-      uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
       with:
         python-version: '3.11'
         enable-cache: true

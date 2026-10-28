@@ -13,7 +13,7 @@ You start IPython with the command::
 
 If invoked with no options, it executes the file and exits, passing the
 remaining arguments to the script, just as if you had specified the same
-command with python. You may need to specify `--` before args to be passed
+command with python. You may need to specify ``--`` before args to be passed
 to the script, to prevent IPython from attempting to parse them.
 If you add the ``-i`` flag, it drops you into the interpreter while still
 acknowledging any options you may have set in your ``ipython_config.py``. This
@@ -163,7 +163,7 @@ use it:
     /home/fperez/ipython
 
 Line magics, if they return a value, can be assigned to a variable using the
-syntax ``l = %sx ls`` (which in this particular case returns the result of `ls`
+syntax ``l = %sx ls`` (which in this particular case returns the result of ``ls``
 as a python list). See :ref:`below <manual_capture>` for more information.
 
 Type ``%magic`` for more information, including a list of all available magic
@@ -366,7 +366,7 @@ For simple cases, you can alternatively prepend $ to a variable name::
     In [7]: !echo "A system variable: $$HOME"  # Use $$ for literal $
     A system variable: /home/fperez
 
-Note that `$$` is used to represent a literal `$`.
+Note that ``$$`` is used to represent a literal ``$``.
 
 System command aliases
 ----------------------
@@ -626,7 +626,7 @@ code snippet::
   a = 42
   IPython.embed()
 
-and within the IPython shell, you reassign `a` to `23` to do further testing of
+and within the IPython shell, you reassign ``a`` to ``23`` to do further testing of
 some sort, you can then exit::
 
   >>> IPython.embed()
@@ -638,7 +638,7 @@ some sort, you can then exit::
 
   In [2]: exit()
 
-Once you exit and print `a`, the value 23 will be shown::
+Once you exit and print ``a``, the value 23 will be shown::
 
 
   In: print(a)
@@ -646,7 +646,7 @@ Once you exit and print `a`, the value 23 will be shown::
 
 It's important to note that the code run in the embedded IPython shell will
 *not* change the state of your code and variables, **unless** the shell is
-contained within the global namespace. In the above example, `a` is changed
+contained within the global namespace. In the above example, ``a`` is changed
 because this is true.
 
 To further exemplify this, consider the following example::
@@ -659,7 +659,7 @@ To further exemplify this, consider the following example::
       print(a)
 
 Now if call the function and complete the state changes as we did above, the
-value `42` will be printed. Again, this is because it's not in the global
+value ``42`` will be printed. Again, this is because it's not in the global
 namespace::
 
   do()
@@ -978,7 +978,7 @@ object, do::
 
     %gui wx
 
-You can also start IPython with an event loop set up using the `--gui`
+You can also start IPython with an event loop set up using the ``--gui``
 flag::
 
     $ ipython --gui=qt

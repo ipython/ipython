@@ -8,11 +8,7 @@ from __future__ import annotations
 from enum import Enum
 from dataclasses import dataclass, KW_ONLY
 from binascii import b2a_base64, hexlify
-import html
-import json
-import mimetypes
 import os
-import struct
 import warnings
 from copy import deepcopy
 from os.path import splitext
@@ -544,7 +540,7 @@ class ProgressBar(DisplayObject):
         self._display_id = hexlify(os.urandom(8)).decode('ascii')
 
     def __repr__(self):
-        fraction = self.progress / self.total
+        fraction = self.progress / self.total if self.total else 0
         filled = '=' * int(fraction * self.text_width)
         rest = ' ' * (self.text_width - len(filled))
         return '[{}{}] {}/{}'.format(
@@ -639,6 +635,7 @@ class JSON(DisplayObject):
         if isinstance(data, str):
             if self.filename is None and self.url is None:
                 warnings.warn("JSON expects JSONable dict or list, not JSON strings")
+            import json
             data = json.loads(data)
         self._data = data
 
@@ -800,6 +797,7 @@ def _pngxy(data):
     """read the (width, height) from a PNG header"""
     ihdr = data.index(b'IHDR')
     # next 8 bytes are width/height
+    import struct
     return struct.unpack('>ii', data[ihdr+4:ihdr+12])
 
 
@@ -807,6 +805,7 @@ def _jpegxy(data):
     """read the (width, height) from a JPEG header"""
     # adapted from http://www.64lines.com/jpeg-width-height
 
+    import struct
     idx = 4
     while True:
         block_size = struct.unpack('>H', data[idx:idx+2])[0]
@@ -825,24 +824,29 @@ def _jpegxy(data):
 
 def _gifxy(data):
     """read the (width, height) from a GIF header"""
+    import struct
     return struct.unpack('<HH', data[6:10])
 
 
 def _webpxy(data):
     """read the (width, height) from a WEBP header"""
+    import struct
     if data[12:16] == b"VP8 ":
-        width, height = struct.unpack("<HH", data[24:30])
+        # lossy: 14 bits each, after the frame tag and the start code
+        width, height = struct.unpack("<HH", data[26:30])
         width = width & 0x3FFF
         height = height & 0x3FFF
         return (width, height)
     elif data[12:16] == b"VP8L":
+        # lossless: 14 bits each of (width - 1, height - 1), after the signature
         size_info = struct.unpack("<I", data[21:25])[0]
-        width = 1 + ((size_info & 0x3F) << 8) | (size_info >> 24)
-        height = 1 + (
-            (((size_info >> 8) & 0xF) << 10)
-            | (((size_info >> 14) & 0x3FC) << 2)
-            | ((size_info >> 22) & 0x3)
-        )
+        width = 1 + (size_info & 0x3FFF)
+        height = 1 + ((size_info >> 14) & 0x3FFF)
+        return (width, height)
+    elif data[12:16] == b"VP8X":
+        # extended: 24 bits each of (canvas width - 1, canvas height - 1)
+        width = 1 + int.from_bytes(data[24:27], "little")
+        height = 1 + int.from_bytes(data[27:30], "little")
         return (width, height)
     else:
         raise ValueError("Not a valid WEBP header")
@@ -862,7 +866,7 @@ class ImageFormat(_ImageFormat, Enum):
     jpeg = (b"\xff\xd8",), _jpegxy
     jpg = jpeg  # alias, has `.name == "jpeg"`
     gif = (b"GIF87a", b"GIF89a"), _gifxy
-    webp = (b"WEBP",), _webpxy
+    webp = (b"RIFF",), _webpxy
 
     @property
     def mime_type(self):
@@ -873,6 +877,10 @@ class ImageFormat(_ImageFormat, Enum):
         for fmt in cls:
             for magic in fmt.magics:
                 if data.startswith(magic):
+                    # RIFF is a generic container (WAV, AVI, ...), WEBP files
+                    # are identified by the form type after the size field.
+                    if fmt is cls.webp and data[8:12] != b"WEBP":
+                        continue
                     return fmt
         return None
 
@@ -913,7 +921,8 @@ class Image(DisplayObject):
 
         filename : unicode
             Path to a local file to load the data from.
-            Images from a file are always embedded.
+            Images from a file are embedded unless you specify `embed=False`,
+            in which case the path is used as the image source.
 
         format : unicode
             The format of the image data (png/jpeg/jpg/gif/webp). If a filename or URL is given
@@ -1055,6 +1064,7 @@ class Image(DisplayObject):
 
     def _repr_html_(self):
         if not self.embed:
+            import html
             width = height = klass = alt = ""
             if self.width:
                 width = ' width="%d"' % self.width
@@ -1064,8 +1074,9 @@ class Image(DisplayObject):
                 klass = ' class="unconfined"'
             if self.alt:
                 alt = ' alt="%s"' % html.escape(self.alt)
+            url = self.url if self.url is not None else self.filename
             return '<img src="{url}"{width}{height}{klass}{alt}/>'.format(
-                url=self.url,
+                url=html.escape(url or ""),
                 width=width,
                 height=height,
                 klass=klass,
@@ -1225,16 +1236,19 @@ class Video(DisplayObject):
         # External URLs and potentially local files are not embedded into the
         # notebook output.
         if not self.embed:
+            import html
             url = self.url if self.url is not None else self.filename
             output = """<video src="{}" {} {} {}>
       Your browser does not support the <code>video</code> element.
-    </video>""".format(url, self.html_attributes, width, height)
+    </video>""".format(html.escape(url or ""), self.html_attributes, width, height)
             return output
 
         # Embedded videos are base64-encoded.
         mimetype = self.mimetype
         if self.filename is not None:
             if not mimetype:
+                import mimetypes
+
                 mimetype, _ = mimetypes.guess_type(self.filename)
 
             with open(self.filename, 'rb') as f:

@@ -14,7 +14,6 @@ import sys
 from pprint import pformat
 
 from IPython.core import magic_arguments
-from IPython.core import oinspect
 from IPython.core import page
 from IPython.core.alias import AliasError, Alias
 from IPython.core.error import UsageError
@@ -171,6 +170,8 @@ class OSMagics(Magics):
         try:
             alias,cmd = par.split(None, 1)
         except TypeError:
+            from IPython.core import oinspect
+
             print(oinspect.getdoc(self.alias))
             return
 

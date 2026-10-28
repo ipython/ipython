@@ -34,16 +34,84 @@ from typing import Any
 # rely on the transitive side effects: they do `import IPython` and then
 # access attribute chains like `IPython.terminal.ipapp.TerminalIPythonApp`,
 # which only resolve because the imports below load those submodules.
-from .core.getipython import get_ipython
+#
+# `embed`, `Application` and `get_ipython` are the exceptions, and are
+# deferred via module `__getattr__` below:
+#
+#  - `embed` drags in the whole terminal / prompt_toolkit stack, by far
+#    the most expensive of these imports, and is only needed by code that
+#    calls `IPython.embed()`;
+#  - `Application` is only a re-export of `traitlets.config.application
+#    .Application`, but importing it pulled in `IPython.core.application`
+#    and with it the crash handler; no known downstream imports it from
+#    here (ipykernel imports `BaseIPythonApplication` from
+#    `IPython.core.application` directly);
+#  - `get_ipython` costs nothing to defer -- `IPython.core.getipython`
+#    ends up imported anyway via `IPython.core.magic` -- but is kept
+#    alongside the others so all three top-level names resolve the same
+#    way.
+#
+# This does mean that code relying on `import IPython` to transitively
+# populate `IPython.terminal.embed` / `IPython.core.application` (or
+# submodules only reachable through them) as a side effect will need to
+# import those submodules explicitly instead. `Application` raises a
+# `DeprecationWarning` when accessed here, both because such code is worth
+# spotting and because the name should be imported from traitlets;
+# `embed` and `get_ipython` stay silent, being widely and legitimately
+# used from here.
 from .core import release
-from .core.application import Application
-from .terminal.embed import embed
 
 from .core.interactiveshell import InteractiveShell
 from .utils.sysinfo import sys_info
 from .utils.frame import extract_module_locals
 
 __all__ = ["start_ipython", "embed", "embed_kernel"]
+
+
+# Nothing below is cached in `globals()`: the lookups stay lazy on every
+# access, so that the `Application` warning keeps firing instead of only
+# on the first access, and so that these names never silently turn into
+# plain module attributes that later code could mistake for eagerly
+# imported ones.
+#
+# `Application` is deliberately absent from `_lazy_attrs`, and hence from
+# `__dir__`: anything that walks `dir(IPython)` and getattr()s the result
+# -- our own module completer does, and so do other introspection tools --
+# would otherwise trigger its `DeprecationWarning` without any code
+# actually wanting the name. Explicit `IPython.Application` access still
+# resolves, and still warns, which is the access we want to hear about.
+_lazy_attrs = frozenset({"embed", "get_ipython"})
+
+
+def __getattr__(name: str) -> Any:
+    if name == "embed":
+        from .terminal.embed import embed
+
+        return embed
+    if name == "get_ipython":
+        from .core.getipython import get_ipython
+
+        return get_ipython
+    if name == "Application":
+        warnings.warn(
+            "`IPython.Application` is only a re-export of"
+            " `traitlets.config.application.Application`; import it from"
+            " traitlets directly. Accessing it here triggers an import of"
+            " `IPython.core.application`, which is no longer imported when"
+            " IPython is -- import that module explicitly if you rely on"
+            " that import happening, in particular if you also rely on other"
+            " submodules being transitively imported as a side effect.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        from .core.application import Application
+
+        return Application
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__() -> list[str]:
+    return [*globals(), *_lazy_attrs]
 
 # Release data
 __author__ = '{} <{}>'.format(release.author, release.author_email)

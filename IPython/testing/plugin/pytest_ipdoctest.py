@@ -39,7 +39,6 @@ except ImportError:
 from _pytest.nodes import Collector
 from _pytest.outcomes import OutcomeException
 from _pytest.pathlib import fnmatch_ex, import_path
-from _pytest.python_api import approx
 from _pytest.warning_types import PytestWarning
 
 if TYPE_CHECKING:
@@ -66,6 +65,11 @@ RUNNER_CLASS = None
 # Lazy definition of output checker class
 CHECKER_CLASS: type[IPDoctestOutputChecker] | None = None
 pytest_version = tuple([int(part) for part in pytest.__version__.split(".")])
+
+if pytest_version >= (9, 2):
+    from _pytest.approx import approx
+else:
+    from _pytest.python_api import approx
 
 
 def pytest_addoption(parser: Parser) -> None:

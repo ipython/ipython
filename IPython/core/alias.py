@@ -28,7 +28,6 @@ from traitlets.config.configurable import Configurable
 from .error import UsageError
 
 from traitlets import List, Instance
-from logging import error
 
 
 #-----------------------------------------------------------------------------
@@ -226,6 +225,7 @@ class AliasManager(Configurable):
         try:
             self.define_alias(name, cmd)
         except AliasError as e:
+            from logging import error
             error("Invalid alias: %s" % e)
 
     def define_alias(self, name, cmd):

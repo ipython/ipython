@@ -3,10 +3,18 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import pytest
+import io
+import sys
 import textwrap
+import tokenize
 
-from IPython.utils.tokenutil import token_at_cursor, line_at_cursor
+import pytest
+
+from IPython.utils.tokenutil import (
+    generate_tokens_catch_errors,
+    line_at_cursor,
+    token_at_cursor,
+)
 
 
 def expect_token(expected: str, cell: str, cursor_pos: int | None = None) -> None:
@@ -181,3 +189,33 @@ int()
 map()
 """
     expect_token(token, cell, c)
+
+
+def test_generate_tokens_catch_errors_eof_reraised():
+    # A genuine end-of-input error is still re-raised: the input is
+    # incomplete, not invalid.
+    with pytest.raises(tokenize.TokenError):
+        list(generate_tokens_catch_errors(io.StringIO("'''abc\n").readline))
+
+
+@pytest.mark.skipif(
+    sys.version_info < (3, 12),
+    reason="the tokenizer only raises these errors since 3.12",
+)
+@pytest.mark.parametrize(
+    "cell",
+    [
+        "'abc\n",  # unterminated string literal
+        "0b12\n",  # invalid digit in binary literal (ipython/ipython#15320)
+        "0o1239\n",  # invalid digit in octal literal
+        "1__2\n",  # invalid decimal literal
+        "0b\n",  # invalid binary literal
+        "0xg\n",  # invalid hexadecimal literal
+    ],
+)
+def test_generate_tokens_catch_errors_yields_errortoken(cell):
+    # Hard tokenizer errors are converted into an ERRORTOKEN instead of
+    # propagating, so that check_complete reports a syntax error rather
+    # than hanging on incomplete input (ipython/ipython#15320).
+    tokens = list(generate_tokens_catch_errors(io.StringIO(cell).readline))
+    assert tokens[-1].type == tokenize.ERRORTOKEN

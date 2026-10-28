@@ -36,28 +36,17 @@ development work they do here in a user friendly format.
 
    version9
    version8
-   github-stats-8
    version7
-   github-stats-7
    version6
-   github-stats-6
    version5
-   github-stats-5
    version4
-   github-stats-4
    version3
-   github-stats-3
    version3_widget_migration
    version2.0
-   github-stats-2.0
    version1.0
-   github-stats-1.0
    version0.13
-   github-stats-0.13
    version0.12
-   github-stats-0.12
    version0.11
-   github-stats-0.11
    version0.10
    version0.9
    version0.8

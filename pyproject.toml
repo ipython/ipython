@@ -29,7 +29,7 @@ dependencies = [
     "matplotlib-inline>=0.1.6",
     'pexpect>4.6; sys_platform != "win32" and sys_platform != "emscripten"',
     "prompt_toolkit>=3.0.41,<3.1.0",
-    'psutil>=7; sys_platform != "emscripten" and sys_platform != "cygwin"',
+    'psutil>=7; sys_platform != "emscripten" and sys_platform != "cygwin" and sys_platform != "android"',
     "pygments>=2.14.0", # wheel
     "stack_data>=0.6.0",
     "traitlets>=5.13.0",
@@ -58,7 +58,6 @@ black = [
 ]
 doc = [
     "docrepr",
-    "exceptiongroup",
     "intersphinx_registry",
     "ipykernel",
     "ipython[test,matplotlib]",
@@ -138,6 +137,13 @@ follow_imports = "skip"
 module = "numpy.*"
 follow_imports = "skip"
 follow_imports_for_stubs = true
+
+[[tool.mypy.overrides]]
+# mypy narrows on `sys.platform`, so the platform guard in
+# `_supports_kitty_graphics` can be reported as unreachable in the
+# cross-platform CI runs. Turn that off for this module only.
+module = "IPython.core.kitty"
+warn_unreachable = false
 
 [[tool.mypy.overrides]]
 module = [
@@ -381,6 +387,7 @@ ipdoctest_optionflags = [
    "ELLIPSIS"
 ]
 asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [
     "error::ResourceWarning",
 ]
@@ -401,6 +408,7 @@ namespaces = false
 [tool.setuptools.package-data]
 "IPython" = ["py.typed"]
 "IPython.core" = ["profile/README*"]
+"IPython.utils" = ["themes/*.json"]
 "IPython.testing.plugin" = ["*.txt"]
 
 [tool.setuptools.dynamic]

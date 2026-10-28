@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os.path
-import tempfile
 from warnings import warn
 
 from IPython.utils.importstring import import_item
@@ -23,6 +22,7 @@ def get_ipython_dir() -> str:
     This uses the logic in `get_home_dir` to find the home directory
     and then adds .ipython to the end of the path.
     """
+    import tempfile
 
     env = os.environ
     pjoin = os.path.join

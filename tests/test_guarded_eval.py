@@ -122,6 +122,31 @@ def test_rejects_custom_properties():
         guarded_eval("data.iloc[0]", context)
 
 
+def test_rejects_stringized_annotations():
+    """Annotations are arbitrary expressions and must be resolved under the policy.
+
+    Every annotation of a module using PEP 563 is a string, so resolving them
+    eagerly would run whatever the string spells out.
+    """
+    called = []
+
+    def side_effect():
+        called.append(1)
+        return int
+
+    class Custom:
+        attr: "side_effect()"
+
+        def __getattr__(self, key):
+            raise AssertionError("should not be called")
+
+    context = limited(data=Custom(), side_effect=side_effect)
+
+    with pytest.raises(GuardRejection):
+        guarded_eval("data.attr", context)
+    assert called == []
+
+
 @dec.skip_without("pandas")
 def test_accepts_non_overriden_properties():
     import pandas as pd

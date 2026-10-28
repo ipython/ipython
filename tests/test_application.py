@@ -11,9 +11,28 @@ import pytest
 from traitlets import Unicode
 from traitlets.config import Config
 
-from IPython.core.application import BaseIPythonApplication
+from IPython.core.application import (
+    LOGGING_CRITICAL,
+    LOGGING_DEBUG,
+    BaseIPythonApplication,
+    base_flags,
+)
 from IPython.core.profiledir import ProfileDir
 from IPython.testing import decorators as dec
+
+
+def test_logging_level_constants():
+    """The inlined logging levels must not drift from the `logging` ones.
+
+    `IPython.core.application` spells these out rather than importing
+    `logging` at startup; this is the check that keeps the copies honest.
+    """
+    import logging
+
+    assert LOGGING_DEBUG == logging.DEBUG
+    assert LOGGING_CRITICAL == logging.CRITICAL
+    assert base_flags["debug"][0]["Application"]["log_level"] == logging.DEBUG
+    assert base_flags["quiet"][0]["Application"]["log_level"] == logging.CRITICAL
 
 
 @pytest.fixture

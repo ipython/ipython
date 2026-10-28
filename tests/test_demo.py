@@ -271,7 +271,7 @@ def test_demo_edit(make_demo, monkeypatch, capsys):
         with open(filename, "w", encoding="utf-8") as f:
             f.write("first = 100\n")
 
-    monkeypatch.setattr(d.shell.hooks, "editor", fake_editor, raising=False)
+    monkeypatch.setitem(d.shell.hooks, "editor", fake_editor)
     d.edit()
     # the edited block was stored and re-executed
     assert d.src_blocks[0] == "first = 100\n"

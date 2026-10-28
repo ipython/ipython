@@ -208,10 +208,10 @@ def display(
       - `_repr_png_`: return raw PNG data, or a tuple (see below).
       - `_repr_svg_`: return raw SVG data as a string, or a tuple (see below).
       - `_repr_latex_`: return LaTeX commands in a string surrounded by "$",
-                        or a tuple (see below).
+        or a tuple (see below).
       - `_repr_mimebundle_`: return a full mimebundle containing the mapping
-                             from all mimetypes to data.
-                             Use this for any mime-type not listed above.
+        from all mimetypes to data.
+        Use this for any mime-type not listed above.
 
     The above functions may also return the object's metadata alonside the
     data.  If the metadata is available, the functions will return a tuple

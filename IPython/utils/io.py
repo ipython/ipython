@@ -8,7 +8,6 @@ IO related utilities.
 
 
 import sys
-import tempfile
 from pathlib import Path
 
 from .capture import CapturedIO, capture_output
@@ -125,6 +124,7 @@ def temp_pyfile(src: str, ext: str='.py') -> str:
     (filename, open filehandle)
         It is the caller's responsibility to close the open file and unlink it.
     """
+    import tempfile
     fname = tempfile.mkstemp(ext)[1]
     with open(Path(fname), "w", encoding="utf-8") as f:
         f.write(src)

@@ -192,8 +192,6 @@ import string
 import sys
 import tokenize
 import time
-import unicodedata
-import uuid
 import warnings
 from ast import literal_eval
 from collections import defaultdict
@@ -210,18 +208,12 @@ from typing import (
 )
 from collections.abc import Iterable, Iterator, Sequence, Sized
 
-from IPython.core.guarded_eval import (
-    guarded_eval,
-    EvaluationContext,
-    _validate_policy_overrides,
-)
 from IPython.core.error import TryNext, UsageError
 from IPython.core.inputtransformer2 import (
     ESC_MAGIC,
     SystemAssign,
     make_tokens_by_line,
 )
-from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import generics
 from IPython.utils.PyColorize import theme_table
@@ -269,6 +261,19 @@ def _get_jedi() -> ModuleType:
     import jedi.api.helpers
 
     jedi.settings.case_insensitive_completion = False
+
+    # parso, which jedi parses with, logs copiously at DEBUG level; without
+    # this those records reach the user's session whenever IPython runs with
+    # a debug log level. This lived at the top of `IPython.core.logger` --
+    # a module about `%logstart` session transcripts, nothing to do with
+    # jedi -- where it worked only because that module happened to be
+    # imported eagerly at startup. Configure it where jedi itself is
+    # configured instead, which is still before any parso record can be
+    # emitted, since parso is only reached through jedi.
+    import logging
+
+    logging.getLogger("parso").setLevel(logging.WARNING)
+
     return jedi
 
 
@@ -968,6 +973,11 @@ class CompletionSplitter:
         return self._delim_re.split(cut_line)[-1]
 
 
+# keywords which end the expression before them (`x if c else d`, `k in d`),
+# as opposed to the constant keywords which are expressions (`None`, `True`)
+_KEYWORDS_ENDING_EXPRESSION = frozenset(keyword.kwlist) - {"True", "False", "None"}
+
+
 class Completer(Configurable):
 
     greedy = Bool(
@@ -1064,12 +1074,16 @@ class Completer(Configurable):
 
     @observe("evaluation")
     def _evaluation_changed(self, _change):
+        from IPython.core.guarded_eval import _validate_policy_overrides
+
         _validate_policy_overrides(
             policy_name=self.evaluation, policy_overrides=self.policy_overrides
         )
 
     @observe("policy_overrides")
     def _policy_overrides_changed(self, _change):
+        from IPython.core.guarded_eval import _validate_policy_overrides
+
         _validate_policy_overrides(
             policy_name=self.evaluation, policy_overrides=self.policy_overrides
         )
@@ -1149,6 +1163,8 @@ class Completer(Configurable):
         defined in self.namespace or self.global_namespace that match.
 
         """
+        from IPython.core.guarded_eval import EvaluationContext, guarded_eval
+
         matches = []
         match_append = matches.append
         n = len(text)
@@ -1254,6 +1270,16 @@ class Completer(Configurable):
                     encountered_operator = True
                     after_operator = []
                     continue
+            elif (
+                t.type == tokenize.NAME
+                and nesting_level == 0
+                and t.string in _KEYWORDS_ENDING_EXPRESSION
+            ):
+                # a keyword (`in`, `else`, `lambda`, `not`, ...) ends the
+                # expression before it just like an operator does
+                encountered_operator = True
+                after_operator = []
+                continue
 
             if encountered_operator:
                 after_operator.append(t.string)
@@ -1282,19 +1308,20 @@ class Completer(Configurable):
         except tokenize.TokenError:
             pass
 
-        obj = self._evaluate_expr(expr)
-        if obj is not_found:
-            if context:
-                # try to evaluate on full buffer
-                previous_lines = "\n".join(
-                    context.full_text.split("\n")[: context.cursor_line]
+        obj = not_found
+        if context:
+            # try to evaluate on full buffer
+            previous_lines = "\n".join(
+                context.full_text.split("\n")[: context.cursor_line]
+            )
+            if previous_lines:
+                all_code_lines_before_cursor = (
+                    self._extract_code(previous_lines) + "\n" + expr
                 )
-                if previous_lines:
-                    all_code_lines_before_cursor = (
-                        self._extract_code(previous_lines) + "\n" + expr
-                    )
-                    obj = self._evaluate_expr(all_code_lines_before_cursor)
+                obj = self._evaluate_expr(all_code_lines_before_cursor)
 
+        if obj is not_found:
+            obj = self._evaluate_expr(expr)
             if obj is not_found:
                 return [], ""
 
@@ -1374,6 +1401,8 @@ class Completer(Configurable):
         return ""
 
     def _evaluate_expr(self, expr):
+        from IPython.core.guarded_eval import EvaluationContext, guarded_eval
+
         obj = not_found
         done = False
         while not done and expr:
@@ -1766,6 +1795,8 @@ def back_unicode_name_matches(text: str) -> tuple[str, Sequence[str]]:
     - a sequence (of 1), name for the match Unicode character, preceded by
         backslash, or empty if no match.
     """
+    import unicodedata
+
     if len(text)<2:
         return '', ()
     maybe_slash = text[-2]
@@ -1791,6 +1822,8 @@ def back_latex_name_matcher(context: CompletionContext) -> SimpleMatcherResult:
 
     This does ``\\ℵ`` -> ``\\aleph``
     """
+    from IPython.core.latex_symbols import reverse_latex_symbol
+
 
     text = context.text_until_cursor
     no_match = {
@@ -2432,6 +2465,8 @@ class IPCompleter(Completer):
         texts = text.strip().split()
 
         if len(texts) > 0 and (texts[0] == 'config' or texts[0] == '%config'):
+            # Only instantiated magics are configurable; load the lazy ones.
+            self.shell.magics_manager.load_all_lazy_magics()
             # get all configuration classes
             classes = sorted({ c for c in self.shell.configurables
                                    if c.__class__.class_traits(config=True)
@@ -2598,8 +2633,11 @@ class IPCompleter(Completer):
         if is_string and not is_in_expression:
             return self._CompletionContextType.GLOBAL
 
-        # If we're in a template string expression, handle specially
-        if is_string and is_in_expression:
+        # If we're in a template string expression, handle specially.
+        # Note that ``is_string`` may be False here for nested template strings
+        # (``f'{f'a.``) as the naive quote tracking sees the inner opening quote
+        # as closing the outer one; the recursion below sorts this out.
+        if is_in_expression:
             # Extract the expression part - look for the last { that isn't closed
             expr_start = line.rfind("{")
             if expr_start >= 0:
@@ -2614,11 +2652,118 @@ class IPCompleter(Completer):
             return self._CompletionContextType.GLOBAL
 
         # Handle all other attribute matches np.ran, d[0].k, (a,b).count, obj._private
-        chain_match = re.search(r".*(.+(?<!\s)\.(?:[a-zA-Z_]\w*)?)$", line)
-        if chain_match:
-            return self._CompletionContextType.ATTRIBUTE
+        # A trailing dot is only an attribute access if what precedes it is a
+        # valid Python expression; malformed input such as ``3a.`` or ``$).``
+        # is not, and falls back to global completion.
+        target = self._extract_attribute_target(line)
+        if target is not None:
+            try:
+                ast.parse(target, mode="eval")
+            except (SyntaxError, ValueError):
+                pass
+            else:
+                return self._CompletionContextType.ATTRIBUTE
 
         return self._CompletionContextType.GLOBAL
+
+    def _extract_attribute_target(self, line: str) -> str | None:
+        """Extract the expression a trailing ``.attr`` would be looked up on.
+
+        Scan *line* backwards from the last dot (which must be followed by at
+        most an identifier and nothing else) and return the primary expression
+        preceding it, or ``None`` if there is no trailing attribute access or
+        no plausible expression in front of it.
+        """
+        match = re.search(r"\.(?:[a-zA-Z_]\w*)?$", line)
+        if match is None:
+            return None
+        dot = match.start()
+        i = dot - 1
+        while i >= 0:
+            char = line[i]
+            if char in ")]":
+                # A call or subscript trailer, or a parenthesized/list atom;
+                # whatever precedes it may still be part of the expression.
+                i = self._skip_backwards_over_brackets(line, i)
+                if i is None:
+                    return None
+                continue
+            if char == "}":
+                # A dict/set display; nothing may precede it.
+                i = self._skip_backwards_over_brackets(line, i)
+                if i is None:
+                    return None
+                break
+            if char in "\"'":
+                # A string literal; nothing but its prefix may precede it.
+                i = self._skip_backwards_over_string(line, i)
+                if i is None:
+                    return None
+                break
+            if char.isalnum() or char == "_":
+                while i >= 0 and (line[i].isalnum() or line[i] == "_"):
+                    i -= 1
+                # a name or number may itself be an attribute of something else
+                if i >= 0 and line[i] == ".":
+                    i -= 1
+                    continue
+                break
+            # anything else (operator, bracket, whitespace, ...) ends the
+            # expression
+            break
+        return line[i + 1 : dot] or None
+
+    def _skip_backwards_over_brackets(self, line: str, i: int) -> int | None:
+        """Skip a bracketed group ending at index *i* (a closing bracket).
+
+        Return the index just before the matching opening bracket, or ``None``
+        if the brackets are unbalanced.
+        """
+        depth = 0
+        while i >= 0:
+            char = line[i]
+            if char in "\"'":
+                skipped = self._skip_backwards_over_string(line, i)
+                if skipped is None:
+                    return None
+                i = skipped
+                continue
+            if char in ")]}":
+                depth += 1
+            elif char in "([{":
+                depth -= 1
+                if depth == 0:
+                    return i - 1
+                if depth < 0:
+                    return None
+            i -= 1
+        return None
+
+    def _skip_backwards_over_string(self, line: str, i: int) -> int | None:
+        """Skip a string literal ending at index *i* (its closing quote).
+
+        Return the index just before the opening quote (and any string prefix),
+        or ``None`` if no opening quote was found.
+        """
+        quote = line[i]
+        j = i - 1
+        while j >= 0:
+            if line[j] == quote:
+                backslashes = 0
+                k = j - 1
+                while k >= 0 and line[k] == "\\":
+                    backslashes += 1
+                    k -= 1
+                if backslashes % 2 == 0:
+                    break
+            j -= 1
+        else:
+            return None
+        j -= 1
+        # skip any string prefix (r, b, u, f, t and combinations thereof)
+        while j >= 0 and line[j] in "bBrRuUfFtT":
+            j -= 1
+        return j
 
     def _is_completing_in_cli_context(self, text: str) -> bool:
         """
@@ -3035,6 +3180,7 @@ class IPCompleter(Completer):
         .. deprecated:: 8.6
             You can use :meth:`dict_key_matcher` instead.
         """
+        from IPython.core.guarded_eval import EvaluationContext, guarded_eval
 
         # Short-circuit on closed dictionary (regular expression would
         # not match anyway, but would take quite a while).
@@ -3048,7 +3194,20 @@ class IPCompleter(Completer):
 
         expr, prior_tuple_keys, key_prefix = match.groups()
 
-        obj = self._evaluate_expr(expr)
+        # the regular expression captures everything before the bracket.
+        # Only the expression after the last operator or keyword is subscripted.
+        try:
+            stripped_expr = self._strip_code_before_operator(expr)
+        except tokenize.TokenError:
+            stripped_expr = expr
+
+        obj = self._evaluate_expr(stripped_expr)
+
+        if obj is not_found and stripped_expr != expr:
+            # stripping joins tokens that were separated by whitespace, so
+            # `%timeit d` becomes `timeitd`, which `_evaluate_expr` does not
+            # trim because it is a valid name rather than a syntax error
+            obj = self._evaluate_expr(expr)
 
         if obj is not_found:
             return []
@@ -3158,6 +3317,8 @@ class IPCompleter(Completer):
         Works only on valid python 3 identifier, or on combining characters that
         will combine to form a valid identifier.
         """
+        import unicodedata
+
 
         text = context.text_until_cursor
 
@@ -3199,6 +3360,8 @@ class IPCompleter(Completer):
         .. deprecated:: 8.6
             You can use :meth:`latex_name_matcher` instead.
         """
+        from IPython.core.latex_symbols import latex_symbols
+
         slashpos = text.rfind('\\')
         if slashpos > -1:
             s = text[slashpos:]
@@ -3326,6 +3489,8 @@ class IPCompleter(Completer):
             completions are coming from different sources this function does not
             ensure that each completion object will only be present once.
         """
+        import uuid
+
         warnings.warn("_complete is a provisional API (as of IPython 6.0). "
                       "It may change without warnings. "
                       "Use in corresponding context manager.",
@@ -3842,6 +4007,8 @@ class IPCompleter(Completer):
 
         The list is lazily initialized on first access.
         """
+        import unicodedata
+
         if self._unicode_names is None:
             names = []
             for c in range(0,0x10FFFF + 1):
@@ -3855,6 +4022,8 @@ class IPCompleter(Completer):
 
 
 def _unicode_name_compute(ranges: list[tuple[int, int]]) -> list[str]:
+    import unicodedata
+
     names = []
     for start,stop in ranges:
         for c in range(start, stop) :

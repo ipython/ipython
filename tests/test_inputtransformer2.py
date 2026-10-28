@@ -319,6 +319,17 @@ examples = [
     pytest.param("for a in range(5):", "incomplete", 4),
     pytest.param("for a in range(5):\n    if a > 0:", "incomplete", 8),
     pytest.param("raise = 2", "invalid", None),
+    # Invalid number literals (ipython/ipython#15320): on Python <= 3.11 the
+    # tokenizer splits these into separate tokens and compilation fails;
+    # since Python 3.12 the tokenizer raises TokenError for malformed
+    # literals, which must be surfaced as a syntax error, not mistaken for
+    # incomplete input (0x123g is "invalid" on every version via the
+    # compile path; it guards the surrounding tokenizer-regression rows).
+    pytest.param("0b12", "invalid", None),
+    pytest.param("0o1239", "invalid", None),
+    pytest.param("0x123g", "invalid", None),
+    pytest.param("0b12+1", "invalid", None),
+    pytest.param("(0b12)", "invalid", None),
     pytest.param("a = [1,\n2,", "incomplete", 0),
     extra_closing_paren_param,
     pytest.param("\\\r\n", "incomplete", 0),
@@ -402,6 +413,21 @@ def test_check_complete_invalidates_sunken_brackets(value, expected):
     """
     cc = ipt2.TransformerManager().check_complete
     assert cc(value) == expected
+
+
+@pytest.mark.parametrize(
+    "cell",
+    [
+        'f"[{None}] "\n\n%ls\n',
+        'f"[{None} ]"\n\n%ls\n',
+        "f'[{None}] '\n\n%ls\n",
+    ],
+)
+def test_magic_after_fstring_with_brackets(cell):
+    """F-string literal brackets must not break magic detection (gh-15436)."""
+    tm = ipt2.TransformerManager()
+    transformed = tm.transform_cell(cell)
+    assert "get_ipython().run_line_magic" in transformed
 
 
 def test_null_cleanup_transformer():

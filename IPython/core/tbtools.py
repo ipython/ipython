@@ -1,22 +1,20 @@
 from __future__ import annotations
 
 import functools
-import inspect
-import pydoc
 import sys
 import types
 import warnings
 from types import TracebackType
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from collections.abc import Callable
 
-import stack_data
 from pygments.token import Token
 
 from IPython.core.getipython import get_ipython
-from IPython.core import debugger
-from IPython.utils import path as util_path
 from IPython.utils.PyColorize import Theme, TokenStream, theme_table
+
+if TYPE_CHECKING:
+    import stack_data
 
 _sentinel = object()
 INDENT_SIZE = 8
@@ -84,6 +82,8 @@ def _format_traceback_lines(
     ----------
     lines : list[Line | LineGap]
     """
+    import stack_data
+
     numbers_width = INDENT_SIZE - 1
     tokens: TokenStream = []
 
@@ -129,6 +129,8 @@ def text_repr(value: Any) -> str:
     """Hopefully pretty robust repr equivalent."""
     # this is pretty horrible but should always return *something*
     try:
+        import pydoc
+
         return pydoc.text.repr(value)
     except KeyboardInterrupt:
         raise
@@ -174,7 +176,7 @@ def _tokens_filename(
 
     Parameters
     ----------
-    em: wether bold or not
+    em: whether bold or not
     file : str
     """
     assert file is None or isinstance(file, str)
@@ -202,6 +204,7 @@ def _tokens_filename(
             ]
     else:
         file_str = file or ""
+        from IPython.utils import path as util_path
         name = util_path.compress_user(file_str)
         if lineno is None:
             return [
@@ -332,6 +335,7 @@ class FrameInfo:
         if sd is None:
             try:
                 # return a list of source lines and a starting line number
+                import inspect
                 self.raw_lines = inspect.getsourcelines(frame)[0]
             except OSError:
                 self.raw_lines = [
@@ -386,7 +390,7 @@ class TBTools:
     _old_theme_name: str
     call_pdb: bool
     ostream: Any
-    debugger_cls: Any
+    _debugger_cls: Any
     pdb: Any
 
     def __init__(
@@ -429,7 +433,7 @@ class TBTools:
 
         # Create color table
         self.set_theme_name(theme_name)
-        self.debugger_cls = debugger_cls or debugger.Pdb
+        self._debugger_cls = debugger_cls
 
         if call_pdb:
             self.pdb = self.debugger_cls()
@@ -454,6 +458,26 @@ class TBTools:
         self._ostream = val
 
     ostream = property(_get_ostream, _set_ostream)
+
+    def _get_debugger_cls(self) -> Any:
+        if self._debugger_cls is None:
+            # Deferred: pdb (and everything it drags in) is only imported
+            # the first time a debugger class is actually needed, rather
+            # than on every IPython startup. Prefer the running shell's
+            # own choice (e.g. the terminal's TerminalPdb) if there is one.
+            ip = get_ipython()
+            if ip is not None:
+                self._debugger_cls = ip.debugger_cls
+            else:
+                from IPython.core import debugger
+
+                self._debugger_cls = debugger.Pdb
+        return self._debugger_cls
+
+    def _set_debugger_cls(self, val) -> None:  # type:ignore[no-untyped-def]
+        self._debugger_cls = val
+
+    debugger_cls = property(_get_debugger_cls, _set_debugger_cls)
 
     @staticmethod
     def _get_chained_exception(exception_value: Any) -> Any:

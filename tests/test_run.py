@@ -527,6 +527,29 @@ def test_run_quoted_glob_arg_is_not_expanded():
             _ip.run_line_magic("reset", "-f")
 
 
+def test_run_glob_with_dash_m_is_expanded(tmp_path, monkeypatch):
+    """Globs and args containing '-m' are still expanded by ``%run``"""
+    monkeypatch.chdir(tmp_path)
+    for name in ("a-mm-1.txt", "a-mm-2.txt"):
+        (tmp_path / name).write_text("", encoding="utf-8")
+    script = tmp_path / "show_argv.py"
+    script.write_text("import sys\nargs = sys.argv[1:]\n", encoding="utf-8")
+
+    try:
+        # '-m' inside the glob pattern
+        _ip.user_ns.pop("args", None)
+        _ip.run_line_magic("run", f"-i {script} a-mm-*.txt")
+        assert sorted(_ip.user_ns["args"]) == ["a-mm-1.txt", "a-mm-2.txt"]
+
+        # '-m' as a script arg
+        _ip.user_ns.pop("args", None)
+        _ip.run_line_magic("run", f"-i {script} -m *.txt")
+        assert _ip.user_ns["args"][0] == "-m"
+        assert sorted(_ip.user_ns["args"][1:]) == ["a-mm-1.txt", "a-mm-2.txt"]
+    finally:
+        _ip.run_line_magic("reset", "-f")
+
+
 def test_run__name__():
     with TemporaryDirectory() as td:
         path = pjoin(td, "foo.py")

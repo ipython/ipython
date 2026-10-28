@@ -5,6 +5,7 @@ import json
 import os
 import sys
 import warnings
+from pathlib import Path
 
 from unittest import mock
 
@@ -36,12 +37,54 @@ def test_image_size():
     assert '<img src="%s" class="unconfined"/>' % (thisurl) == img._repr_html_()
 
 
+def test_image_local_file_without_embedding():
+    """A local file shown with embed=False uses its path as the image source"""
+    filename = os.path.join(os.path.dirname(__file__), "2x2.png")
+    img = display.Image(filename=filename, embed=False, width=200)
+    assert '<img src="%s" width="200"/>' % filename == img._repr_html_()
+    img = display.Image(filename, embed=False)
+    assert {"text/html": '<img src="%s"/>' % filename} == img._repr_mimebundle_()
+
+
 def test_image_mimes():
     fmt = get_ipython().display_formatter.format
     for name, format in ImageFormat.__members__.items():
         img = display.Image(b"garbage", format=name)
         data, metadata = fmt(img)
         assert sorted(data) == sorted([format.mime_type, "text/plain"])
+
+
+# 64x48 WEBP images, one for each kind of first chunk
+WEBP_FILES = {
+    "hill-lossy.webp": b"VP8 ",
+    "hill-lossless.webp": b"VP8L",
+    "hill-alpha.webp": b"VP8X",
+    "hill-animated.webp": b"VP8X",
+}
+
+
+@pytest.mark.parametrize("name", WEBP_FILES)
+def test_image_format_from_data_webp(name):
+    """WEBP is a RIFF container, the WEBP tag is not at the start of the data"""
+    here = os.path.dirname(__file__)
+    with open(os.path.join(here, name), "rb") as f:
+        data = f.read()
+    assert data[12:16] == WEBP_FILES[name]
+    assert ImageFormat.from_data(data) is ImageFormat.webp
+    img = display.Image(data)
+    assert img.format == "webp"
+    assert list(img._repr_mimebundle_()[0]) == ["image/webp"]
+
+
+def test_image_format_from_data_riff_not_webp():
+    """Other RIFF containers must not be detected as WEBP"""
+    here = os.path.dirname(__file__)
+    with open(os.path.join(here, "test.wav"), "rb") as f:
+        data = f.read()
+    assert data.startswith(b"RIFF")
+    assert ImageFormat.from_data(data) is None
+    assert ImageFormat.from_data(b"WEBP") is None
+    assert ImageFormat.from_data(b"RIFF") is None
 
 
 def test_geojson():
@@ -116,6 +159,22 @@ def test_retina_jpeg():
     data, md = img._repr_jpeg_()
     assert md["width"] == 1
     assert md["height"] == 1
+
+
+@pytest.mark.parametrize("name", WEBP_FILES)
+def test_retina_webp(name):
+    here = os.path.dirname(__file__)
+    img = display.Image(os.path.join(here, name), retina=True)
+    assert img.format == "webp"
+    assert img.width == 32
+    assert img.height == 24
+    data, md = img._repr_mimebundle_()
+    assert md["image/webp"] == {"width": 32, "height": 24}
+
+
+def test_retina_webp_unknown_chunk():
+    with pytest.raises(ValueError, match="Not a valid WEBP header"):
+        display.Image(b"RIFF\x1a\x00\x00\x00WEBPJUNK", retina=True)
 
 
 def test_base64image():
@@ -353,13 +412,22 @@ def test_progress():
     )
 
 
-def test_progress_iter():
+def test_progress_zero_total():
+    p = display.ProgressBar(0)
+    assert repr(p) == "[{}] 0/0".format(" " * p.text_width)
+
+
+@pytest.mark.parametrize("total", [0, 5])
+def test_progress_iter(total):
+    values = []
     with capture_output(display=False) as captured:
-        for i in display.ProgressBar(5):
+        for i in display.ProgressBar(total):
+            values.append(i)
             out = captured.stdout
-            assert "{0}/5".format(i) in out
+            assert f"{i}/{total}" in out
     out = captured.stdout
-    assert "5/5" in out
+    assert values == list(range(total))
+    assert f"{total}/{total}" in out
 
 
 def test_json():
@@ -563,6 +631,42 @@ def test_image_alt_tag():
     assert img.alt == "an image"
     _, md = img._repr_png_()
     assert md["alt"] == "an image"
+
+
+def test_image_url_escaping():
+    """Image: a quote in the url does not break out of the src attribute"""
+    img = display.Image(url='http://example.com/i.png" onerror="alert(1)')
+    assert (
+        '<img src="http://example.com/i.png&quot; onerror=&quot;alert(1)"/>'
+        == img._repr_html_()
+    )
+
+
+def test_video_url_escaping():
+    """Video: a quote in the url does not break out of the src attribute"""
+    v = display.Video('http://example.com/v.mp4" onerror="alert(1)')
+    assert (
+        'src="http://example.com/v.mp4&quot; onerror=&quot;alert(1)"'
+        in v._repr_html_()
+    )
+
+
+def test_iframe_escaping():
+    """IFrame: quotes in src, width and height stay inside their attributes"""
+    html = display.IFrame('http://example.com/?a=1"><script>', 400, 300)._repr_html_()
+    assert 'src="http://example.com/?a=1&quot;&gt;&lt;script&gt;"' in html
+
+    html = display.YouTubeVideo('abc"><script>')._repr_html_()
+    assert '"><script>' not in html
+
+    html = display.IFrame("http://example.com", '400" onload="alert(1)', 300)
+    assert 'width="400&quot; onload=&quot;alert(1)"' in html._repr_html_()
+
+
+def test_iframe_path_source():
+    """IFrame: pathlib sources are converted to strings before escaping."""
+    html = display.IFrame(Path("report&notes.html"), 400, 300)._repr_html_()
+    assert 'src="report&amp;notes.html"' in html
 
 
 def test_image_bad_filename_raises_proper_exception():

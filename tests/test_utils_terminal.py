@@ -75,6 +75,16 @@ def test_set_term_title_xterm_saves_once(monkeypatch, capsys):
     assert capsys.readouterr().out == "\033]0;second\007"
 
 
+def test_set_term_title_xterm_strips_control_characters(monkeypatch, capsys):
+    monkeypatch.setattr(terminal, "_xterm_term_title_saved", True)
+    # a directory name may hold any byte but "/" and NUL, so the title can carry
+    # a BEL closing our OSC string followed by a sequence of the author's choice
+    terminal._set_term_title_xterm("IPython: proj\a\033]52;c;cm0gLXJmIH4K\a")
+    out = capsys.readouterr().out
+    assert out == "\033]0;IPython: proj]52;c;cm0gLXJmIH4K\007"
+    assert out.count("\007") == 1
+
+
 def test_restore_term_title_xterm(monkeypatch, capsys):
     monkeypatch.setattr(terminal, "_xterm_term_title_saved", True)
     terminal._restore_term_title_xterm()
@@ -123,7 +133,8 @@ def test_get_terminal_size_from_environment(monkeypatch):
 
 
 def test_get_terminal_size_defaults(monkeypatch):
-    # shutil.get_terminal_size falls back to the passed default values
-    monkeypatch.setattr(terminal, "_get_terminal_size", lambda fallback: fallback)
+    # shutil.get_terminal_size falls back to the passed default values.
+    # get_terminal_size imports it when it runs, so patch it in shutil.
+    monkeypatch.setattr("shutil.get_terminal_size", lambda fallback: fallback)
     assert terminal.get_terminal_size() == (80, 25)
     assert terminal.get_terminal_size(100, 50) == (100, 50)

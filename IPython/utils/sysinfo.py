@@ -15,10 +15,7 @@ from __future__ import annotations
 #-----------------------------------------------------------------------------
 
 import os
-import platform
-import pprint
 import sys
-import subprocess
 
 from pathlib import Path
 
@@ -57,6 +54,7 @@ def pkg_commit_hash(pkg_path: str) -> tuple[str, str]:
         return "installation", _sysinfo.commit
 
     # maybe we are in a repository
+    import subprocess
     proc = subprocess.Popen('git rev-parse --short HEAD'.split(' '),
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,
@@ -80,6 +78,8 @@ def pkg_info(pkg_path: str) -> dict:
     context : dict
         with named parameters of interest
     """
+    import platform
+
     src, hsh = pkg_commit_hash(pkg_path)
     return dict(
         ipython_version=release.version,
@@ -117,4 +117,6 @@ def sys_info() -> str:
          'sys_platform': 'linux2',
          'sys_version': '2.6.6 (r266:84292, Sep 15 2010, 15:52:39) \\n[GCC 4.4.5]'}
     """
+    import pprint
+
     return pprint.pformat(get_sys_info())

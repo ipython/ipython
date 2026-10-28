@@ -10,10 +10,15 @@ explicitly to actually raise a SyntaxError and stay as close as possible to
 Python semantics.
 """
 
+from __future__ import annotations
+
 import ast
-import asyncio
 import inspect
 from functools import wraps
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import asyncio
 
 _asyncio_event_loop: asyncio.AbstractEventLoop | None = None
 
@@ -31,6 +36,11 @@ def get_asyncio_loop():
 
     .. versionadded:: 8.0
     """
+    # asyncio (and everything it drags in) is only imported the first
+    # time an event loop is actually needed, rather than on every
+    # IPython startup.
+    import asyncio
+
     try:
         return asyncio.get_running_loop()
     except RuntimeError:
@@ -81,6 +91,8 @@ class _AsyncIOProxy:
             # return a threadsafe wrapper onto the _current_ asyncio loop
             @wraps(attr)
             def _wrapped(*args, **kwargs):
+                import asyncio
+
                 concurrent_future = asyncio.run_coroutine_threadsafe(
                     attr(*args, **kwargs), self._event_loop
                 )

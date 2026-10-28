@@ -11,7 +11,7 @@ from IPython.core.kitty import (
     display_formatter_default_active_types,
     terminal_default_mime_renderers,
 )
-from IPython.utils.PyColorize import theme_table
+from IPython.utils.PyColorize import _pygments_base_styles, theme_table
 from IPython.utils.terminal import toggle_set_term_title, set_term_title, restore_term_title
 from IPython.utils.process import abbrev_cwd
 from traitlets import (
@@ -43,12 +43,10 @@ from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatc
 from prompt_toolkit.output import ColorDepth
 from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.shortcuts import PromptSession, CompleteStyle, print_formatted_text
-from prompt_toolkit.styles import DynamicStyle, merge_styles
-from prompt_toolkit.styles.pygments import style_from_pygments_cls, style_from_pygments_dict
-from pygments.styles import get_style_by_name
+from prompt_toolkit.styles import BaseStyle, DynamicStyle, merge_styles
+from prompt_toolkit.styles.pygments import style_from_pygments_dict
 from pygments.style import Style
 
-from .debugger import TerminalPdb, Pdb
 from .magics import TerminalMagics
 from .pt_inputhooks import get_inputhook_name_and_func
 from .prompts import Prompts, ClassicPrompts, RichPromptDisplayHook
@@ -247,6 +245,11 @@ class TerminalInteractiveShell(InteractiveShell):
 
     @property
     def debugger_cls(self):
+        # Deferred: `.debugger` (and everything it drags in, including
+        # pdb and prompt_toolkit-based pieces) is only imported the first
+        # time a debugger class is actually needed.
+        from .debugger import TerminalPdb, Pdb
+
         return Pdb if self.simple_prompt else TerminalPdb
 
     confirm_exit = Bool(True,
@@ -355,8 +358,32 @@ class TerminalInteractiveShell(InteractiveShell):
             )
             return
 
-    def refresh_style(self):
-        self._style = self._make_style_from_name_or_cls("legacy")
+    # Cache behind the `_style` property below; None means "not built yet".
+    __style: BaseStyle | None = None
+
+    def refresh_style(self) -> None:
+        """Invalidate the prompt style, so that it is rebuilt when next needed.
+
+        Building it means turning a whole pygments style into prompt_toolkit
+        style rules, which is not cheap, and `refresh_style` is called several
+        times while a shell is set up -- once from `init_syntax_highlighting`
+        on `colors` being set, again from `init_magics`, again when the
+        prompt_toolkit application is created. Only the last state matters, and
+        for a non-interactive run (``ipython -c ...``, ``--simple-prompt``, a
+        kernel) none of them do: the style is only ever read through the
+        `DynamicStyle` the prompt session renders with.
+        """
+        self.__style = None
+
+    @property
+    def _style(self) -> BaseStyle:
+        if self.__style is None:
+            self.__style = self._make_style_from_name_or_cls("legacy")
+        return self.__style
+
+    @_style.setter
+    def _style(self, style: BaseStyle) -> None:
+        self.__style = style
 
     # TODO: deprecate this
     highlighting_style_overrides = Dict(
@@ -840,17 +867,17 @@ class TerminalInteractiveShell(InteractiveShell):
 
         if legacy == "nocolor":
             style_overrides = {}
-            style_cls = _NoStyle
+            base_styles = _NoStyle.styles
         else:
             style_overrides = {**theme.extra_style, **self.highlighting_style_overrides}
             if theme.base is not None:
-                style_cls = get_style_by_name(theme.base)
+                base_styles = _pygments_base_styles(theme.base)
             else:
-                style_cls = _NoStyle
+                base_styles = _NoStyle.styles
 
         style = merge_styles(
             [
-                style_from_pygments_cls(style_cls),
+                style_from_pygments_dict(base_styles),
                 style_from_pygments_dict(style_overrides),
             ]
         )

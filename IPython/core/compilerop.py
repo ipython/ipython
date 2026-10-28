@@ -35,7 +35,6 @@ import __future__
 from ast import PyCF_ONLY_AST
 import codeop
 import functools
-import hashlib
 import linecache
 import operator
 from contextlib import contextmanager
@@ -60,6 +59,7 @@ def code_name(code: str, number: int = 0) -> str:
 
     This now expects code to be unicode.
     """
+    import hashlib
     hash_digest = hashlib.sha1(code.encode("utf-8"), usedforsecurity=False).hexdigest()
     # Include the number and 12 characters of the hash in the name.  It's
     # pretty much impossible that in a single session we'll have collisions

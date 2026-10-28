@@ -8,6 +8,7 @@ import os
 import shutil
 import sys
 import tempfile
+import importlib
 from contextlib import contextmanager
 from importlib import reload
 from os.path import abspath, join
@@ -27,25 +28,12 @@ from IPython.testing.decorators import (
 from IPython.testing.tools import make_tempfile
 from IPython.utils import path
 
-# Platform-dependent imports
-try:
-    import winreg as wreg
-except ImportError:
-    # Fake _winreg module on non-windows platforms
-    import types
-
-    wr_name = "winreg"
-    sys.modules[wr_name] = types.ModuleType(wr_name)
-    try:
-        import winreg as wreg
-    except ImportError:
-        import _winreg as wreg
-
-        # Add entries that needs to be stubbed by the testing code
-        (
-            wreg.OpenKey,
-            wreg.QueryValueEx,
-        ) = (None, None)
+# Platform-dependent imports. Only `test_get_home_dir_8` needs `winreg`, and
+# that test only runs on Windows; a stub module registered in `sys.modules`
+# here would stay there for the rest of the session, and any stdlib module
+# that probes for `winreg` later (`mimetypes` does) would find it and believe
+# it is running on Windows.
+wreg = importlib.import_module("winreg") if sys.platform == "win32" else None
 
 # -----------------------------------------------------------------------------
 # Globals

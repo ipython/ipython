@@ -60,21 +60,30 @@ def test_detect_screen_size():
 
 def test_display_page_string(monkeypatch):
     calls = []
-    monkeypatch.setattr(page, "display", lambda data, raw: calls.append((data, raw)))
+    # display_page imports display when it runs, so patch it at the source
+    monkeypatch.setattr(
+        "IPython.display.display", lambda data, raw: calls.append((data, raw))
+    )
     page.display_page("a\nb\nc", start=1)
     assert calls == [({"text/plain": "b\nc"}, True)]
 
 
 def test_display_page_string_no_start(monkeypatch):
     calls = []
-    monkeypatch.setattr(page, "display", lambda data, raw: calls.append((data, raw)))
+    # display_page imports display when it runs, so patch it at the source
+    monkeypatch.setattr(
+        "IPython.display.display", lambda data, raw: calls.append((data, raw))
+    )
     page.display_page("hello")
     assert calls == [({"text/plain": "hello"}, True)]
 
 
 def test_display_page_dict(monkeypatch):
     calls = []
-    monkeypatch.setattr(page, "display", lambda data, raw: calls.append((data, raw)))
+    # display_page imports display when it runs, so patch it at the source
+    monkeypatch.setattr(
+        "IPython.display.display", lambda data, raw: calls.append((data, raw))
+    )
     bundle = {"text/plain": "hi", "text/html": "<b>hi</b>"}
     page.display_page(bundle, start=3)
     # mime-bundles are passed through untouched; start is ignored
@@ -285,7 +294,8 @@ def test_pager_page_broken_pipe(page_mod, monkeypatch):
     def raise_broken_pipe(*args, **kwargs):
         raise OSError(32, "Broken pipe")
 
-    monkeypatch.setattr(page_mod.subprocess, "Popen", raise_broken_pipe)
+    # pager_page imports subprocess when it runs, so patch it at the source
+    monkeypatch.setattr("subprocess.Popen", raise_broken_pipe)
     text = "\n".join("line %d" % i for i in range(50))
     page_mod.pager_page(text, screen_lines=10, pager_cmd="cat > /dev/null")
     assert dumb_calls == []
@@ -302,7 +312,8 @@ def test_pager_page_oserror_falls_back(page_mod, monkeypatch):
     def raise_oserror(*args, **kwargs):
         raise OSError("no such pager")
 
-    monkeypatch.setattr(page_mod.subprocess, "Popen", raise_oserror)
+    # pager_page imports subprocess when it runs, so patch it at the source
+    monkeypatch.setattr("subprocess.Popen", raise_oserror)
     text = "\n".join("line %d" % i for i in range(50))
     page_mod.pager_page(text, screen_lines=10, pager_cmd="cat > /dev/null")
     assert dumb_calls == [text]
@@ -370,7 +381,10 @@ def test_page_file_uses_system_pager(page_mod, monkeypatch, tmp_path):
     # keep 'less' unmodified by get_pager_cmd so get_pager_start matches it
     monkeypatch.setenv("LESS", "-r")
     commands = []
-    monkeypatch.setattr(page_mod, "system", lambda cmd: commands.append(cmd))
+    # page_file imports `system` when it runs, so patch it where it is defined
+    monkeypatch.setattr(
+        "IPython.utils.process.system", lambda cmd: commands.append(cmd)
+    )
     fname = tmp_path / "some_file.txt"
     fname.write_text("contents", encoding="utf-8")
     page_mod.page_file(str(fname), start=2, pager_cmd="less")

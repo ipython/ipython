@@ -4,7 +4,6 @@
 # Distributed under the terms of the Modified BSD License.
 
 import os
-import shutil
 import errno
 from pathlib import Path
 
@@ -129,6 +128,7 @@ class ProfileDir(LoggingConfigurable):
 
             if os.path.exists(src):
                 if not os.path.exists(readme):
+                    import shutil
                     shutil.copy(src, readme)
             else:
                 self.log.warning(
@@ -157,6 +157,7 @@ class ProfileDir(LoggingConfigurable):
         This function moves these from that location to the working profile
         directory.
         """
+        import shutil
         dst = Path(os.path.join(self.location, config_file))
         if dst.exists() and not overwrite:
             return False

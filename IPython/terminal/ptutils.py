@@ -20,7 +20,6 @@ from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.patch_stdout import patch_stdout
 
 
-import pygments.lexers as pygments_lexers
 import os
 import sys
 import traceback
@@ -198,23 +197,54 @@ class IPythonPTCompleter(Completer):
                 )
 
 
+class _LazyPygmentsLexer:
+    """A ``PygmentsLexer``-like object that only builds the real lexer
+    (and imports the pygments submodule backing it) the first time it's
+    actually asked to highlight something.
+
+    Most sessions only ever use the Python lexer; building all the
+    per-``%%magic`` lexers (bash, html, javascript, perl, ruby, latex...)
+    up front measurably slows down every terminal startup for languages
+    that may never come up in that session.
+    """
+
+    def __init__(self, pygments_cls_name: str):
+        self._pygments_cls_name = pygments_cls_name
+        self._lexer: PygmentsLexer | None = None
+
+    def lex_document(self, document):
+        if self._lexer is None:
+            # `pygments.lexers` is the expensive part: it pulls in the pygments
+            # plugin machinery, and with it importlib.metadata and zipfile
+            import pygments.lexers as pygments_lexers
+
+            cls = getattr(pygments_lexers, self._pygments_cls_name)
+            self._lexer = PygmentsLexer(cls)
+        return self._lexer.lex_document(document)
+
+
+_MAGIC_LEXER_CLASSES = {
+    "HTML": "HtmlLexer",
+    "html": "HtmlLexer",
+    "javascript": "JavascriptLexer",
+    "js": "JavascriptLexer",
+    "perl": "PerlLexer",
+    "ruby": "RubyLexer",
+    "latex": "TexLexer",
+}
+
+
 class IPythonPTLexer(Lexer):
     """
     Wrapper around PythonLexer and BashLexer.
     """
     def __init__(self):
-        l = pygments_lexers
-        self.python_lexer = PygmentsLexer(l.Python3Lexer)
-        self.shell_lexer = PygmentsLexer(l.BashLexer)
+        self.python_lexer = _LazyPygmentsLexer("Python3Lexer")
+        self.shell_lexer = _LazyPygmentsLexer("BashLexer")
 
         self.magic_lexers = {
-            'HTML': PygmentsLexer(l.HtmlLexer),
-            'html': PygmentsLexer(l.HtmlLexer),
-            'javascript': PygmentsLexer(l.JavascriptLexer),
-            'js': PygmentsLexer(l.JavascriptLexer),
-            'perl': PygmentsLexer(l.PerlLexer),
-            'ruby': PygmentsLexer(l.RubyLexer),
-            'latex': PygmentsLexer(l.TexLexer),
+            name: _LazyPygmentsLexer(cls_name)
+            for name, cls_name in _MAGIC_LEXER_CLASSES.items()
         }
 
     def lex_document(self, document):

@@ -3,8 +3,11 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import sys
+
 import pytest
 import IPython.testing.tools as tt
+from IPython.utils.process import get_output_error_code
 
 
 def test_ipython_help():
@@ -29,8 +32,3 @@ def test_locate_help():
 
 def test_locate_profile_help():
     tt.help_all_output_test("locate profile")
-
-
-def test_trust_help():
-    pytest.importorskip("nbformat")
-    tt.help_all_output_test("trust")

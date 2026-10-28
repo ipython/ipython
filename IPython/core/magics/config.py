@@ -87,6 +87,9 @@ class ConfigMagics(Magics):
 
         """
         from traitlets.config.loader import Config
+
+        # Only instantiated magics are configurable; load the lazy ones.
+        self.shell.magics_manager.load_all_lazy_magics()
         # some IPython objects are Configurable, but do not yet have
         # any configurable traits.  Exclude them from the effects of
         # this magic, as their presence is just noise:

@@ -26,8 +26,12 @@ from prompt_toolkit.filters import (
 )
 from prompt_toolkit.layout.layout import FocusableElement
 
+from IPython.core._dunder_ops import (
+    BINARY_OP_DUNDERS,
+    UNARY_OP_DUNDERS,
+    _find_dunder,
+)
 from IPython.core.getipython import get_ipython
-from IPython.core.guarded_eval import _find_dunder, BINARY_OP_DUNDERS, UNARY_OP_DUNDERS
 from IPython.terminal.shortcuts import auto_suggest
 from IPython.utils.decorators import undoc
 

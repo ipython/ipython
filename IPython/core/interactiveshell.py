@@ -13,36 +13,24 @@
 import abc
 import ast
 import atexit
-import bdb
 import builtins as builtin_mod
 import functools
-import inspect
 import os
 import re
-import runpy
-import shutil
-import subprocess
-from subprocess import CalledProcessError
 import sys
-import tempfile
-import traceback
 import types
 import warnings
 from ast import stmt
 from contextlib import contextmanager
 from io import open as io_open
-from logging import error
 from pathlib import Path
-from collections.abc import Callable
 from typing import Any as AnyType
 from typing import Literal
+from typing import TYPE_CHECKING
 from collections.abc import Sequence
 from warnings import warn
-import textwrap
 
-from IPython.external.pickleshare import PickleShareDB
 
-from tempfile import TemporaryDirectory
 from traitlets import (
     Any,
     Bool,
@@ -62,12 +50,11 @@ from traitlets.config.configurable import SingletonConfigurable
 from traitlets.utils.importstring import import_item
 
 import IPython.core.hooks
-from IPython.core import magic, oinspect, page, prefilter, ultratb
+from IPython.core import magic, page, prefilter, ultratb
 from IPython.core.alias import Alias, AliasManager
 from IPython.core.autocall import ExitAutocall
 from IPython.core.builtin_trap import BuiltinTrap
 from IPython.core.compilerop import CachingCompiler
-from IPython.core.debugger import InterruptiblePdb
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.displayhook import DisplayHook
 from IPython.core.displaypub import DisplayPublisher
@@ -77,7 +64,6 @@ from IPython.core.extensions import ExtensionManager
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager, HistoryOutput
 from IPython.core.inputtransformer2 import ESC_MAGIC, ESC_MAGIC2
-from IPython.core.logger import Logger
 from IPython.core.macro import Macro
 from IPython.core.payload import PayloadManager
 from IPython.core.prefilter import PrefilterManager
@@ -96,27 +82,30 @@ from IPython.utils.process import get_output_error_code, getoutput, system
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import DollarFormatter, LSString, SList, format_screen
-from IPython.core.oinspect import OInfo
+
+if TYPE_CHECKING:
+    from IPython.core import oinspect
+    from IPython.core.oinspect import OInfo
 
 
-sphinxify: Callable | None
-
-try:
+def sphinxify(oinfo):
+    # docrepr (and the sphinx it pulls in) is only needed for the
+    # provisional `sphinxify_docstring` feature, so import it lazily
+    # here instead of paying the cost on every `import IPython`.
     import docrepr.sphinxify as sphx
 
-    def sphinxify(oinfo):
-        wrapped_docstring = sphx.wrap_main_docstring(oinfo)
+    wrapped_docstring = sphx.wrap_main_docstring(oinfo)
 
-        def sphinxify_docstring(docstring):
-            with TemporaryDirectory() as dirname:
-                return {
-                    "text/html": sphx.sphinxify(wrapped_docstring, dirname),
-                    "text/plain": docstring,
-                }
+    def sphinxify_docstring(docstring):
+        from tempfile import TemporaryDirectory
 
-        return sphinxify_docstring
-except ImportError:
-    sphinxify = None
+        with TemporaryDirectory() as dirname:
+            return {
+                "text/html": sphx.sphinxify(wrapped_docstring, dirname),
+                "text/plain": docstring,
+            }
+
+    return sphinxify_docstring
 
 
 class ProvisionalWarning(DeprecationWarning):
@@ -360,7 +349,7 @@ class InteractiveShell(SingletonConfigurable):
     _user_ns: dict
     _sys_modules_keys: set[str]
 
-    inspector: oinspect.Inspector
+    inspector: "oinspect.Inspector"
 
     ast_transformers: List[ast.NodeTransformer] = List(
         [],
@@ -460,7 +449,9 @@ class InteractiveShell(SingletonConfigurable):
     display_pub_class = Type(DisplayPublisher)
     compiler_class = Type(CachingCompiler)
     inspector_class = Type(
-        oinspect.Inspector, help="Class to use to instantiate the shell inspector"
+        klass="IPython.core.oinspect.Inspector",
+        default_value="IPython.core.oinspect.Inspector",
+        help="Class to use to instantiate the shell inspector",
     ).tag(config=True)
 
     sphinxify_docstring = Bool(False, help=
@@ -655,11 +646,6 @@ class InteractiveShell(SingletonConfigurable):
         self.save_sys_module_state()
         self.init_sys_modules()
 
-        # While we're trying to have each part of the code directly access what
-        # it needs without keeping redundant references to objects, we have too
-        # much legacy code that expects ip.db to exist.
-        self.db = PickleShareDB(os.path.join(self.profile_dir.location, 'db'))
-
         self.init_history()
         self.init_encoding()
         self.init_prefilter()
@@ -669,7 +655,6 @@ class InteractiveShell(SingletonConfigurable):
         self.init_events()
         self.init_pushd_popd_magic()
         self.init_user_ns()
-        self.init_logger()
         self.init_builtins()
 
         # The following was in post_config_initialization
@@ -701,6 +686,27 @@ class InteractiveShell(SingletonConfigurable):
         # `ipykernel.kernelapp`.
         self.trio_runner = None
         self.showing_traceback = False
+
+    _db = None
+
+    @property
+    def db(self):
+        """A key/value store persisted in the profile directory.
+
+        Plenty of legacy code expects ``ip.db`` to exist, but a session that
+        never touches it should not pay for `pickleshare` (and `pickle`
+        underneath it) at startup, nor create the database directory, so it is
+        built on first access.
+        """
+        if self._db is None:
+            from IPython.external.pickleshare import PickleShareDB
+
+            self._db = PickleShareDB(os.path.join(self.profile_dir.location, "db"))
+        return self._db
+
+    @db.setter
+    def db(self, value):
+        self._db = value
 
     @property
     def user_ns(self):
@@ -848,9 +854,28 @@ class InteractiveShell(SingletonConfigurable):
 
         self.dir_stack = []
 
-    def init_logger(self) -> None:
-        self.logger = Logger(self.home_dir, logfname='ipython_log.py',
-                             logmode='rotate')
+    _logger = None
+
+    @property
+    def logger(self):
+        """The session transcript logger behind `%logstart` and friends.
+
+        This is *not* the traitlets `log` trait (`self.log`), which is an
+        ordinary `logging.Logger` for diagnostics; this one writes the
+        session to a replayable `ipython_log.py`. Sessions that never run
+        `%logstart` never need it, so it is built on first access.
+        """
+        if self._logger is None:
+            from IPython.core.logger import Logger
+
+            self._logger = Logger(
+                self.home_dir, logfname="ipython_log.py", logmode="rotate"
+            )
+        return self._logger
+
+    @logger.setter
+    def logger(self, value):
+        self._logger = value
 
     def init_logstart(self) -> None:
         """Initialize logging in case it was requested at the command line.
@@ -1039,7 +1064,9 @@ class InteractiveShell(SingletonConfigurable):
             banner is default_banner
             and (when := os.environ.get("SOURCE_DATE_EPOCH", None)) is not None
         ):
+            import textwrap
             from datetime import datetime
+
             date = datetime.fromtimestamp(int(when))
             banner = textwrap.dedent(
                 f"""
@@ -1243,6 +1270,7 @@ class InteractiveShell(SingletonConfigurable):
             return
 
         if not hasattr(sys,'last_traceback'):
+            from logging import error
             error('No traceback has been produced, nothing to debug.')
             return
 
@@ -1715,7 +1743,7 @@ class InteractiveShell(SingletonConfigurable):
 
     def _ofind(
         self, oname: str, namespaces: Sequence[tuple[str, AnyType]] | None = None
-    ) -> OInfo:
+    ) -> "OInfo":
         """Find an object in the available namespaces.
 
 
@@ -1731,6 +1759,8 @@ class InteractiveShell(SingletonConfigurable):
 
         Has special code to detect magic functions.
         """
+        from IPython.core.oinspect import OInfo
+
         oname = oname.strip()
         parts_ok, parts = self._find_parts(oname)
 
@@ -1877,7 +1907,7 @@ class InteractiveShell(SingletonConfigurable):
         # Nothing helped, fall back.
         return getattr(obj, attrname)
 
-    def _object_find(self, oname, namespaces=None) -> OInfo:
+    def _object_find(self, oname, namespaces=None) -> "OInfo":
         """Find an object and return a struct with info about it."""
         return self._ofind(oname, namespaces)
 
@@ -1886,11 +1916,14 @@ class InteractiveShell(SingletonConfigurable):
 
         This function is meant to be called by pdef, pdoc & friends.
         """
-        info: OInfo = self._object_find(oname, namespaces)
+        from IPython.core import oinspect
+
+        info = self._object_find(oname, namespaces)
         if self.sphinxify_docstring:
-            if sphinxify is None:
+            try:
+                docformat = sphinxify(self.object_inspect(oname))
+            except ImportError:
                 raise ImportError("Module ``docrepr`` required but missing")
-            docformat = sphinxify(self.object_inspect(oname))
         else:
             docformat = None
         if info.found or hasattr(info.parent, oinspect.HOOK_NAME):
@@ -1917,6 +1950,8 @@ class InteractiveShell(SingletonConfigurable):
 
     def object_inspect(self, oname, detail_level=0):
         """Get object info about oname"""
+        from IPython.core import oinspect
+
         with self.builtin_trap:
             info = self._object_find(oname)
             if info.found:
@@ -1940,9 +1975,10 @@ class InteractiveShell(SingletonConfigurable):
             info = self._object_find(oname)
             if info.found:
                 if self.sphinxify_docstring:
-                    if sphinxify is None:
+                    try:
+                        docformat = sphinxify(self.object_inspect(oname))
+                    except ImportError:
                         raise ImportError("Module ``docrepr`` required but missing")
-                    docformat = sphinxify(self.object_inspect(oname))
                 else:
                     docformat = None
                 return self.inspector._get_info(
@@ -1969,7 +2005,14 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to exception handling and tracebacks (not debugging)
     #-------------------------------------------------------------------------
 
-    debugger_cls = InterruptiblePdb
+    @property
+    def debugger_cls(self):
+        # Deferred so that `pdb` (and everything it drags in) is only
+        # imported the first time a debugger is actually needed, rather
+        # than on every IPython startup.
+        from IPython.core.debugger import InterruptiblePdb
+
+        return InterruptiblePdb
 
     def init_traceback_handlers(self, custom_exceptions) -> None:
         # Syntax error handler.
@@ -1982,7 +2025,6 @@ class InteractiveShell(SingletonConfigurable):
             mode=self.xmode,
             theme_name=self.colors,
             tb_offset=1,
-            debugger_cls=self.debugger_cls,
         )
 
         # The instance will store a pointer to the system-wide exception hook,
@@ -2169,6 +2211,7 @@ class InteractiveShell(SingletonConfigurable):
         Return as a string (ending with a newline) the exception that
         just occurred, without any traceback.
         """
+        import traceback
         etype, value, tb = self._get_exc_info(exc_tuple)
         msg = traceback.format_exception_only(etype, value)
         return ''.join(msg)
@@ -2223,6 +2266,7 @@ class InteractiveShell(SingletonConfigurable):
                     if contains_exceptiongroup(value):
                         # fall back to native exception formatting until ultratb
                         # supports exception groups
+                        import traceback
                         traceback.print_exc()
                     else:
                         try:
@@ -2240,6 +2284,7 @@ class InteractiveShell(SingletonConfigurable):
                             print(
                                 "Unexpected exception formatting exception. Falling back to standard exception"
                             )
+                            import traceback
                             traceback.print_exc()
                             return None
 
@@ -2281,6 +2326,7 @@ class InteractiveShell(SingletonConfigurable):
         If the syntax error occurred when running a compiled code (i.e. running_compile_code=True),
         longer stack trace will be displayed.
         """
+        import traceback
         etype, value, last_traceback = self._get_exc_info()
 
         if filename and issubclass(etype, SyntaxError):
@@ -2440,16 +2486,20 @@ class InteractiveShell(SingletonConfigurable):
         # Expose as public API from the magics manager
         self.register_magics = self.magics_manager.register
 
-        self.register_magics(m.AutoMagics, m.BasicMagics, m.CodeMagics,
-            m.ConfigMagics, m.DisplayMagics, m.ExecutionMagics,
-            m.ExtensionMagics, m.HistoryMagics, m.LoggingMagics,
-            m.NamespaceMagics, m.OSMagics, m.PackagingMagics,
-            m.PylabMagics, m.ScriptMagics,
-        )
-        self.register_magics(m.AsyncMagics)
+        mman = self.magics_manager
+
+        # IPython's own magics are declared rather than registered: the module
+        # implementing one is imported the first time it is looked up.  The
+        # table is hand maintained; tests/test_magic_table.py checks it.
+        for magic_kind, table in m.BUILTIN_LAZY_MAGICS.items():
+            for magic_name, spec in table.items():
+                mman.register_lazy(magic_name, spec, magic_kind)
+        # ScriptMagics generates a cell magic per configured interpreter.
+        script_magics = m.MAGICS_CLASSES["ScriptMagics"] + ":ScriptMagics"
+        for magic_name in m.configured_script_magics(self.config):
+            mman.register_lazy(magic_name, script_magics, "cell")
 
         # Register Magic Aliases
-        mman = self.magics_manager
         # FIXME: magic aliases should be defined by the Magics classes
         # or in MagicsManager, not here
         mman.register_alias('ed', 'edit')
@@ -2462,7 +2512,9 @@ class InteractiveShell(SingletonConfigurable):
         # FIXME: Move the color initialization to the DisplayHook, which
         # should be split into a prompt manager and displayhook. We probably
         # even need a centralize colors management object.
-        self.run_line_magic('colors', self.colors)
+        # This used to go through `%colors`, which would import the basic
+        # magics on every startup just to assign `shell.colors`.
+        self.init_syntax_highlighting()
 
     # Defined here so that it's included in the documentation
     @functools.wraps(magic.MagicsManager.register_function)
@@ -2486,17 +2538,8 @@ class InteractiveShell(SingletonConfigurable):
 
         Note that this may have any side effects
         """
-        finder = {"line": self.find_line_magic, "cell": self.find_cell_magic}[type_]
-        fn = finder(magic_name)
-        if fn is not None:
-            return fn
-        lazy = self.magics_manager.lazy_magics.get(magic_name)
-        if lazy is None:
-            return None
-
-        self.run_line_magic("load_ext", lazy)
-        res = finder(magic_name)
-        return res
+        # find_line_magic/find_cell_magic lazy-load by themselves now.
+        return self.magics_manager.find(type_, magic_name)
 
     def run_line_magic(self, magic_name: str, line: str, _stack_depth=1):
         """Execute the given line magic.
@@ -2512,11 +2555,6 @@ class InteractiveShell(SingletonConfigurable):
             This is added to ensure backward compatibility for use of 'get_ipython().magic()'
         """
         fn = self._find_with_lazy_load("line", magic_name)
-        if fn is None:
-            lazy = self.magics_manager.lazy_magics.get(magic_name)
-            if lazy:
-                self.run_line_magic("load_ext", lazy)
-                fn = self.find_line_magic(magic_name)
         if fn is None:
             cm = self.find_cell_magic(magic_name)
             etpl = "Line magic function `%%%s` not found%s."
@@ -2618,19 +2656,19 @@ class InteractiveShell(SingletonConfigurable):
         """Find and return a line magic by name.
 
         Returns None if the magic isn't found."""
-        return self.magics_manager.magics['line'].get(magic_name)
+        return self.magics_manager.find("line", magic_name)
 
     def find_cell_magic(self, magic_name):
         """Find and return a cell magic by name.
 
         Returns None if the magic isn't found."""
-        return self.magics_manager.magics['cell'].get(magic_name)
+        return self.magics_manager.find("cell", magic_name)
 
     def find_magic(self, magic_name, magic_kind='line'):
         """Find and return a magic of the given type by name.
 
         Returns None if the magic isn't found."""
-        return self.magics_manager.magics[magic_kind].get(magic_name)
+        return self.magics_manager.find(magic_kind, magic_name)
 
     #-------------------------------------------------------------------------
     # Things related to macros
@@ -2686,6 +2724,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # Raise an exception if the command failed and system_raise_on_error is True
         if self.system_raise_on_error and exit_code != 0:
+            from subprocess import CalledProcessError
             raise CalledProcessError(exit_code, cmd)
 
     def system_raw(self, cmd):
@@ -2737,6 +2776,7 @@ class InteractiveShell(SingletonConfigurable):
             executable = os.environ.get('SHELL', None)
             try:
                 # Use env shell instead of default /bin/sh
+                import subprocess
                 ec = subprocess.call(cmd, shell=True, executable=executable)
             except KeyboardInterrupt:
                 # intercept control-C; a long traceback is not useful here
@@ -2754,6 +2794,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # Raise an exception if the command failed and system_raise_on_error is True
         if self.system_raise_on_error and ec != 0:
+            from subprocess import CalledProcessError
             raise CalledProcessError(ec, cmd)
 
     # use piped system by default, because it is better behaved
@@ -2793,6 +2834,7 @@ class InteractiveShell(SingletonConfigurable):
 
             # Raise an exception if the command failed
             if exit_code != 0:
+                from subprocess import CalledProcessError
                 raise CalledProcessError(exit_code, cmd)
         else:
             # Use the original getoutput for backward compatibility
@@ -3097,6 +3139,8 @@ class InteractiveShell(SingletonConfigurable):
         where : dict
             The globals namespace.
         """
+        import runpy
+
         try:
             try:
                 where.update(
@@ -3501,6 +3545,8 @@ class InteractiveShell(SingletonConfigurable):
         Format an exception's traceback and details for storage, with special handling
         for different types of errors.
         """
+        import traceback
+
         etype = type(exception)
         evalue = exception
         tb = exception.__traceback__
@@ -3689,6 +3735,7 @@ class InteractiveShell(SingletonConfigurable):
         try:
 
             def compare(code):
+                import inspect
                 is_async = inspect.CO_COROUTINE & code.co_flags == inspect.CO_COROUTINE
                 return is_async
 
@@ -3767,6 +3814,7 @@ class InteractiveShell(SingletonConfigurable):
         # code (such as magics) needs access to it.
         self.sys_excepthook = old_excepthook
         outflag = True  # happens in more places, so it's easier as default
+        import bdb
         try:
             try:
                 if async_:
@@ -3881,6 +3929,7 @@ class InteractiveShell(SingletonConfigurable):
         # Now we must activate the gui pylab wants to use, and fix %run to take
         # plot updates into account
         self.enable_gui(gui)
+        # registry imports ExecutionMagics on the miss if %run is not loaded.
         self.magics_manager.registry['ExecutionMagics'].default_runner = \
             pt.mpl_runner(self.safe_execfile)
 
@@ -3973,6 +4022,7 @@ class InteractiveShell(SingletonConfigurable):
           - data(None): if data is given, it gets written out to the temp file
             immediately, and the file is closed again."""
 
+        import tempfile
         dir_path = Path(tempfile.mkdtemp(prefix=prefix))
         self.tempdirs.append(dir_path)
 
@@ -4157,6 +4207,8 @@ class InteractiveShell(SingletonConfigurable):
             except FileNotFoundError:
                 pass
         del self.tempfiles
+        import shutil
+
         for tdir in self.tempdirs:
             try:
                 shutil.rmtree(tdir)

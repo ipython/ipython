@@ -834,10 +834,14 @@ class AutoreloadMagics(Magics):
                     _module = _module[1:].strip()
                     self._reloader.mark_module_skipped(_module)
                 else:
-                    top_module, top_name = self._reloader.aimport_module(_module)
+                    if " as " in _module:
+                        real_name, alias = [_.strip() for _ in _module.split(" as ")]
+                    else:
+                        real_name, alias = _module, None
+                    top_module, top_name = self._reloader.aimport_module(real_name)
 
                     # Inject module to user namespace
-                    self.shell.push({top_name: top_module})
+                    self.shell.push({alias if alias else top_name: top_module})
 
     def pre_run_cell(self, info):
         # Store the execution info for later use in post_execute_hook

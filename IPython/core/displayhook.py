@@ -15,7 +15,6 @@ from traitlets.config.configurable import Configurable
 from traitlets import Instance, Float
 from warnings import warn
 
-from .history import HistoryOutput
 
 # TODO: Move the various attributes (cache_size, [others now moved]). Some
 # of these are also attributes of InteractiveShell. They should be on ONE object
@@ -222,8 +221,13 @@ class DisplayHook(Configurable):
             for unders in ['_'*i for i in range(1,4)]:
                 if unders not in self.shell.user_ns:
                     continue
-                if getattr(self, unders) is not self.shell.user_ns.get(unders):
-                    update_unders = False
+                user_value = self.shell.user_ns[unders]
+                if unders in self.shell.user_ns_hidden:
+                    if self.shell.user_ns_hidden[unders] is user_value:
+                        continue
+                elif getattr(self, unders) is user_value:
+                    continue
+                update_unders = False
 
             self.___ = self.__
             self.__ = self._
@@ -248,6 +252,7 @@ class DisplayHook(Configurable):
 
     def log_output(self, format_dict):
         """Log the output."""
+        from .history import HistoryOutput
         self.shell.history_manager.outputs[self.prompt_count].append(
             HistoryOutput(output_type="execute_result", bundle=format_dict)
         )

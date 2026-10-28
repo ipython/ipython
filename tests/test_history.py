@@ -293,7 +293,11 @@ def test_histmanager_memory_fallback_reopens_db(hmmax3, tmp_path, caplog):
         lock = sqlite3.connect(hist_file)
         lock.execute("BEGIN IMMEDIATE")
 
-        with HistoryManager(shell=ip, hist_file=hist_file) as hm2:
+        # Fail on the held lock right away instead of waiting out the 5s default timeout
+        connection_options = {"check_same_thread": False, "timeout": 0}
+        with HistoryManager(
+            shell=ip, hist_file=hist_file, connection_options=connection_options
+        ) as hm2:
             assert hm2.hist_file == ":memory:"
             assert hm2.db.execute("PRAGMA database_list").fetchall() == [
                 (0, "main", "")
@@ -533,6 +537,30 @@ def test_get_tail_session_awareness(hmmax3):
             assert hm1_last_sid() == sid1
             assert hm2_last_sid() == sid2
             assert ha_last_sid() == sid2
+
+
+def test_get_tail_without_count_keeps_history_file(hmmax3, tmp_path):
+    """A kernel ``history_request`` without ``n`` calls ``get_tail(None,
+    include_latest=True)``; it gets the default tail instead of a ``LIMIT NULL``
+    error that moves the history file aside as corrupt."""
+    ip = get_ipython()
+    hist_file = tmp_path / "history.sqlite"
+    get_source = lambda x: x[2]
+    hist = [f"x={i}" for i in range(12)]
+    with ExitStack() as stack:
+        hm = stack.enter_context(HistoryManager(shell=ip, hist_file=hist_file))
+        for i, h in enumerate(hist, start=1):
+            hm.store_inputs(i, h)
+        ha = stack.enter_context(HistoryAccessor(hist_file=hist_file))
+
+        hm_tail = list(map(get_source, hm.get_tail(None, include_latest=True)))
+        ha_tail = list(map(get_source, ha.get_tail(None, include_latest=True)))
+
+        assert hm_tail == hist[-10:]
+        assert ha_tail == hist[-10:]
+        assert hm.hist_file == hist_file
+        assert ha.hist_file == hist_file
+        assert sorted(p.name for p in tmp_path.iterdir()) == ["history.sqlite"]
 
 
 def test_calling_run_cell(hmmax2):
