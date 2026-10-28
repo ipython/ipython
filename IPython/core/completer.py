@@ -3117,6 +3117,8 @@ class IPCompleter(Completer):
 
             usedNamedArgs.add(token)
 
+        from IPython.core.guarded_eval import EvaluationContext, guarded_eval
+
         argMatches = []
         try:
             callableObj = '.'.join(ids[::-1])
