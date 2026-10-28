@@ -36,7 +36,7 @@ one.
 
 ### Before You Start
 
-- Avoid sending Pull Request or working on ew feature and bugfixes if there are more that 30 pull request open on the repository. Focus your work on trying to find issues that are already fixed or not relevant anymore and add relevant comments on them if usefull.
+- Avoid sending pull requests or working on new features and bug fixes if there are more than 30 pull requests open on the repository. Focus your work on trying to find issues that are already fixed or are no longer relevant, and add relevant comments to them if useful.
 - Maintainers first review pull requests that fix bugs or user-visible problems, or that address frequent requests. Pull requests for edge cases that code analysis found, and that users are unlikely to hit, may wait for review until all higher-priority pull requests are merged
 - New features, settings, UI changes and public API changes need a maintainer's agreement on the issue first. A `good first issue` or `help wanted` label counts as agreement
 - Do not open a pull request for an issue labeled `status:Needs Discussion` or `status:Needs Triage`. An issue that the person you work with or a maintainer filed is fine to work on while it still has `status:Needs Triage`. A comment on any of these issues can be a good contribution, and it needs the same high quality as a pull request
@@ -59,8 +59,7 @@ one.
 
 ### Screenshots and Videos
 
-Use screenshot and video only for visual changes. Otherwise please include
-code blocks with the obtain results.
+Use screenshots and videos only for visual changes. Otherwise, please include code blocks with the obtained results.
 
 ### Updating the Branch
 
