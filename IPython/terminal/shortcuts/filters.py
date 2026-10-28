@@ -210,7 +210,7 @@ class PassThrough(Filter):
 
 pass_through = PassThrough()
 
-# these one is callable and re-used multiple times hence needs to be
+# these one is callable and reused multiple times hence needs to be
 # only defined once beforehand so that transforming back to human-readable
 # names works well in the documentation.
 default_buffer_focused = has_focus(DEFAULT_BUFFER)
