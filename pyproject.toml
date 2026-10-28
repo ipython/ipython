@@ -388,6 +388,7 @@ ipdoctest_optionflags = [
    "ELLIPSIS"
 ]
 asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [
     "error::ResourceWarning",
 ]
