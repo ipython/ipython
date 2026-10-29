@@ -2,6 +2,147 @@
  9.x Series
 ============
 
+.. _version 9.18:
+
+IPython 9.18
+------------
+
+Summary
+~~~~~~~
+
+The main change in this release is that themes are now JSON data: you can
+install a theme by putting a file in your IPython directory, or from a package,
+without writing any code. The release also fixes a number of completion
+regressions, fixes WebP handling in :class:`~IPython.display.Image`, stops
+``get_tail`` from wiping the history database when ipykernel asks for
+``n=None``, and adds :meth:`~IPython.core.formatters.DisplayFormatter.register_formatter`.
+
+``theme_table`` can no longer be mutated, and the individual theme objects
+are no longer importable from ``IPython.utils.PyColorize``; see below.
+
+Themes are now declarative data, and installable
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The bundled themes used to be Python dictionaries mapping pygments token
+objects to style strings, built when :mod:`IPython.utils.PyColorize` was
+imported. They are now JSON files, read only when a theme is looked up, with
+token types written as dotted paths: ``Token.Prompt.Continuation.L1`` becomes
+``"Prompt.Continuation.L1"``. The themes themselves are unchanged.
+
+This means a theme no longer has to be part of IPython. A JSON file dropped in
+``themes/`` inside your IPython directory is picked up under the file's name,
+so ``~/.ipython/themes/my-theme.json`` gives you ``%colors my-theme`` with no
+code to write, and a package can ship themes by advertising them in the new
+``ipython.themes`` entry point group. Built-in names win, then the IPython
+directory, then installed packages.
+
+Since a theme can now arrive from elsewhere, it is validated before it loads
+and refused with a warning if it fails: token paths must name tokens, and
+symbols must be printable and at most 20 characters, so that a theme cannot
+write an escape sequence to your terminal.
+
+``theme_table`` is now a lazy :class:`~collections.abc.Mapping` rather than a
+plain ``dict``; looking themes up by name, iterating it and calling ``.keys()``
+work as before, but it can no longer be mutated. The individual themes are no
+longer module-level objects in ``IPython.utils.PyColorize``; use
+``theme_table["linux"]`` rather than ``PyColorize.linux_theme``.
+
+See :ref:`the theme documentation <termcolour>` for the file format.
+(:ghpull:`15356`)
+
+Registering formatters
+~~~~~~~~~~~~~~~~~~~~~~
+
+Formatters can now be registered with the new
+:meth:`~IPython.core.formatters.DisplayFormatter.register_formatter` method,
+which keys the formatter on its ``format_type`` and warns if it replaces an
+existing one. (:ghpull:`15018`)
+
+History is no longer reset when ipykernel requests ``n=None``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ipykernel's ``history_request`` handler passes ``n=None`` to
+:meth:`~IPython.core.history.HistoryManager.get_tail`. SQLite rejected the
+resulting ``LIMIT NULL``, and IPython took that error for a corrupt database:
+it moved a healthy ``history.sqlite`` aside and started a new, empty one.
+JupyterLab 4.6 sends such a request when a notebook reopens on a running
+kernel, so reconnecting could wipe your history. ``get_tail`` now treats
+``n=None`` as the default count of 10.
+
+Completion fixes
+~~~~~~~~~~~~~~~~
+
+- Dictionary key completion after an operator or keyword
+  (``x if d[...``, ``k in d[...``) works again. (:ghpull:`15395`)
+- Attribute completion now evaluates the expression in the context of the
+  whole current buffer first, so names defined earlier in the same cell take
+  precedence. (:ghpull:`15244`)
+- Keyword-argument completion now evaluates the callable through
+  :func:`~IPython.core.guarded_eval.guarded_eval`, honouring the configured
+  evaluation policy, instead of a plain ``eval``. (:ghpull:`15338`)
+- A trailing dot after something that is not an expression (``3a.``,
+  ``$).``) no longer triggers attribute completion, and nested f-strings are
+  handled correctly.
+- A lazily declared magic with a different provider for its line and cell
+  forms now loads the right one for each kind. (:ghpull:`15387`)
+
+Display fixes
+~~~~~~~~~~~~~
+
+- :class:`~IPython.display.Image` now detects WebP data correctly (it was
+  taken for PNG), and reads the size of lossy, lossless and extended WebP
+  images, so ``retina=True`` works with all of them. (:ghpull:`15431`)
+- ``Image(filename=..., embed=False)`` now uses the file path as the ``src``
+  of the ``<img>`` tag instead of an empty string. (:ghpull:`15433`)
+- :class:`~IPython.display.FileLinks` accepts ``os.PathLike`` objects, such as
+  :class:`pathlib.Path`, matching :class:`~IPython.display.FileLink`.
+- :class:`~IPython.display.IFrame` sets
+  ``referrerpolicy="strict-origin-when-cross-origin"`` by default.
+  (:ghpull:`15384`)
+- :class:`~IPython.display.ProgressBar` no longer raises
+  ``ZeroDivisionError`` in its text representation when ``total`` is 0.
+
+Other fixes
+~~~~~~~~~~~
+
+- A magic on the line after an f-string containing ``[`` or ``]`` is
+  transformed again on Python 3.12+, instead of being glued to the previous
+  line and raising ``SyntaxError``. (:ghissue:`15436`)
+- :magic:`run` expands globs and arguments containing ``-m`` again.
+  (:ghissue:`15426`)
+- :magic:`debug` ``--breakpoint`` accepts a quoted ``FILE:LINE``, so paths
+  with spaces can be used. (:ghpull:`15434`)
+- :magic:`pip` and :magic:`uv` work when the shell is Nushell.
+- ``_``, ``__`` and ``___`` are updated again after you delete them.
+  (:ghpull:`15243`)
+- Quoting the filename is now the job of the ``editor`` hook rather than of
+  :magic:`edit`, so a custom hook receives the raw path. The default hook
+  quotes paths containing spaces with double quotes. (:ghpull:`15315`)
+- :func:`IPython.utils.text.indent` with zero spaces no longer returns an empty
+  string for text ending in a newline. (:ghpull:`15446`)
+- Kitty graphics detection reads ``/proc`` on any platform that has it, so
+  psutil is no longer needed on, for example, Android/Termux, and it exits
+  early on platforms without ``/proc``. (:ghpull:`15424`)
+
+Documentation
+~~~~~~~~~~~~~
+
+- Documented how to set the terminal theme persistently in
+  ``ipython_config.py``. (:ghpull:`15404`)
+- Clarified :magic:`who_ls` filtering and the autoawait example.
+  (:ghpull:`15405`, :ghpull:`15216`)
+- Autogenerated API pages no longer show a broken "Edit on GitHub" link.
+  (:ghpull:`15360`)
+
+Thanks
+~~~~~~
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
+work on IPython.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.18
+<https://github.com/ipython/ipython/milestone/170?closed=1>`__ milestone.
+
 .. _version 9.17:
 
 IPython 9.17
