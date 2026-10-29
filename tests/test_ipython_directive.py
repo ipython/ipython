@@ -2,13 +2,18 @@
 
 import io
 import os
+import re
 import tempfile
 
 import pytest
 
 sphinx = pytest.importorskip("sphinx")
 from sphinx.application import Sphinx
-from IPython.sphinxext.ipython_directive import IPythonDirective
+from IPython.sphinxext.ipython_directive import (
+    EmbeddedSphinxShell,
+    IPythonDirective,
+    block_parser,
+)
 
 
 def _build_sphinx(rst_content, builder="html", tags=None):
@@ -136,3 +141,18 @@ Test
     )
     # The inner only:: latex is excluded, so no execution.
     assert n == 0
+
+
+@pytest.mark.parametrize("position", [10, 100])
+def test_pure_python_multiline_statement_where_prompt_gains_digit(position):
+    """A multi-line statement stays whole at the 10th and 100th statement."""
+    shell = EmbeddedSphinxShell()
+    shell.promptin = "In [%d]:"
+    content = [f"s{i} = {i}" for i in range(1, position)]
+    content += ["last = (", f"    {position}", ")"]
+    parts = "\n".join(shell.process_pure_python(content)).split("\n\n")
+    last = [part for part in parts if part.strip()][-1]
+    rgxin = re.compile(r"In \[(\d+)\]:\s?(.*)\s*")
+    rgxout = re.compile(r"Out\[(\d+)\]:\s?(.*)\s*")
+    block = block_parser(last, rgxin, rgxout, "In [%d]:", "Out[%d]:")
+    assert block[0][1][1] == f"last = (\n    {position}\n)"
