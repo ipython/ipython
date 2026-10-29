@@ -141,6 +141,10 @@ def _pseudo_sync_runner(coro):
     except StopIteration as exc:
         return exc.value
     else:
+        # The coroutine waits for an event loop that will never come. Close it
+        # now rather than leave it suspended for the garbage collector to close
+        # at some arbitrary later point, while another cell may be running.
+        coro.close()
         # TODO: do not raise but return an execution result with the right info.
         raise RuntimeError(
             f"{coro.__name__!r} needs a real async loop"
