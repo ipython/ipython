@@ -714,6 +714,12 @@ class ExecutionMagics(Magics):
             if modpath is None:
                 msg = '%r is not a valid modulename on sys.path'%modulename
                 raise Exception(msg)
+            if isinstance(modpath, str) and Path(modpath).stem == "__init__":
+                # Like `python -m`, running a package runs its __main__, so
+                # that is the file to debug and to report in sys.argv[0].
+                main_path = Path(modpath).with_name("__main__.py")
+                if main_path.is_file():
+                    modpath = str(main_path)
             arg_lst = [modpath] + arg_lst
         try:
             fpath = None # initialize to make sure fpath is in scope later
