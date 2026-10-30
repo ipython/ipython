@@ -681,22 +681,6 @@ def make_tokens_by_line(lines: list[str]):
     return tokens_by_line
 
 
-def has_sunken_brackets(tokens: list[tokenize.TokenInfo]):
-    """Check if the depth of brackets in the list of tokens drops below 0"""
-    parenlev = 0
-    for token in tokens:
-        # Only OP tokens are real brackets; e.g. on Python 3.12+
-        # FSTRING_MIDDLE tokens may contain bracket characters as
-        # literal text (refs #15436).
-        if token.type == tokenize.OP and token.string in {"(", "[", "{"}:
-            parenlev += 1
-        elif token.type == tokenize.OP and token.string in {")", "]", "}"}:
-            parenlev -= 1
-            if parenlev < 0:
-                return True
-    return False
-
-
 # Arbitrary limit to prevent getting stuck in infinite loops
 TRANSFORM_LOOP_LIMIT = 500
 
@@ -849,14 +833,22 @@ class TransformerManager:
 
         tokens_by_line = make_tokens_by_line(lines)
 
-        # Bail if we got one line and there are more closing parentheses than
-        # the opening ones
-        if (
-            len(lines) == 1
-            and tokens_by_line
-            and has_sunken_brackets(tokens_by_line[0])
-        ):
-            return "invalid", None
+        # Bail if there are more closing brackets than opening ones at any point.
+        # On single-line input this is checked on all Python versions (the
+        # original behaviour).  On multi-line input the check is only done on
+        # Python >= 3.12, where the tokenizer rejects unmatched closing
+        # brackets; on older versions compile_command handles them (returning
+        # None = incomplete) and a later IndentationError could mask them.
+        if len(lines) == 1 or sys.version_info >= (3, 12):
+            parenlev = 0
+            for line_tokens in tokens_by_line:
+                for token in line_tokens:
+                    if token.type == tokenize.OP and token.string in {"(", "[", "{"}:
+                        parenlev += 1
+                    elif token.type == tokenize.OP and token.string in {")", "]", "}"}:
+                        parenlev -= 1
+                        if parenlev < 0:
+                            return "invalid", None
 
         if not tokens_by_line:
             return "incomplete", find_last_indent(lines)
