@@ -686,7 +686,7 @@ def _dict_pprinter_factory(start, end):
             return p.text('{...}')
         step = len(start)
         p.begin_group(step, start)
-        keys = obj.keys()
+        keys = list(obj.keys())
         for idx, key in p._enumerate(keys):
             if idx:
                 p.text(',')
