@@ -3776,6 +3776,9 @@ class InteractiveShell(SingletonConfigurable):
             # We do only one try/except outside the loop to minimize the impact
             # on runtime, and also because if any node in the node list is
             # broken, we should stop execution completely.
+            if sys.exc_info()[0] is GeneratorExit:
+                # Re-raised by run_code: the cell's coroutine is being closed.
+                raise
             if result:
                 result.error_before_exec = sys.exc_info()[1]
             self.showtraceback()
@@ -3840,6 +3843,10 @@ class InteractiveShell(SingletonConfigurable):
                 result.error_in_exec = value
             self.CustomTB(etype, value, tb)
         except:
+            if async_ and sys.exc_info()[0] is GeneratorExit:
+                # The cell's coroutine is being closed, e.g. by the pseudo-sync
+                # runner. Let it unwind instead of reporting it as an error.
+                raise
             if result is not None:
                 result.error_in_exec = sys.exc_info()[1]
             self.showtraceback(running_compiled_code=True)
