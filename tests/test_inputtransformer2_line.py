@@ -341,6 +341,102 @@ def test_leading_empty_lines(sample, expected):
     assert ipt2.leading_empty_lines(sample.splitlines(keepends=True)) == expected.splitlines(keepends=True)
 
 
+COMMENT_THEN_CELL_MAGIC = (
+    """\
+# setup
+%%foo arg
+body
+""",
+    """\
+%%foo arg
+body
+""",
+)
+
+COMMENTS_BLANKS_THEN_CELL_MAGIC = (
+    """\
+# setup
+
+# more
+%%foo
+body
+""",
+    """\
+%%foo
+body
+""",
+)
+
+COMMENT_THEN_PYTHON = (
+    """\
+# setup
+x = 1
+""",
+    """\
+# setup
+x = 1
+""",
+)
+
+COMMENT_THEN_LINE_MAGIC = (
+    """\
+# setup
+%foo
+""",
+    """\
+# setup
+%foo
+""",
+)
+
+ONLY_COMMENTS = (
+    """\
+# only
+# comments
+""",
+    """\
+# only
+# comments
+""",
+)
+
+CELL_MAGIC_ALREADY_FIRST = (
+    """\
+%%foo arg
+body 1
+body 2
+""",
+    """\
+%%foo arg
+body 1
+body 2
+""",
+)
+
+
+@pytest.mark.parametrize(
+    "sample,expected",
+    [
+        COMMENT_THEN_CELL_MAGIC,
+        COMMENTS_BLANKS_THEN_CELL_MAGIC,
+        COMMENT_THEN_PYTHON,
+        COMMENT_THEN_LINE_MAGIC,
+        ONLY_COMMENTS,
+        CELL_MAGIC_ALREADY_FIRST,
+    ],
+)
+def test_leading_comment_lines(sample, expected):
+    assert ipt2.leading_comment_lines(
+        sample.splitlines(keepends=True)
+    ) == expected.splitlines(keepends=True)
+
+
+def test_transform_cell_comment_before_cell_magic():
+    mgr = ipt2.TransformerManager()
+    out = mgr.transform_cell("# setup\n%%foo arg\nbody 1\nbody 2\n")
+    assert out == "get_ipython().run_cell_magic('foo', 'arg', 'body 1\\nbody 2\\n')\n"
+
+
 CRLF_MAGIC = (["%%ls\r\n"], ["get_ipython().run_cell_magic('ls', '', '')\n"])
 
 
