@@ -315,3 +315,37 @@ def test_supports_kitty_graphics_platform_gate(monkeypatch, platform, expected):
     monkeypatch.setattr(kitty, "_ancestor_process_names", lambda: iter(["kitty"]))
 
     assert kitty._supports_kitty_graphics() is expected
+
+
+def test_supports_kitty_graphics_public_alias(monkeypatch):
+    """The public `supports_kitty_graphics` alias resolves again (#15460)."""
+    from IPython.core import kitty
+
+    monkeypatch.delenv("IPYTHON_KITTY_GRAPHICS", raising=False)
+    monkeypatch.setattr(sys, "platform", "linux")
+    monkeypatch.setattr(sys, "stdout", StdoutTTY())
+    monkeypatch.setattr(kitty, "_ancestor_process_names", lambda: iter(["kitty"]))
+
+    assert kitty.supports_kitty_graphics is True
+
+
+def test_supports_kitty_graphics_from_import(monkeypatch):
+    """`from IPython.core.kitty import supports_kitty_graphics` works (#15460)."""
+    monkeypatch.delenv("IPYTHON_KITTY_GRAPHICS", raising=False)
+    monkeypatch.setattr(sys, "platform", "linux")
+    monkeypatch.setattr(sys, "stdout", StdoutTTY())
+    monkeypatch.setattr(
+        "IPython.core.kitty._ancestor_process_names", lambda: iter(["kitty"])
+    )
+
+    from IPython.core.kitty import supports_kitty_graphics
+
+    assert supports_kitty_graphics is True
+
+
+def test_kitty_module_getattr_rejects_unknown_names():
+    """Unknown attributes keep raising AttributeError after the alias lands."""
+    from IPython.core import kitty
+
+    with pytest.raises(AttributeError):
+        getattr(kitty, "no_such_kitty_attribute")

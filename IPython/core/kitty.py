@@ -148,6 +148,18 @@ def _supports_kitty_graphics() -> bool:
     return any(name in supported_terminals for name in _ancestor_process_names())
 
 
+def __getattr__(name: str) -> bool:
+    """Lazily re-expose ``supports_kitty_graphics`` as a public alias.
+
+    Its import-time evaluation was dropped in b7a63205 to keep process-tree
+    walks out of startup; downstream code (e.g. sagemath) still imports the
+    name, so compute it on access instead (#15460).
+    """
+    if name == "supports_kitty_graphics":
+        return _supports_kitty_graphics()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
 def png_to_kitty_ansi(png: bytes) -> str:
     if not png.startswith(b"\x89PNG\r\n\x1a\n"):
         raise ValueError
