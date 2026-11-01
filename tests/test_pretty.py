@@ -609,3 +609,23 @@ def test_custom_repr():
     assert "OrderedCounter(OrderedDict" in pretty.pretty(oc)
 
     assert pretty.pretty(MySet()) == "mine"
+
+
+@pytest.mark.skipif(not hasattr(os, "memfd_create"), reason="needs os.memfd_create")
+def test_module_dict_with_builtin_signature(monkeypatch):
+    import posix
+
+    monkeypatch.delitem(posix.__dict__, "__builtins__", raising=False)
+    assert "memfd_create" in pretty.pretty(vars(posix))
+
+
+def test_dict_mutated_during_pretty():
+    d = {}
+
+    class Mutator:
+        def _repr_pretty_(self, p, cycle):
+            eval("None", d)
+            p.text("x")
+
+    d["x"] = Mutator()
+    assert pretty.pretty(d) == "{'x': x}"
