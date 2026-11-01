@@ -613,7 +613,7 @@ def test_custom_repr():
 
 def test_dict_mutated_during_pretty():
     namespace = {}
-    
+
     class Mutator:
         def _repr_pretty_(self, p, cycle):
             eval("None", namespace)
