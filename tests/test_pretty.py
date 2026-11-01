@@ -609,3 +609,18 @@ def test_custom_repr():
     assert "OrderedCounter(OrderedDict" in pretty.pretty(oc)
 
     assert pretty.pretty(MySet()) == "mine"
+
+
+def test_dict_mutated_during_pretty():
+    namespace = {}
+    
+    class Mutator:
+        def _repr_pretty_(self, p, cycle):
+            eval("None", namespace)
+            p.text("custom")
+
+    namespace["value"] = Mutator()
+
+    result = pretty.pretty(namespace)
+
+    assert result == "{'value': custom}"
