@@ -609,3 +609,41 @@ def test_custom_repr():
     assert "OrderedCounter(OrderedDict" in pretty.pretty(oc)
 
     assert pretty.pretty(MySet()) == "mine"
+
+def test_dict_value_adds_key_while_printing():
+    d = {}
+
+    class AddsBuiltins:
+        def _repr_pretty_(self, p, cycle):
+            eval("None", d)  # adds __builtins__ to d, like inspect.signature() does
+            p.text("x")
+
+    d["a"] = AddsBuiltins()
+    d["b"] = 1
+    assert pretty.pretty(d) == "{'a': x, 'b': 1}"
+
+
+def test_dict_value_removes_key_while_printing():
+    d = {}
+
+    class RemovesNextKey:
+        def _repr_pretty_(self, p, cycle):
+            d.pop("b", None)
+            p.text("x")
+
+    d["a"] = RemovesNextKey()
+    d["b"] = 1
+    assert pretty.pretty(d) == "{'a': x, 'b': 1}"
+
+
+@pytest.mark.skipif(os.name != "posix", reason="needs the posix module")
+def test_module_dict_with_builtin_signatures(monkeypatch):
+    import posix
+
+    monkeypatch.delitem(vars(posix), "__builtins__", raising=False)
+    assert "'chmod'" in pretty.pretty(vars(posix))
+
+
+def test_dict_max_seq_length():
+    d = {i: i for i in range(5)}
+    assert pretty.pretty(d, max_seq_length=3) == "{0: 0, 1: 1, 2: 2, ...}"
