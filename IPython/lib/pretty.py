@@ -686,14 +686,16 @@ def _dict_pprinter_factory(start, end):
             return p.text('{...}')
         step = len(start)
         p.begin_group(step, start)
-        keys = obj.keys()
-        for idx, key in p._enumerate(keys):
+        # Printing a value can add or remove keys, e.g. inspect.signature()
+        # adds __builtins__ to a module's __dict__.
+        items = [(key, obj[key]) for key in list(obj.keys())]
+        for idx, (key, value) in p._enumerate(items):
             if idx:
                 p.text(',')
                 p.breakable()
             p.pretty(key)
             p.text(': ')
-            p.pretty(obj[key])
+            p.pretty(value)
         p.end_group(step, end)
     return inner
 
