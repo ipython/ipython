@@ -621,6 +621,120 @@ def test_decorator_skip_with_breakpoint():
     child.close()
 
 
+_CORNER_HELPERS = """
+def helper_1():
+    pass
+
+def helper_2():
+    pass
+"""
+
+# ``__debuggerskip__`` is first assigned after ``helper_1()`` has been called.
+_CORNER_FLAG_AFTER_HELPER = """
+def foo_decorator(function):
+    def wrapped_fn(*args, **kwargs):
+        helper_1()
+        __debuggerskip__ = False
+        result = function(*args, **kwargs)
+        __debuggerskip__ = True
+        helper_2()
+        return result
+    return wrapped_fn
+"""
+
+# Code runs after the wrapped call returns, while ``__debuggerskip__`` is False.
+_CORNER_RESULT_AFTER_CALL = """
+def foo_decorator(function):
+    def wrapped_fn(*args, **kwargs):
+        __debuggerskip__ = True
+        helper_1()
+        __debuggerskip__ = False
+        result = function(*args, **kwargs)
+        result = result * 1.0
+        __debuggerskip__ = True
+        helper_2()
+        return result
+    return wrapped_fn
+"""
+
+_CORNER_TAIL = """
+@foo_decorator
+def bar(x, y):
+    return x * y
+
+def f():
+    import IPython.terminal.debugger as ipdb
+    ipdb.set_trace()
+    bar(3, 4)
+"""
+
+_STOP_RE = re_module.compile(r"^> \S+?\((\d+)\)(\w+)\(\)", re_module.M)
+
+
+def _debuggerskip_stops(decorator_src, steps):
+    """Step through ``f()`` in IPython and return ``(line, function)`` for every stop."""
+    import pexpect
+
+    env = os.environ.copy()
+    env["IPY_TEST_SIMPLE_PROMPT"] = "1"
+    env["PROMPT_TOOLKIT_NO_CPR"] = "1"
+
+    name = "debuggerskip_corner"
+    stops = []
+    with TemporaryDirectory() as tmp:
+        Path(tmp, f"{name}.py").write_text(
+            _CORNER_HELPERS + decorator_src + _CORNER_TAIL
+        )
+        child = pexpect.spawn(
+            sys.executable,
+            ["-m", "IPython", "--colors=nocolor"],
+            env=env,
+            cwd=tmp,
+            encoding="utf-8",
+        )
+        child.timeout = 15 * IPYTHON_TESTING_TIMEOUT_SCALE
+        child.expect("In \\[1\\]:")
+        child.sendline(f"from {name} import f")
+        child.expect("In \\[2\\]:")
+        child.sendline("f()")
+        child.expect("ipdb>")
+        for _ in range(steps):
+            child.sendline("step")
+            child.expect("ipdb>")
+            stops += _STOP_RE.findall(child.before)
+        child.close(force=True)
+    return stops
+
+
+@pytest.mark.skipif(platform.python_implementation() == "PyPy", reason="issues on PyPy")
+@skip_win32
+def test_debuggerskip_flag_assigned_after_helper():
+    """Frames are skipped by the presence of ``__debuggerskip__``, not its value.
+
+    ``helper_1()`` is called before the flag is assigned, so stepping can enter
+    it, but no line of ``wrapped_fn`` itself is a stop.
+    """
+    stops = _debuggerskip_stops(_CORNER_FLAG_AFTER_HELPER, steps=6)
+    functions = {func for _, func in stops}
+    assert "wrapped_fn" not in functions
+    assert "helper_1" in functions
+    assert "bar" in functions
+
+
+@pytest.mark.skipif(platform.python_implementation() == "PyPy", reason="issues on PyPy")
+@skip_win32
+def test_debuggerskip_result_used_after_call():
+    """A frame that mentions ``__debuggerskip__`` is never a stop, even after the call returns.
+
+    The ``result = result * 1.0`` line runs while the flag is False, but it is
+    still stepped over.
+    """
+    stops = _debuggerskip_stops(_CORNER_RESULT_AFTER_CALL, steps=6)
+    functions = {func for _, func in stops}
+    assert "wrapped_fn" not in functions
+    assert "bar" in functions
+
+
 @skip_win32
 def test_where_erase_value():
     """Test that `where` does not access f_locals and erase values."""
