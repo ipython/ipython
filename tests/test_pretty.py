@@ -609,3 +609,29 @@ def test_custom_repr():
     assert "OrderedCounter(OrderedDict" in pretty.pretty(oc)
 
     assert pretty.pretty(MySet()) == "mine"
+
+
+def test_dict_value_adds_key_while_printing():
+    """eval() adds __builtins__ to its globals, as inspect.signature() does for vars(posix)."""
+    d = {}
+
+    class AddsBuiltins:
+        def _repr_pretty_(self, p, cycle):
+            eval("None", d)
+            p.text("x")
+
+    d["a"] = AddsBuiltins()
+    assert pretty.pretty(d) == "{'a': x}"
+
+
+def test_set_element_adds_element_while_printing():
+    """Sets too large to sort were iterated live."""
+    s = set()
+
+    class Adder:
+        def _repr_pretty_(self, p, cycle):
+            s.add("new")
+            p.text("x")
+
+    s.add(Adder())
+    assert pretty.pretty(s, max_seq_length=1) == "{x}"
