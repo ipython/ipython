@@ -2,6 +2,21 @@
  9.x Series
 ============
 
+.. _version 9.18.1:
+
+IPython 9.18.1
+--------------
+
+This is a small bug-fix release.
+
+Kitty graphics
+~~~~~~~~~~~~~~
+
+- ``from IPython.core.kitty import supports_kitty_graphics`` works again.
+  The name disappeared in 9.18 when detection stopped running at import time;
+  it is now resolved on first access, so startup still skips the detection
+  cost. (:ghissue:`15460`, :ghpull:`15461`)
+
 .. _version 9.18:
 
 IPython 9.18
