@@ -102,6 +102,7 @@ import types
 from collections import deque
 from inspect import signature
 from io import StringIO
+from itertools import islice
 
 # Allow pretty-printing of functions with PEP-649 annotations
 if sys.version_info >= (3, 14):
@@ -686,7 +687,10 @@ def _dict_pprinter_factory(start, end):
             return p.text('{...}')
         step = len(start)
         p.begin_group(step, start)
-        keys = obj.keys()
+        if p.max_seq_length:
+            keys = list(islice(obj.keys(), p.max_seq_length + 1))
+        else:
+            keys = list(obj.keys())
         for idx, key in p._enumerate(keys):
             if idx:
                 p.text(',')

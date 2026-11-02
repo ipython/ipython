@@ -98,6 +98,35 @@ def test_dispatch():
 
     assert gotoutput == expectedoutput
 
+def test_dict_max_seq_length_bounded_snapshot():
+    class CountingDict(dict):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.keys_consumed = 0
+
+        def keys(self):
+            for key in super().keys():
+                self.keys_consumed += 1
+                yield key
+
+    obj = CountingDict({i: i for i in range(10000)})
+
+    result = pretty.pretty(obj, max_seq_length=2)
+
+    assert result == "{0: 0, 1: 1, ...}"
+    assert obj.keys_consumed == 3
+
+def test_dict_pretty_handles_mutation_during_iteration():
+    obj = {}
+
+    class MutatingRepr:
+        def __repr__(self):
+            obj["added"] = "value"
+            return "mutated"
+
+    obj["key"] = MutatingRepr()
+
+    assert pretty.pretty(obj) == "{'key': mutated}"
 
 def test_callability_checking():
     """
