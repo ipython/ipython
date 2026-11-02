@@ -843,8 +843,8 @@ class EmbeddedSphinxShell:
                 continue
 
             # deal with lines checking for multiline
-            continuation  = '   %s:'% ''.join(['.']*(len(str(ct))+2))
             if not multiline:
+                continuation = "   %s:" % "".join(["."] * (len(str(ct)) + 2))
                 modified = "{} {}".format(fmtin % ct, line_stripped)
                 output.append(modified)
                 ct += 1
