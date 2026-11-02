@@ -248,7 +248,7 @@ def test_logstate(tmp_path, capsys):
     logger.logstate()
     assert "Logging has not been activated." in capsys.readouterr().out
     try:
-        logger.logstart(timestamp=True, log_output=True)
+        logger.logstart(timestamp=True, log_output=True, skip_errors=True)
         logger.logstate()
         out = capsys.readouterr().out
         assert "Filename       : %s" % logger.logfname in out
@@ -256,6 +256,9 @@ def test_logstate(tmp_path, capsys):
         assert "Output logging : True" in out
         assert "Raw input log  : False" in out
         assert "Timestamping   : True" in out
+        assert "Skip magics    : False" in out
+        assert "Skip errors    : True" in out
+        assert "Skip duplicates: False" in out
         assert "State          : active" in out
         logger.log_active = False
         logger.logstate()
@@ -277,3 +280,79 @@ def test_close_log_alias(tmp_path):
     logger.close_log()
     assert logger.logfile is None
     assert logger.log_active is False
+
+
+def _log_text(_ip, args, cells):
+    """Run ``%logstart args`` in a temp dir, run the cells, return the log."""
+    with TemporaryDirectory() as tdir:
+        logfname = os.path.join(tdir, "log.py")
+        _ip.run_line_magic("logstart", f"{args} {logfname}")
+        try:
+            for cell in cells:
+                _ip.run_cell(cell)
+        finally:
+            _ip.run_line_magic("logstop", "")
+        with open(logfname, encoding="utf-8") as f:
+            return f.read()
+
+
+def test_logstart_skip_magics():
+    log = _log_text(_ip, "-m", ["skip_magics_a = 1", "%pwd", "!true"])
+    assert "skip_magics_a = 1" in log
+    assert "run_line_magic" not in log
+    assert "system(" not in log
+
+
+def test_logstart_logs_magics_by_default():
+    log = _log_text(_ip, "", ["%pwd"])
+    assert "run_line_magic" in log
+
+
+def test_logstart_skip_magics_raw():
+    log = _log_text(_ip, "-rm", ["skip_magics_raw = 1", "%pwd"])
+    assert "skip_magics_raw = 1" in log
+    assert "%pwd" not in log
+
+
+def test_logstart_skip_errors():
+    log = _log_text(_ip, "-e", ["skip_errors_a = 1", "1/0", "skip_errors_b = 2"])
+    assert log.count("skip_errors_a = 1") == 1
+    assert "1/0" not in log
+    assert log.count("skip_errors_b = 2") == 1
+
+
+def test_logstart_skip_errors_keeps_output_after_input():
+    log = _log_text(_ip, "-oe", ["skip_errors_out = 41", "skip_errors_out + 1", "1/0"])
+    assert log.index("skip_errors_out + 1") < log.index("#[Out]# 42")
+    assert "1/0" not in log
+
+
+def test_logstart_skip_errors_nested_run_cell():
+    # %%capture runs its body through run_cell from inside the outer cell
+    log = _log_text(_ip, "-e", ["skip_nested_a = 1", "%%capture\nskip_nested_b = 2"])
+    assert log.count("skip_nested_a = 1") == 1
+    assert log.count("run_cell_magic") == 1
+
+
+def test_logstart_skip_duplicates():
+    log = _log_text(_ip, "-d", ["skip_dup_a = 1", "skip_dup_b = 2", "skip_dup_a = 1"])
+    assert log.count("skip_dup_a = 1") == 1
+    assert log.count("skip_dup_b = 2") == 1
+
+
+def test_logstart_skip_duplicates_resets_between_logs():
+    _log_text(_ip, "-d", ["skip_dup_restart = 1"])
+    log = _log_text(_ip, "-d", ["skip_dup_restart = 1"])
+    assert log.count("skip_dup_restart = 1") == 1
+
+
+def test_logstart_skip_errors_and_duplicates():
+    # a dropped errored entry must not count as logged
+    cells = [
+        "skip_ed_a = skip_ed_undefined",
+        "skip_ed_undefined = 1",
+        "skip_ed_a = skip_ed_undefined",
+    ]
+    log = _log_text(_ip, "-ed", cells)
+    assert log.count("skip_ed_a = skip_ed_undefined") == 1
+    assert log.index("skip_ed_undefined = 1") < log.index("skip_ed_a = skip_ed_undefined")
