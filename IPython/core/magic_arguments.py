@@ -87,6 +87,7 @@ import re
 
 # Our own imports
 from IPython.core.error import UsageError
+from IPython.core.magic import MAGIC_KIND_ATTR
 from IPython.utils.decorators import undoc
 from IPython.utils.process import arg_split
 from IPython.utils.text import dedent
@@ -134,6 +135,14 @@ class MagicHelpFormatter(argparse.RawDescriptionHelpFormatter):
     def add_usage(self, usage, actions, groups, prefix="::\n\n  %"):
         super().add_usage(usage, actions, groups, prefix)
 
+
+class CellMagicHelpFormatter(MagicHelpFormatter):
+    """A MagicHelpFormatter that uses the %% cell magic escape in the usage."""
+
+    def add_usage(self, usage, actions, groups, prefix="::\n\n  %%"):
+        super().add_usage(usage, actions, groups, prefix)
+
+
 class MagicArgumentParser(argparse.ArgumentParser):
     """ An ArgumentParser tweaked for use by IPython magics.
     """
@@ -176,6 +185,8 @@ def construct_parser(magic_func):
     kwds = getattr(magic_func, 'argcmd_kwds', {})
     if 'description' not in kwds:
         kwds['description'] = getattr(magic_func, '__doc__', None)
+    if getattr(magic_func, MAGIC_KIND_ATTR, None) == "cell":
+        kwds.setdefault("formatter_class", CellMagicHelpFormatter)
     arg_name = real_name(magic_func)
     parser = MagicArgumentParser(arg_name, **kwds)
     # Reverse the list of decorators in order to apply them in the
