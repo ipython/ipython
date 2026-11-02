@@ -11,6 +11,7 @@ from __future__ import annotations
 # Stdlib
 import errno
 import os
+import signal
 import sys
 
 # Our own
@@ -113,16 +114,36 @@ class ProcessHandler:
         # content from the buffer.
         out_size = 0
         assert self.sh is not None
+        # Stays None if ^C arrives before pexpect has finished spawning the
+        # child, so the interrupt handler below knows there is nothing to stop.
+        child = None
         try:
             # Since we're not really searching the buffer for text patterns, we
             # can set pexpect's search window to be tiny and it won't matter.
             # We only search for the 'patterns' timeout or EOF, which aren't in
             # the text itself.
             #child = pexpect.spawn(pcmd, searchwindowsize=1)
-            if hasattr(pexpect, 'spawnb'):
-                child = pexpect.spawnb(self.sh, args=['-c', cmd]) # Pexpect-U
-            else:
-                child = pexpect.spawn(self.sh, args=['-c', cmd])  # Vanilla Pexpect
+            # Hold back ^C while spawning: pexpect may already have forked the
+            # child when it arrives, and we would lose the handle to stop it.
+            # It is raised again as soon as spawn() has returned.
+            deferred = []
+            try:
+                previous_handler = signal.signal(
+                    signal.SIGINT, lambda signum, frame: deferred.append(signum)
+                )
+            except ValueError:
+                # Not the main thread, where Python never raises ^C anyway.
+                previous_handler = None
+            try:
+                if hasattr(pexpect, "spawnb"):
+                    child = pexpect.spawnb(self.sh, args=["-c", cmd])  # Pexpect-U
+                else:
+                    child = pexpect.spawn(self.sh, args=["-c", cmd])  # Vanilla Pexpect
+            finally:
+                if previous_handler is not None:
+                    signal.signal(signal.SIGINT, previous_handler)
+            if deferred:
+                raise KeyboardInterrupt
             flush = sys.stdout.flush
             while True:
                 # res is the index of the pattern that caused the match, so we
@@ -135,6 +156,11 @@ class ProcessHandler:
                 # Update the pointer to what we've already printed
                 out_size = len(child.before)
         except KeyboardInterrupt:
+            if child is None:
+                # Interrupted while spawning: there is no child process to
+                # forward ^C to, so report it as killed by SIGINT.
+                print("^C", file=sys.stderr, end="")
+                return -signal.SIGINT
             # We need to send ^C to the process.  The ascii code for '^C' is 3
             # (the character is known as ETX for 'End of Text', see
             # curses.ascii.ETX).
@@ -142,7 +168,8 @@ class ProcessHandler:
             # Read and print any more output the program might produce on its
             # way out.
             try:
-                out_size = len(child.before)
+                # child.before is None until the first expect has returned.
+                out_size = len(child.before or b"")
                 child.expect_list(patterns, self.terminate_timeout)
                 print(child.before[out_size:].decode(enc, 'replace'), end='')
                 sys.stdout.flush()

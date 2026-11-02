@@ -204,6 +204,53 @@ def test_system_interrupt():
     assert status != 0, f"The process wasn't interrupted. Status: {status}"
 
 
+@dec.skip_win32
+def test_system_interrupt_during_spawn(monkeypatch):
+    """A ^C that arrives while the child is still being spawned must not crash.
+
+    Regression test for https://github.com/ipython/ipython/issues/12164
+    """
+    import pexpect
+    from IPython.utils._process_posix import ProcessHandler
+
+    def interrupted_spawn(*args, **kwargs):
+        raise KeyboardInterrupt
+
+    monkeypatch.delattr(pexpect, "spawnb", raising=False)
+    monkeypatch.setattr(pexpect, "spawn", interrupted_spawn)
+
+    try:
+        status = ProcessHandler().system("true")
+    except UnboundLocalError as e:  # what it used to raise
+        status = e
+    assert status == -signal.SIGINT
+
+
+@dec.skip_win32
+def test_system_interrupt_after_spawn_forked(monkeypatch):
+    """A ^C that arrives once the child exists, but before spawn() returns,
+    must still stop that child.
+    """
+    import pexpect
+    from IPython.utils._process_posix import ProcessHandler
+
+    real_spawn = pexpect.spawn
+    children = []
+
+    def spawn_then_interrupt(*args, **kwargs):
+        child = real_spawn(*args, **kwargs)
+        children.append(child)
+        os.kill(os.getpid(), signal.SIGINT)
+        return child
+
+    monkeypatch.delattr(pexpect, "spawnb", raising=False)
+    monkeypatch.setattr(pexpect, "spawn", spawn_then_interrupt)
+
+    ProcessHandler().system("sleep 30")
+    assert len(children) == 1
+    assert not children[0].isalive()
+
+
 def test_getoutput(subprocess_tmpfile):
     out = getoutput(f'{python} "{subprocess_tmpfile}"')
     assert out in ("on stderron stdout", "on stdouton stderr")
