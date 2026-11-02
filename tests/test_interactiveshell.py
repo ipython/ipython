@@ -1349,16 +1349,20 @@ def test_sync_runner_does_not_leave_cell_suspended(monkeypatch):
     import gc
 
     reported = []
-    showtraceback = ip.showtraceback
+    showtraceback = InteractiveShell.showtraceback
 
-    def spy(*args, **kwargs):
+    def spy(self, *args, **kwargs):
         reported.append(sys.exc_info()[0])
-        return showtraceback(*args, **kwargs)
+        return showtraceback(self, *args, **kwargs)
 
     # Shells that must run every cell synchronously override should_run_async,
-    # which sends top-level await to the pseudo-sync runner.
-    monkeypatch.setattr(ip, "should_run_async", lambda *args, **kwargs: False)
-    monkeypatch.setattr(ip, "showtraceback", spy)
+    # which sends top-level await to the pseudo-sync runner. Patch the class:
+    # undoing a patch of a method on the instance would leave the bound method
+    # behind as an instance attribute, shadowing later patches of the class.
+    monkeypatch.setattr(
+        InteractiveShell, "should_run_async", lambda self, *args, **kwargs: False
+    )
+    monkeypatch.setattr(InteractiveShell, "showtraceback", spy)
 
     result = ip.run_cell("import asyncio\nawait asyncio.sleep(0)")
     assert isinstance(result.error_in_exec, RuntimeError)
