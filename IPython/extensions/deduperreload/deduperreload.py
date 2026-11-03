@@ -445,12 +445,10 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
                 to_patch_to = namespace_to_check.__dict__[name]
                 if isinstance(to_patch_to, (staticmethod, classmethod)):
                     to_patch_to = to_patch_to.__func__
-                # exec new source code using old function's (obj) globals environment.
-                func_code = textwrap.dedent(ast.unparse(new_ast_def))
-                if is_method := (len(prefixes) > 0):
-                    func_code = "class __autoreload_class__:\n" + textwrap.indent(
-                        func_code, "    "
-                    )
+                # Exec the new definition using the old function's globals.  Keep
+                # the source locations from the parsed AST so tracebacks continue
+                # to point at the original file after a reload.
+                is_method = len(prefixes) > 0
                 global_env = ns.__dict__
                 if not isinstance(global_env, dict):
                     global_env = dict(global_env)
@@ -460,16 +458,37 @@ class DeduperReloader(DeduperReloaderPatchingMixin):
                     and to_patch_to.__code__.co_filename
                     or "<string>"
                 )
-                func_asts = [ast.parse(func_code)]
-                if len(cast(ast.FunctionDef, func_asts[0].body[0]).decorator_list) > 0:
-                    without_decorator_list = pickle.loads(pickle.dumps(func_asts[0]))
-                    cast(
-                        ast.FunctionDef, without_decorator_list.body[0]
-                    ).decorator_list = []
-                    func_asts.insert(0, without_decorator_list)
-                for func_ast in func_asts:
+                if is_method or new_ast_def.decorator_list:
+                    # Keep source reconstruction for methods and decorated
+                    # functions, whose wrapper/decorator handling relies on it.
+                    func_code = textwrap.dedent(ast.unparse(new_ast_def))
+                    if is_method:
+                        func_code = "class __autoreload_class__:\n" + textwrap.indent(
+                            func_code, "    "
+                        )
+                    function_asts = [ast.parse(func_code)]
+                    if (
+                        len(
+                            cast(
+                                ast.FunctionDef, function_asts[0].body[0]
+                            ).decorator_list
+                        )
+                        > 0
+                    ):
+                        without_decorator_list = pickle.loads(
+                            pickle.dumps(function_asts[0])
+                        )
+                        cast(
+                            ast.FunctionDef, without_decorator_list.body[0]
+                        ).decorator_list = []
+                        function_asts.insert(0, without_decorator_list)
+                else:
+                    # Compiling the original AST preserves source line metadata
+                    # so tracebacks continue to point at the reloaded file.
+                    function_asts = [ast.Module(body=[new_ast_def], type_ignores=[])]
+                for function_ast in function_asts:
                     compiled_code = compile(
-                        func_ast, filename, mode="exec", dont_inherit=True
+                        function_ast, filename, mode="exec", dont_inherit=True
                     )
                     exec(compiled_code, global_env, local_env)
                     # local_env contains the function exec'd from  new version of function
