@@ -106,6 +106,10 @@ Special methods
 Pretty printing
 """""""""""""""
 
+Unlike the rich display hooks below, ``_repr_pretty_`` customizes plain-text output. It is
+supported by the REPL, Notebook, and Qt Console; the table above shows which of the other
+``_repr_*_`` hooks each interface supports.
+
 To customize how your object is pretty-printed, add a ``_repr_pretty_`` method
 to the class.
 The method should accept a pretty printer, and a boolean that indicates whether
@@ -123,8 +127,8 @@ Here is an example::
 
 For details on how to use the pretty printer, see :py:mod:`IPython.lib.pretty`.
 
-More powerful methods
-"""""""""""""""""""""
+Rich display methods
+""""""""""""""""""""
 
 .. class:: MyObject
 
