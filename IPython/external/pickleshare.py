@@ -59,7 +59,7 @@ class PickleShareDB(collections_abc.MutableMapping):
     """The main 'connection' object for PickleShare database"""
 
     def __init__(self, root):
-        """Return a db object that will manage the specied directory"""
+        """Return a db object that will manage the specified directory"""
         if not isinstance(root, str):
             root = str(root)
         root = os.path.abspath(os.path.expanduser(root))

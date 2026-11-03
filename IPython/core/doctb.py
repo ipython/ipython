@@ -446,7 +446,7 @@ class DocTB(TBTools):
         return structured_traceback_parts
 
     def debugger(self, force: bool = False) -> None:
-        raise RuntimeError("canot rundebugger in Docs mode")
+        raise RuntimeError("cannot rundebugger in Docs mode")
 
     def handler(self, info: tuple[Any, Any, Any] | None = None) -> None:
         (etype, evalue, etb) = info or sys.exc_info()
