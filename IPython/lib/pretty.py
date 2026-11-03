@@ -686,7 +686,11 @@ def _dict_pprinter_factory(start, end):
             return p.text('{...}')
         step = len(start)
         p.begin_group(step, start)
-        keys = obj.keys()
+        # Snapshot the keys: printing a value can mutate the dict we are
+        # iterating (e.g. a module __dict__ gaining ``__builtins__`` on the
+        # first ``vars(posix)``), which raises "dictionary changed size
+        # during iteration" on a live keys view.
+        keys = list(obj.keys())
         for idx, key in p._enumerate(keys):
             if idx:
                 p.text(',')

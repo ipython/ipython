@@ -609,3 +609,21 @@ def test_custom_repr():
     assert "OrderedCounter(OrderedDict" in pretty.pretty(oc)
 
     assert pretty.pretty(MySet()) == "mine"
+
+
+def test_dict_mutated_during_pretty_printing():
+    """GH-14541: dict changing size while being pretty-printed must not raise."""
+
+    d = {}
+
+    class Mutator:
+        def __repr__(self):
+            # Simulates the dict gaining a key mid-print, like a module
+            # __dict__ gaining __builtins__ on the first vars(posix).
+            d["added_later"] = 1
+            return "Mutator()"
+
+    d["a"] = Mutator()
+    output = pretty.pretty(d)
+    assert output == "{'a': Mutator()}"
+    assert "added_later" in d
