@@ -332,6 +332,8 @@ examples = [
     pytest.param("(0b12)", "invalid", None),
     pytest.param("a = [1,\n2,", "incomplete", 0),
     extra_closing_paren_param,
+    # Multi-line input with unmatched closing bracket on an early line (gh-13099)
+    pytest.param(")\n(spam,\n  ham)\n(eggs,\n beans)", "invalid", None),
     pytest.param("\\\r\n", "incomplete", 0),
     pytest.param("a = '''\n   hi", "incomplete", 3),
     pytest.param("def a():\n x=1\n global x", "invalid", None),
