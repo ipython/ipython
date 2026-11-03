@@ -25,6 +25,64 @@ def test_cell_magic():
     assert ipt2.cell_magic(sample.splitlines(keepends=True)) == expected.splitlines(keepends=True)
 
 
+@pytest.mark.parametrize(
+    "prefix",
+    ["# setup\n", "# first\n\n  # second\n \t\n", "\n# setup\n"],
+)
+def test_cell_magic_after_comments(prefix):
+    sample, expected = CELL_MAGIC
+    assert ipt2.TransformerManager().transform_cell(prefix + sample) == expected
+
+
+@pytest.mark.parametrize(
+    "sample",
+    [
+        "    # setup\n    %%foo arg\n    body 1\n    body 2\n",
+        "\t# setup\n\t%%foo arg\n\tbody 1\n\tbody 2\n",
+        ">>> # setup\n... %%foo arg\n... body 1\n... body 2\n",
+        "In [1]: # setup\n   ...: %%foo arg\n   ...: body 1\n   ...: body 2\n",
+        "In [1]: # first\n   ...: \n   ...: # second\n"
+        "   ...: %%foo arg\n   ...: body 1\n   ...: body 2\n",
+    ],
+)
+def test_cell_magic_after_comments_in_pasted_input(sample):
+    assert ipt2.TransformerManager().transform_cell(sample) == CELL_MAGIC[1]
+
+
+def test_cell_magic_after_comments_preserves_body():
+    source = "# setup\n%%foo arg\n# body comment\n\n  indented\n%%literal\n"
+    assert ipt2.TransformerManager().transform_cell(source) == (
+        "get_ipython().run_cell_magic('foo', 'arg', "
+        "'# body comment\\n\\n  indented\\n%%literal\\n')\n"
+    )
+
+
+@pytest.mark.parametrize("suffix,magic", [("?", "pinfo"), ("??", "pinfo2")])
+def test_cell_magic_help_after_comments(suffix, magic):
+    assert ipt2.TransformerManager().transform_cell("# setup\n%%foo" + suffix) == (
+        f"get_ipython().run_line_magic('{magic}', '%%foo')\n"
+    )
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "",
+        "\n \t\n",
+        "# first\n\n  # second\n",
+        "# setup\nvalue = 1\n",
+        "# setup\n%foo arg\n",
+        "# setup\nvalue = 1\n%%foo arg\n",
+        "# setup\n    %%foo arg\n",
+        '# setup\n"""\n%%foo\n"""\n',
+        '# setup\nvalue = """\n%%foo\n"""\n',
+    ],
+)
+def test_leading_comments_preserved_without_cell_magic(source):
+    lines = source.splitlines(keepends=True)
+    assert ipt2.leading_comment_lines(lines) == lines
+
+
 CLASSIC_PROMPT = (
     """\
 >>> for a in range(5):
