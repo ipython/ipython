@@ -84,45 +84,65 @@ class PromptStripper:
             self._doctest_ps1_re = re.compile(r"^\s*>>>[ \t]?")
             self._doctest_ps2_re = re.compile(r"^\s*\.\.\.[ \t]?")
 
-            # Very small state machine to detect triple-quoted strings in the
-            # *same* input block (e.g. user typed """ then pasted doctest).
-            # We preserve literal >>> / ... inside triple-quoted strings.
-            self._triple_quote_re = re.compile(r"(?<!\\)(\"\"\"|''')")
+    def _string_mask(self, lines: list[str]) -> list[bool]:
+        """Protect strings whose opening line was not part of a prompted paste.
 
-    def _triple_quote_mask(self, lines: list[str]) -> list[bool]:
+        Tokenize a candidate with one prompt layer removed, but retain the
+        original lines for output. Python's tokenizer distinguishes strings
+        from comments and handles prefixes, escapes and nested f-strings.
+        A string opened on a prompted line belongs to the pasted code, so its
+        continuation lines still need their outer prompt layer removed.
         """
-        Return a boolean mask: True if the corresponding line is considered
-        inside a triple-quoted string literal.
-
-        This is intentionally heuristic (fast + good enough for paste handling).
-        """
-        mask: list[bool] = []
-        in_triple: str | None = None  # either ''' or """
-        preserve_prompt = False
-        seen_prompt = False
-        string_prefix_re = re.compile(r"(?i)^[rubf]*$")
-
+        mask = [False] * len(lines)
+        prompted = []
+        candidate = []
         for line in lines:
-            mask.append(in_triple is not None and preserve_prompt)
-            # Toggle state for each occurrence of """ or ''' in the line.
-            for m in self._triple_quote_re.finditer(line):
-                q = m.group(1)
-                if in_triple is None:
-                    in_triple = q
-                    before_quote = line[: m.start()]
-                    stripped = self._doctest_ps1_re.sub("", before_quote, count=1)
-                    stripped = self._doctest_ps2_re.sub("", stripped, count=1)
-                    had_prompt = stripped != before_quote
-                    prompted_code = had_prompt and seen_prompt
-                    preserve_prompt = bool(
-                        not prompted_code and string_prefix_re.match(stripped.strip())
-                    )
-                    mask[-1] = preserve_prompt
-                elif in_triple == q:
-                    in_triple = None
-                    preserve_prompt = False
-                # else: ignore mismatched triple quote while inside
-            seen_prompt = seen_prompt or bool(self._doctest_initial_re.match(line))
+            match = self._doctest_ps1_re.match(line) or self._doctest_ps2_re.match(line)
+            prompted.append(match is not None)
+            # Indentation is irrelevant to string boundaries. Removing it in
+            # this temporary copy avoids IndentationError in mixed pastes.
+            candidate.append((line[match.end() :] if match else line).lstrip(" \t"))
+
+        def protect(start, end):
+            if not prompted[start - 1]:
+                mask[start - 1 : end] = [True] * (end - start + 1)
+
+        remaining = iter(candidate)
+        consumed = 0
+
+        def readline():
+            nonlocal consumed
+            line = next(remaining)
+            consumed += 1
+            return line
+
+        while consumed < len(lines):
+            offset = consumed
+            interpolated = []
+            try:
+                for token in tokenize.generate_tokens(readline):
+                    kind = tokenize.tok_name[token.type]
+                    if kind in {"FSTRING_START", "TSTRING_START"}:
+                        interpolated.append(offset + token.start[0])
+                    elif kind in {"FSTRING_END", "TSTRING_END"}:
+                        start = interpolated.pop()
+                        if not interpolated:
+                            protect(start, offset + token.end[0])
+                    elif token.type == tokenize.STRING and not interpolated:
+                        protect(offset + token.start[0], offset + token.end[0])
+            except tokenize.TokenError as error:
+                start = offset + error.args[1][0]
+                if interpolated:
+                    protect(interpolated[0], len(lines))
+                    break
+                if "multi-line string" in error.args[0] or (
+                    "unterminated string literal" in error.args[0]
+                    and candidate[start - 1].endswith(("\\\n", "\\\r\n"))
+                ):
+                    protect(start, len(lines))
+                    break
+                # Shell/magic input need not be valid Python. Resume with the
+                # next unread line, retaining the spans already identified.
         return mask
 
     def _strip(self, lines):
@@ -133,23 +153,23 @@ class PromptStripper:
             return lines
 
         if self.doctest:
-            triple_mask = self._triple_quote_mask(lines)
+            if not any(self._doctest_initial_re.match(line) for line in lines):
+                return lines
+            string_mask = self._string_mask(lines)
 
-            # Detect doctest prompts only outside triple-quoted strings.
+            # A prompt inside an unprompted string does not activate stripping.
             has_doctest_outside = any(
-                (not in_triple) and self._doctest_initial_re.match(l)
-                for l, in_triple in zip(lines, triple_mask)
+                (not protected) and self._doctest_initial_re.match(line)
+                for line, protected in zip(lines, string_mask)
             )
             if not has_doctest_outside:
                 return lines
 
             out_lines: list[str] = []
-            stripped_mask: list[bool] = []
 
-            for l, in_triple in zip(lines, triple_mask):
-                if in_triple:
+            for l, protected in zip(lines, string_mask):
+                if protected:
                     out_lines.append(l)
-                    stripped_mask.append(False)
                     continue
 
                 if self._doctest_ps1_re.match(l):
@@ -159,28 +179,15 @@ class PromptStripper:
                 else:
                     new_l = l
                 out_lines.append(new_l)
-                stripped_mask.append(new_l != l)
 
-            # Dedent only the non-triple-quoted segments where stripping occurred.
-            dedented: list[str] = []
-            i = 0
-            while i < len(out_lines):
-                j = i
-                in_triple = triple_mask[i]
-                while j < len(out_lines) and triple_mask[j] == in_triple:
-                    j += 1
-
-                segment = out_lines[i:j]
-                seg_stripped = any(stripped_mask[i:j])
-
-                if (not in_triple) and seg_stripped:
-                    dedented.extend(dedent("".join(segment)).splitlines(keepends=True))
-                else:
-                    dedented.extend(segment)
-
-                i = j
-
-            return dedented
+            # Use the whole cell's indentation context, not separate segments
+            # around literals: a later prompted line may still be in a block.
+            # Preserve the original whitespace of protected string lines.
+            dedented = leading_indent(out_lines)
+            return [
+                original if protected else line
+                for original, line, protected in zip(out_lines, dedented, string_mask)
+            ]
 
         if self.initial_re.match(lines[0]) or (
             len(lines) > 1 and self.prompt_re.match(lines[1])
