@@ -647,8 +647,10 @@ def test_dict_pretty_print_recursive():
 
 
 def test_posix_module_dict_pretty_print():
-    import posix
+    import pytest
     from IPython.lib.pretty import pretty
+
+    posix = pytest.importorskip("posix")
 
     result = pretty(vars(posix))
 
