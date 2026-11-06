@@ -414,6 +414,30 @@ def test_reset_in_length():
     assert len(_ip.user_ns["In"]) == _ip.displayhook.prompt_count + 1
 
 
+def test_reset_starts_new_session():
+    """Test that '%reset -f' starts a new session and resets the prompt counter.
+
+    Regression test for #13087: the hard reset used to call
+    ``shell.reset(new_session=False)``, so the prompt counter was not
+    reset and no new history session was created, contradicting the
+    magic's docstring ("we do a 'hard' reset, giving you a new session").
+    """
+    ip = get_ipython()
+    ip.run_cell("a = 1", store_history=True)
+    ip.run_cell("b = 2", store_history=True)
+    assert ip.execution_count > 1
+    session_number = ip.history_manager.session_number
+
+    ip.run_line_magic("reset", "-f")
+
+    assert "a" not in ip.user_ns
+    assert ip.execution_count == 1
+    assert ip.history_manager.session_number == session_number + 1
+    # The next cell is numbered In [1]
+    result = ip.run_cell("c = 3", store_history=True)
+    assert result.execution_count == 1
+
+
 def test_reset_redefine(caplog):
     @magics_class
     class KernelMagics(Magics):
@@ -1804,6 +1828,13 @@ def test_save_with_no_args():
             """
         )
         assert content == expected_content
+
+    # The inputs above were stored with hardcoded line numbers 1-4.
+    # Start a fresh session so later cells in the shared test shell cannot
+    # reuse those line numbers in this session: %reset now restarts the
+    # prompt counter, and reusing a line number in the same session trips
+    # the history database's UNIQUE(session, line) constraint.
+    ip.history_manager.reset()
 
 
 def test_store():
