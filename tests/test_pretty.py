@@ -609,3 +609,48 @@ def test_custom_repr():
     assert "OrderedCounter(OrderedDict" in pretty.pretty(oc)
 
     assert pretty.pretty(MySet()) == "mine"
+
+
+def test_dict_mutation_during_pretty_print():
+    from IPython.lib.pretty import pretty
+
+    data = {}
+
+    class MutatingValue:
+        def __repr__(self):
+            data["added"] = "new value"
+            return "MutatingValue()"
+
+    data["original"] = MutatingValue()
+
+    result = pretty(data)
+
+    assert "'original': MutatingValue()" in result
+    assert data["added"] == "new value"
+
+
+def test_dict_pretty_print_unchanged():
+    from IPython.lib.pretty import pretty
+
+    data = {"a": 1, "b": 2}
+
+    assert pretty(data) == "{'a': 1, 'b': 2}"
+
+
+def test_dict_pretty_print_recursive():
+    from IPython.lib.pretty import pretty
+
+    data = {}
+    data["self"] = data
+
+    assert pretty(data) == "{'self': {...}}"
+
+
+def test_posix_module_dict_pretty_print():
+    import posix
+    from IPython.lib.pretty import pretty
+
+    result = pretty(vars(posix))
+
+    assert isinstance(result, str)
+    assert "__name__" in result
