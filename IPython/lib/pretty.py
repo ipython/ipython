@@ -686,14 +686,20 @@ def _dict_pprinter_factory(start, end):
             return p.text('{...}')
         step = len(start)
         p.begin_group(step, start)
-        keys = obj.keys()
-        for idx, key in p._enumerate(keys):
+        # Take a snapshot of the items before iterating. Some mappings mutate
+        # while they are being formatted -- e.g. a module's ``__dict__`` that
+        # populates lazily the first time an attribute is accessed -- which
+        # would otherwise raise "dictionary changed size during iteration"
+        # (see https://github.com/ipython/ipython/issues/14541). Capturing the
+        # key/value pairs up front also avoids a second live lookup per key.
+        items = list(obj.items())
+        for idx, (key, value) in p._enumerate(items):
             if idx:
                 p.text(',')
                 p.breakable()
             p.pretty(key)
             p.text(': ')
-            p.pretty(obj[key])
+            p.pretty(value)
         p.end_group(step, end)
     return inner
 

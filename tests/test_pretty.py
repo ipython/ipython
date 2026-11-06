@@ -609,3 +609,37 @@ def test_custom_repr():
     assert "OrderedCounter(OrderedDict" in pretty.pretty(oc)
 
     assert pretty.pretty(MySet()) == "mine"
+
+
+class _MutateDuringPretty:
+    """Helper whose pretty-printing mutates a target dict.
+
+    Simulates mappings such as a module's ``__dict__`` that populate lazily the
+    first time an attribute is accessed, so they grow while being formatted.
+    """
+
+    def __init__(self, target):
+        self.target = target
+
+    def _repr_pretty_(self, p, cycle):
+        # Grow the dict that is currently being formatted.
+        self.target["injected_during_iteration"] = object()
+        p.text("<mutator>")
+
+
+def test_dict_mutated_while_pretty_printing():
+    """Pretty-printing a dict that grows mid-iteration must not raise.
+
+    Regression test for https://github.com/ipython/ipython/issues/14541:
+    ``vars(posix)`` raised ``RuntimeError: dictionary changed size during
+    iteration`` on the first call because the dict was populated lazily while
+    its live key view was being iterated.
+    """
+    d = {}
+    d["mutator"] = _MutateDuringPretty(d)
+    d["after"] = 1
+
+    # Must not raise RuntimeError, and must still format the pre-existing items.
+    result = pretty.pretty(d)
+    assert "<mutator>" in result
+    assert "'after': 1" in result
