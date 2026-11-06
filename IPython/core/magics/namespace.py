@@ -571,7 +571,7 @@ class NamespaceMagics(Magics):
             for i in self.who_ls():
                 del(user_ns[i])
         elif len(args) == 0:                # Hard reset
-            self.shell.reset(new_session=False, aggressive=("aggressive" in opts))
+            self.shell.reset(new_session=True, aggressive=("aggressive" in opts))
 
         # reset in/out/dhist/array: previously extensinions/clearcmd.py
         ip = self.shell
