@@ -1513,6 +1513,49 @@ def test_func_kw_matches_respects_evaluation_policy():
             assert "timeout=" in matches
             assert evaluated == ["handler"]
 
+
+def test_jedi_does_not_evaluate_property():
+    # https://github.com/ipython/ipython/issues/13674
+    ip = get_ipython()
+    evaluated = []
+
+    class Foo:
+        @property
+        def yo(self):
+            evaluated.append("yo")
+            return 42
+
+        def method(self):
+            return 1
+
+    ip.user_ns["f"] = Foo()
+
+    def _completion_texts(text):
+        with provisionalcompleter():
+            return [c.text for c in ip.Completer.completions(text, len(text))]
+
+    try:
+        with jedi_status(True), evaluation_policy("limited"):
+            # Completing the attributes of the instance itself lists the
+            # property without evaluating it (the exact repro from #13674).
+            assert _completion_texts("f.") == ["method", "yo"]
+            assert evaluated == []
+
+            # Completing attributes *of* the property value must not
+            # evaluate the getter either; Jedi infers the type of live
+            # namespace objects by evaluating them.
+            assert _completion_texts("f.yo.") == []
+            assert evaluated == []
+
+        with jedi_status(True), evaluation_policy("unsafe"):
+            # Evaluation is explicitly allowed under "unsafe", so the
+            # getter may run and completions for its value are offered.
+            assert "bit_length" in _completion_texts("f.yo.")
+            assert evaluated == ["yo"]
+    finally:
+        del ip.user_ns["f"]
+
+
 @pytest.mark.parametrize(
     "line",
     [
