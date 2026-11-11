@@ -504,12 +504,26 @@ class ThemeTable(Mapping[str, Theme]):
         # over whatever the file happens to call itself.
         return Theme.from_dict({**data, "name": name})
 
+    @staticmethod
+    def _from_builtin(filename: str) -> Theme:
+        """Read a theme IPython ships, from the package rather than the disk.
+
+        `importlib.resources` reads the JSON whether the package is a plain
+        directory or inside a zip file, so this also works for zipapp installs.
+        """
+        from importlib.resources import files
+
+        data = json.loads(
+            (files("IPython.utils") / "themes" / filename).read_text(encoding="utf-8")
+        )
+        return Theme.from_dict(data)
+
     def __getitem__(self, name: str) -> Theme:
         if name in self._by_name:
             return self._by_name[name]
         if name in _BUILTIN_THEMES:
             filename = _theme_filename(_BUILTIN_THEMES[name])
-            theme = Theme.from_file(_THEME_DIR / filename)
+            theme = self._from_builtin(filename)
         else:
             user_themes = self._get_user_themes()
             entry_points = {} if name in user_themes else self._get_entry_points()
