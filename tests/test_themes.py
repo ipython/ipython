@@ -2,10 +2,14 @@
 
 import json
 import os
+import subprocess
 import sys
 import unicodedata
+import zipfile
+from pathlib import Path
 from types import SimpleNamespace
 
+import IPython
 import pytest
 from pygments.token import Token
 
@@ -114,6 +118,35 @@ def test_builtin_theme_files_are_self_describing(name):
     assert data["name"] == name
     assert set(data) <= {"name", "base", "extra_style", "symbols"}
     assert Theme.from_dict(data).extra_style == theme_table[name].extra_style
+
+
+def test_builtin_themes_load_from_a_zip(tmp_path):
+    """Bundled themes load when IPython itself is imported from a zip file.
+
+    A zipapp has no real directory holding the theme JSON files, so reading
+    them through the filesystem fails with NotADirectoryError (gh-15477).
+    """
+    package_dir = Path(IPython.__file__).parent
+    zip_path = tmp_path / "ipython.zip"
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        for path in sorted(package_dir.rglob("*")):
+            if path.is_file() and "__pycache__" not in path.parts:
+                zf.write(path, path.relative_to(package_dir.parent))
+    code = (
+        "import sys; sys.path.insert(0, sys.argv[1]); "
+        "from IPython.utils.PyColorize import theme_table; "
+        "theme = theme_table['linux']; "
+        "assert theme.name == 'linux'; "
+        "from pygments.token import Token; "
+        "assert theme.format([(Token.Name, 'x')])"
+    )
+    subprocess.run(
+        [sys.executable, "-c", code, str(zip_path)],
+        check=True,
+        capture_output=True,
+        text=True,
+        cwd=str(tmp_path),
+    )
 
 
 def test_neutral_aliases_the_platform_theme():
