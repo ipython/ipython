@@ -136,7 +136,7 @@ class DisplayHook(Configurable):
         In the default implementation the format data is a :class:`dict` of
         key value pair where the keys are valid MIME types and the values
         are JSON'able data structure containing the raw data for that MIME
-        type. It is up to frontends to determine pick a MIME to to use and
+        type. It is up to frontends to determine pick a MIME to use and
         display that data in an appropriate manner.
 
         This method only computes the format data for the object and should
