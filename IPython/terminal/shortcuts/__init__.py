@@ -390,12 +390,19 @@ def reformat_and_execute(event):
 
 
 def reformat_text_before_cursor(buffer, document, shell):
-    text = buffer.delete_before_cursor(len(document.text[: document.cursor_position]))
+    text = document.text[: document.cursor_position]
     try:
         formatted_text = shell.reformat_handler(text)
-        buffer.insert_text(formatted_text)
-    except Exception as e:
-        buffer.insert_text(text)
+    except Exception:
+        return
+
+    # Replacing identical text fires two on_text_changed events; the dumb
+    # prompt echoes each one, which duplicates the last typed character.
+    if formatted_text == text:
+        return
+
+    buffer.delete_before_cursor(len(text))
+    buffer.insert_text(formatted_text)
 
 
 def handle_return_or_newline_or_execute(event):
