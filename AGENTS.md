@@ -41,6 +41,7 @@ one.
 - New features, settings, UI changes and public API changes need a maintainer's agreement on the issue first. A `good first issue` or `help wanted` label counts as agreement
 - Do not open a pull request for an issue labeled `status:Needs Discussion` or `status:Needs Triage`. An issue that the person you work with or a maintainer filed is fine to work on while it still has `status:Needs Triage`. A comment on any of these issues can be a good contribution, and it needs the same high quality as a pull request
 - Look for pull requests on the same issue, including closed and merged ones: `gh pr list --repo ipython/ipython --state all --search <issue number>`. Read why the closed ones were closed, and check whether a merged one already fixed the issue. Open another one only when it differs in a way that matters, and say how under "References"
+- An AI generated PR that does not differ significantly from an earlier submission without strongly arguing for a different implementation will result in a 30 days ban.
 - Report a security vulnerability as described in the [security policy](https://github.com/jupyterlab/jupyterlab/security/policy), instead of opening an issue or a pull request
 
 ### Description
