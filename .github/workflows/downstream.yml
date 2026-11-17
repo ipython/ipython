@@ -33,7 +33,7 @@ jobs:
         os: [ubuntu-latest]
         python-version: ["3.13"]
         include:
-          - os: macos-14
+          - os: macos-15
             python-version: "3.13"
 
     steps:
