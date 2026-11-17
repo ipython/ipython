@@ -328,6 +328,13 @@ Any input line beginning with a ``!`` character is passed verbatim (minus
 the ``!``, of course) to the underlying operating system. For example,
 typing ``!ls`` will run 'ls' in the current directory.
 
+By default, a command's non-zero exit status does not raise an exception. To
+raise :class:`subprocess.CalledProcessError` when a ``!`` command fails, set
+:std:configtrait:`system_raise_on_error <InteractiveShell.system_raise_on_error>`
+to ``True``. For example, in a running IPython session::
+
+    %config InteractiveShell.system_raise_on_error = True
+
 .. _manual_capture:
 
 Manual capture of command output and magic output
