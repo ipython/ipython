@@ -1,29 +1,30 @@
 """Tests for the JSON-backed theme table."""
 
+import importlib
 import json
 import os
-import subprocess
 import sys
 import unicodedata
 import zipfile
 from pathlib import Path
 from types import SimpleNamespace
 
-import IPython
 import pytest
 from pygments.token import Token
 
+from IPython.utils import PyColorize
 from IPython.utils.PyColorize import (
     _BUILTIN_THEMES,
     _FORBIDDEN_SYMBOL_CATEGORIES,
     MAX_SYMBOL_LENGTH,
-    _THEME_DIR,
     _theme_filename,
     Theme,
     ThemeTable,
     theme_table,
     token_from_str,
 )
+
+THEME_DIR = Path(PyColorize.__file__).parent / "themes"
 
 # Written as escapes rather than literally: these are invisible or private use
 # characters, which editors and other tooling silently mangle. See
@@ -114,39 +115,27 @@ def test_builtin_themes_load(name):
 @pytest.mark.parametrize("name", sorted(set(_BUILTIN_THEMES.values())))
 def test_builtin_theme_files_are_self_describing(name):
     """Every shipped file must name itself after the file it lives in."""
-    data = json.loads((_THEME_DIR / _theme_filename(name)).read_text(encoding="utf-8"))
+    data = json.loads((THEME_DIR / _theme_filename(name)).read_text(encoding="utf-8"))
     assert data["name"] == name
     assert set(data) <= {"name", "base", "extra_style", "symbols"}
     assert Theme.from_dict(data).extra_style == theme_table[name].extra_style
 
 
-def test_builtin_themes_load_from_a_zip(tmp_path):
-    """Bundled themes load when IPython itself is imported from a zip file.
-
-    A zipapp has no real directory holding the theme JSON files, so reading
-    them through the filesystem fails with NotADirectoryError (gh-15477).
-    """
-    package_dir = Path(IPython.__file__).parent
+def test_builtin_themes_load_from_a_zip(tmp_path, monkeypatch):
+    """Bundled themes load when IPython is imported from a zip file (gh-15477)."""
     zip_path = tmp_path / "ipython.zip"
-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        for path in sorted(package_dir.rglob("*")):
-            if path.is_file() and "__pycache__" not in path.parts:
-                zf.write(path, path.relative_to(package_dir.parent))
-    code = (
-        "import sys; sys.path.insert(0, sys.argv[1]); "
-        "from IPython.utils.PyColorize import theme_table; "
-        "theme = theme_table['linux']; "
-        "assert theme.name == 'linux'; "
-        "from pygments.token import Token; "
-        "assert theme.format([(Token.Name, 'x')])"
-    )
-    subprocess.run(
-        [sys.executable, "-c", code, str(zip_path)],
-        check=True,
-        capture_output=True,
-        text=True,
-        cwd=str(tmp_path),
-    )
+    with zipfile.ZipFile(zip_path, "w") as zf:
+        zf.writestr("IPython/__init__.py", "")
+        zf.writestr("IPython/utils/__init__.py", "")
+        zf.write(PyColorize.__file__, "IPython/utils/PyColorize.py")
+        for path in THEME_DIR.glob("*.json"):
+            zf.write(path, f"IPython/utils/themes/{path.name}")
+    for name in ("IPython", "IPython.utils", "IPython.utils.PyColorize"):
+        monkeypatch.delitem(sys.modules, name)
+    monkeypatch.syspath_prepend(str(zip_path))
+    zipped = importlib.import_module("IPython.utils.PyColorize")
+    assert zipped.__file__.startswith(str(zip_path))
+    assert zipped.ThemeTable()["linux"].name == "linux"
 
 
 def test_neutral_aliases_the_platform_theme():
