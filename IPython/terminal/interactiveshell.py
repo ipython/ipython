@@ -354,7 +354,7 @@ class TerminalInteractiveShell(InteractiveShell):
         assert change.new == change.new.lower()
         if change.new != "legacy":
             warn(
-                "highlighting_style is deprecated since 9.0 and have no effect, use themeing."
+                "highlighting_style is deprecated since 9.0 and have no effect, use theming."
             )
             return
 

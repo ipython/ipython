@@ -21,7 +21,7 @@ python -c 'import sphinx'
 python -c 'import sphinx_rtd_theme'
 python -c 'import pytest'
 python -c 'import build'
-# those are necessary fo building the docs
+# those are necessary for building the docs
 echo "Checking imports for docs"
 python -c 'import numpy'
 python -c 'import matplotlib'
