@@ -209,6 +209,26 @@ def test_really_bad_repr():
         pretty.pretty(ReallyBadRepr())
 
 
+def test_dict_mutated_while_printing():
+    """A value that adds a key to its dict while printing must not break it."""
+    d = {}
+
+    class Mutator:
+        def _repr_pretty_(self, p, cycle):
+            d["added"] = 1
+            p.text("m")
+
+    d["m"] = Mutator()
+    assert pretty.pretty(d) == "{'m': m}"
+
+
+def test_dict_max_seq_length_snapshot():
+    """The key snapshot is bounded by max_seq_length and keeps the ellipsis."""
+    d = dict.fromkeys(range(5))
+    assert pretty.pretty(d, max_seq_length=2) == "{0: None, 1: None, ...}"
+    assert pretty.pretty(d, max_seq_length=5) == pretty.pretty(d, max_seq_length=0)
+
+
 class SA(object):
     pass
 
