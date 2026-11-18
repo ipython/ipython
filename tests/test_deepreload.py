@@ -4,6 +4,7 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import os
 import sys
 import types
 from pathlib import Path
@@ -100,6 +101,24 @@ def test_not_in_sys_modules():
 def test_reload_types_module_is_noop():
     # the types module is hardcoded to never be reloaded
     assert dreload(types) is types
+
+
+def test_deepreload_skips_stdlib():
+    with TemporaryDirectory() as tmpdir:
+        with prepended_to_syspath(tmpdir):
+            (Path(tmpdir) / "uses_stdlib.py").write_text(
+                "import os\nimport enum\nimport json.decoder\n", encoding="utf-8"
+            )
+            import uses_stdlib
+
+            environ = os.environ
+            Enum = sys.modules["enum"].Enum
+            JSONDecoder = sys.modules["json.decoder"].JSONDecoder
+            dreload(uses_stdlib)
+            assert os.environ is environ
+            assert sys.modules["enum"].Enum is Enum
+            assert sys.modules["json.decoder"].JSONDecoder is JSONDecoder
+            del sys.modules["uses_stdlib"]
 
 
 class TestGetParent:
