@@ -2536,6 +2536,90 @@ class IPCompleter(Completer):
             "suppress": False,
         }
 
+    def _jedi_would_evaluate_property(self, text: str, offset: int) -> bool:
+        """Check whether Jedi completion would evaluate a ``@property`` getter.
+
+        Jedi infers the type of the object before the final dot by
+        evaluating it when the object comes from the namespace (i.e. it
+        has no source to analyse statically). If any attribute in that
+        chain is a property, evaluating it runs the getter, which tab
+        completion must not do (see :gh:`13674` and :bpo:`44752`).
+
+        The check itself never evaluates the property: the base object is
+        looked up in the namespaces and attributes are inspected with
+        :func:`inspect.getattr_static`, which does not invoke descriptors.
+        Only chains of plain attribute accesses on namespace objects
+        which can be resolved statically are recognised; anything else
+        (calls, subscripts, methods, other descriptors) is left to Jedi
+        unchanged.
+
+        Evaluation policies which explicitly allow arbitrary evaluation
+        (``unsafe``, ``dangerous``) are honoured: under those, evaluating
+        the property is permitted, mirroring the behaviour of the
+        non-Jedi matchers.
+        """
+        if self.evaluation in ("unsafe", "dangerous"):
+            return False
+        code = text[:offset]
+        m = self._ATTR_MATCH_RE.match(code)
+        if not m:
+            return False
+        expr = m.group(1)
+        try:
+            tree = ast.parse(expr, mode="eval")
+        except SyntaxError:
+            return False
+        node = tree.body
+        if not isinstance(node, ast.Attribute):
+            return False
+        # Collect the attribute chain, innermost first.
+        attrs = []
+        while isinstance(node, ast.Attribute):
+            attrs.append(node.attr)
+            node = node.value
+        if not isinstance(node, ast.Name):
+            return False
+        attrs.reverse()
+        try:
+            obj = self.namespace[node.id]
+        except KeyError:
+            try:
+                obj = self.global_namespace[node.id]
+            except KeyError:
+                return False
+        for attr in attrs:
+            try:
+                class_attr = inspect.getattr_static(type(obj), attr)
+            except AttributeError:
+                class_attr = None
+            if isinstance(class_attr, property):
+                return True
+            if isinstance(class_attr, cached_property):
+                # Already cached: the value lives in the instance
+                # __dict__ and accessing it runs no user code.
+                try:
+                    instance_dict = vars(obj)
+                except TypeError:
+                    return True
+                if attr in instance_dict:
+                    obj = instance_dict[attr]
+                    continue
+                return True
+            # Resolve the attribute value without invoking descriptors:
+            # instance __dict__ entries and plain class attributes are
+            # safe; anything else cannot be resolved statically.
+            try:
+                instance_dict = vars(obj)
+            except TypeError:
+                instance_dict = {}
+            if attr in instance_dict:
+                obj = instance_dict[attr]
+            elif class_attr is not None and not hasattr(class_attr, "__get__"):
+                obj = class_attr
+            else:
+                return False
+        return False
+
     def _jedi_matches(
         self, cursor_column: int, cursor_line: int, text: str
     ) -> Iterator[_JediCompletionLike]:
@@ -2566,6 +2650,10 @@ class IPCompleter(Completer):
 
         completion_filter = lambda x:x
         offset = cursor_to_position(text, cursor_line, cursor_column)
+        if self._jedi_would_evaluate_property(text, offset):
+            # Completing attributes of a @property value would make Jedi
+            # evaluate the getter; tab completion must not do that.
+            return iter([])
         # filter output if we are completing for object members
         if offset:
             pre = text[offset-1]
