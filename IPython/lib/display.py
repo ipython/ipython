@@ -210,7 +210,7 @@ class Audio(DisplayObject):
     def _get_normalization_factor(max_abs_value, normalize):
         if not normalize and max_abs_value > 1:
             raise ValueError('Audio data must be between -1 and 1 when normalize=False.')
-        return max_abs_value if normalize else 1
+        return max_abs_value if normalize and max_abs_value != 0 else 1
 
     def _data_and_metadata(self):
         """shortcut for returning metadata with url information, if defined"""
