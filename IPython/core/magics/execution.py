@@ -103,14 +103,26 @@ class TimeitResult:
                 pm = "\xb1"
             except (UnicodeEncodeError, LookupError):
                 pass
+        average = self.average
+        stdev = self.stdev
+        if average >= 60.0:
+            # Long timespans use the "1min 2s" style; keep that format.
+            mean_str = _format_time(average, self._precision)
+            std_str = _format_time(stdev, self._precision)
+        else:
+            # Use the unit chosen for the mean for both values, so that
+            # e.g. "1.05 ms +- 50 us" becomes "1.05 +- 0.05 ms".
+            scale, unit = _time_unit(average)
+            mean_str = "%.*g" % (self._precision, average * scale)
+            std_str = "%.*g %s" % (self._precision, stdev * scale, unit)
         return "{mean} {pm} {std} per loop (mean {pm} std. dev. of {runs} run{run_plural}, {loops:,} loop{loop_plural} each)".format(
             pm=pm,
             runs=self.repeat,
             loops=self.loops,
             loop_plural="" if self.loops == 1 else "s",
             run_plural="" if self.repeat == 1 else "s",
-            mean=_format_time(self.average, self._precision),
-            std=_format_time(self.stdev, self._precision),
+            mean=mean_str,
+            std=std_str,
         )
 
     def _repr_pretty_(self, p , cycle):
@@ -1701,6 +1713,16 @@ def _format_time(timespan, precision=3):
                 break
         return " ".join(time)
 
+    scale, unit = _time_unit(timespan)
+    return "%.*g %s" % (precision, timespan * scale, unit)
+
+
+def _time_unit(timespan):
+    """Choose a display unit for a timespan of less than a minute.
+
+    Returns a ``(scale, unit)`` tuple: multiply the timespan (in seconds)
+    by ``scale`` to express it in ``unit``.
+    """
     # Unfortunately characters outside of range(128) can cause problems in
     # certain terminals.
     # See bug: https://bugs.launchpad.net/ipython/+bug/348466
@@ -1720,4 +1742,4 @@ def _format_time(timespan, precision=3):
         order = min(-int(math.floor(math.log10(timespan)) // 3), 3)
     else:
         order = 3
-    return "%.*g %s" % (precision, timespan * scaling[order], units[order])
+    return scaling[order], units[order]

@@ -585,6 +585,20 @@ def test_time_microseconds_display():
     with mock.patch("sys.stdout", io.TextIOWrapper(StringIO(), encoding="ascii")):
         assert execution._format_time(0.000001) == "1 us"
 
+def test_timeit_result_same_unit():
+    """Ensure the mean and std. dev. of %timeit use the same unit"""
+    # mean = 1.05 ms, std. dev. = 0.05 ms (50 us).
+    r = execution.TimeitResult(1, 2, 0, 0, [0.001, 0.0011], 0, 3)
+    with mock.patch("sys.stdout", io.TextIOWrapper(StringIO(), encoding="utf-8")):
+        assert str(r) == (
+            "1.05 \u00b1 0.05 ms per loop "
+            "(mean \u00b1 std. dev. of 2 runs, 1 loop each)"
+        )
+    with mock.patch("sys.stdout", io.TextIOWrapper(StringIO(), encoding="ascii")):
+        assert str(r) == (
+            "1.05 +- 0.05 ms per loop "
+            "(mean +- std. dev. of 2 runs, 1 loop each)"
+        )
 
 # Test %%capture magic. Added to test issue #13926
 def test_capture():
