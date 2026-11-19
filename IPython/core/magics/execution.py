@@ -110,8 +110,7 @@ class TimeitResult:
             mean_str = _format_time(average, self._precision)
             std_str = _format_time(stdev, self._precision)
         else:
-            # Use the unit chosen for the mean for both values, so that
-            # e.g. "1.05 ms +- 50 us" becomes "1.05 +- 0.05 ms".
+            # Use the unit chosen for the mean for both values (e.g. 1.05 +- 0.05 ms).
             scale, unit = _time_unit(average)
             mean_str = "%.*g" % (self._precision, average * scale)
             std_str = "%.*g %s" % (self._precision, stdev * scale, unit)
