@@ -148,7 +148,7 @@ def test_rejects_stringized_annotations():
 
 
 @dec.skip_without("pandas")
-def test_accepts_non_overriden_properties():
+def test_accepts_non_overridden_properties():
     import pandas as pd
 
     class GoodProperty(pd.Series):
