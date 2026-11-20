@@ -2,6 +2,32 @@
  9.x Series
 ============
 
+.. _version 9.19:
+
+IPython 9.19
+------------
+
+This is a small release with a single user-visible fix.
+
+Themes load when IPython runs from a zip file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Since 9.18 the bundled themes are JSON files, and they were opened through a
+path on disk. When IPython was imported from a zip file, for example as part
+of a :mod:`zipapp`, starting IPython failed with ``NotADirectoryError``. The
+bundled themes are now read through :mod:`importlib.resources`, which works in
+both cases. (:ghissue:`15477`)
+
+Thanks
+~~~~~~
+
+Thanks as well to the `D. E. Shaw group <https://deshaw.com/>`_ for sponsoring
+work on IPython.
+
+As usual, you can find the full list of PRs on GitHub under `the 9.19
+<https://github.com/ipython/ipython/milestone/171?closed=1>`__ milestone.
+
+
 .. _version 9.18.1:
 
 IPython 9.18.1
