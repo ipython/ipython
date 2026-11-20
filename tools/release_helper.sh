@@ -36,9 +36,18 @@ echo "Will use $BLUE'$EDITOR'$NOR to edit files when necessary"
 # echo -n "MILESTONE (X.y) [$MILESTONE]: "
 # read input
 # MILESTONE=${input:-$MILESTONE}
-echo -n "VERSION (X.y.z) [$VERSION]:"
-read input
-VERSION=${input:-$VERSION}
+# The tag must be exactly X.Y.Z: the publish workflow compares the tag name
+# with the built version string and refuses to publish on any mismatch
+# (e.g. a "9.19" tag for a 9.19.0 release).
+while true; do
+    echo -n "VERSION (X.y.z) [$VERSION]:"
+    read input
+    VERSION=${input:-$VERSION}
+    if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        break
+    fi
+    echo $RED"VERSION must be of the form X.Y.Z (e.g. 9.19.0), got '$VERSION'"$NOR
+done
 echo -n "BRANCH (main|X.y) [$BRANCH]:"
 read input
 BRANCH=${input:-$BRANCH}
@@ -53,10 +62,33 @@ ask_section(){
     else
        read -n1 value
     fi
-    if [ -z "$value" ] || [ $value = 'y' ]; then
+    if [ -z "$value" ] || [ "$value" = 'y' ]; then
         return 0
     fi
     return 1
+}
+
+# Like ask_section, but skipped unless explicitly asked for with 'y'.
+ask_section_default_skip(){
+    echo
+    echo $BLUE"$1"$NOR
+    echo -n $GREEN"Press y to run it, Enter (or any other key) to skip: "$NOR
+    if [ "$ZSH_NAME" = "zsh" ] ; then
+        read -k1 value
+        value=${value%$'\n'}
+    else
+       read -n1 value
+    fi
+    echo
+    if [ "$value" = 'y' ]; then
+        return 0
+    fi
+    return 1
+}
+
+# Version string IPython/core/release.py currently computes, without importing IPython.
+release_py_version(){
+    python -c 'ns = {}; exec(open("IPython/core/release.py").read(), ns); print(ns["__version__"])'
 }
 
 
@@ -120,7 +152,7 @@ maybe_edit IPython/core/release.py
 echo $GREEN"Press enter to continue"$NOR
 read
 
-if ask_section "Build the documentation ?"
+if ask_section_default_skip "Build the documentation ? (Read the Docs builds them)"
 then
     make html -C docs
     echo
@@ -131,6 +163,14 @@ fi
 
 if ask_section "Should we commit, tag, push... etc ? "
 then
+   BUILT_VERSION=$(release_py_version)
+   if [ "$BUILT_VERSION" != "$VERSION" ]; then
+       echo $RED"IPython/core/release.py gives version '$BUILT_VERSION' but VERSION is '$VERSION'."$NOR
+       echo $RED"The publish workflow would refuse a '$VERSION' tag. Fix release.py or VERSION and source this script again."$NOR
+       return 1 2>/dev/null || exit 1
+   fi
+   echo $GREEN"release.py version matches tag: $VERSION"$NOR
+
    echo
    echo $BLUE"Let's commit : git commit -am \"release $VERSION\" -S"
    echo $GREEN"Press enter to commit"$NOR
@@ -190,7 +230,7 @@ then
    git checkout tags/$VERSION
 fi
 
-if ask_section "Should we build and release ?"
+if ask_section_default_skip "Should we build and upload to PyPI manually ? (the publish workflow does this when the tag is pushed)"
 then
 
     echo $BLUE"going to set SOURCE_DATE_EPOCH"$NOR
