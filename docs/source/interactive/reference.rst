@@ -314,6 +314,13 @@ one of (note that the modes are given unquoted):
 Adding the '-o' flag to '%logstart' magic (as in '%logstart -o [log_name [log_mode]]')
 will also include output from iPython in the log file.
 
+To keep a log that replays cleanly, the '-m', '-e' and '-d' flags leave out
+cells containing IPython special commands (magics, shell escapes and help
+lookups), input that raised an error, and input that was already logged,
+respectively. They apply
+to input entered after '%logstart'; the history written when the log starts
+is not filtered.
+
 The :magic:`logoff` and :magic:`logon` functions allow you to temporarily stop and
 resume logging to a file which had previously been started with
 %logstart. They will fail (with an explanation) if you try to use them

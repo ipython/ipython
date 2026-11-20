@@ -39,7 +39,7 @@ class LoggingMagics(Magics):
     def logstart(self, parameter_s=''):
         """Start logging anywhere in a session.
 
-        %logstart [-o|-r|-t|-q] [log_name [log_mode]]
+        %logstart [-o|-r|-t|-q|-m|-e|-d] [log_name [log_mode]]
 
         If no name is given, it defaults to a file named 'ipython_log.py' in your
         current directory, in 'rotate' mode (see below).
@@ -92,13 +92,33 @@ class LoggingMagics(Magics):
 
           -q
             suppress output of logstate message when logging is invoked
+
+          -m
+            don't log cells containing IPython special commands: magics,
+            shell escapes and help lookups, i.e. input that IPython rewrites
+            into get_ipython() calls.
+
+          -e
+            don't log input that raises an error. Input is written once its
+            cell finishes, so a cell run from inside another cell (as by
+            %%capture) is logged before the outer one.
+
+          -d
+            don't log input that has already been logged in this session.
+
+          The -m, -e and -d filters apply to input entered after %logstart;
+          the session history written when the log is started is not
+          filtered.
         """
 
-        opts,par = self.parse_options(parameter_s,'ortq')
-        log_output = 'o' in opts
-        log_raw_input = 'r' in opts
-        timestamp = 't' in opts
-        quiet = 'q' in opts
+        opts, par = self.parse_options(parameter_s, "ortqmed")
+        log_output = "o" in opts
+        log_raw_input = "r" in opts
+        timestamp = "t" in opts
+        quiet = "q" in opts
+        skip_magics = "m" in opts
+        skip_errors = "e" in opts
+        skip_duplicates = "d" in opts
 
         logger = self.shell.logger
 
@@ -123,12 +143,23 @@ class LoggingMagics(Magics):
 
         loghead = '# IPython log file\n\n'
         try:
-            logger.logstart(logfname, loghead, logmode, log_output, timestamp,
-                            log_raw_input)
+            logger.logstart(
+                logfname,
+                loghead,
+                logmode,
+                log_output,
+                timestamp,
+                log_raw_input,
+                skip_magics,
+                skip_errors,
+                skip_duplicates,
+            )
         except Exception:
             self.shell.logfile = old_logfile
             warn("Couldn't start log: %s" % sys.exc_info()[1])
         else:
+            if skip_errors:
+                self.shell.events.register("post_run_cell", self._log_pending)
             # log input history up to this point, optionally interleaving
             # output if requested
 
@@ -169,6 +200,16 @@ class LoggingMagics(Magics):
         possibly (though not necessarily) with a new filename, mode and other
         options."""
         self.shell.logger.logstop()
+        try:
+            self.shell.events.unregister("post_run_cell", self._log_pending)
+        except ValueError:
+            pass
+
+    def _log_pending(self, result):
+        # result is None when run_cell failed before producing one; the entry
+        # then stays pending until the log is stopped.
+        if result is not None:
+            self.shell.logger.log_pending(result.success)
 
     @line_magic
     def logoff(self, parameter_s=''):
