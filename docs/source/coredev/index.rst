@@ -59,8 +59,12 @@ During the release process, you might need the extra following dependencies:
 
 Make sure you have all the required dependencies to run the tests as well.
 
-You can try to ``source tools/release_helper.sh`` when releasing via bash, it
-should guide you through most of the process.
+You can try to ``source tools/release_helper.sh`` when releasing via bash or
+zsh, it should guide you through most of the process. It sets the version in
+``IPython/core/release.py`` for the release and for the next dev version, and
+shows every command (as written and with variables expanded) before running it.
+Building the docs locally and uploading manually with twine are skipped unless
+you ask for them.
 
 
 1. Set Environment variables
@@ -193,6 +197,10 @@ Create and push the tag::
     git push origin $VERSION
 
 (omit the ``-s`` if you are not signing the package)
+
+The tag must be exactly the full ``X.Y.Z`` version computed by ``release.py``
+(``9.19.0``, not ``9.19``): the publish workflow refuses to publish when the
+tag and the built version differ.
 
 Pushing the tag triggers the ``publish.yml`` GitHub Actions workflow, which
 builds the package and publishes it to PyPI.
