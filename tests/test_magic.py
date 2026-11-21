@@ -600,6 +600,40 @@ def test_timeit_result_same_unit():
             "(mean +- std. dev. of 2 runs, 1 loop each)"
         )
 
+
+def test_format_small_number():
+    """Ensure values below 0.001 use a power of ten that is a multiple of 3"""
+    cases = [
+        # (value, utf-8 output, ascii output)
+        (0, "0", "0"),
+        (0.001, "0.001", "0.001"),
+        (5e-05, "50 \u00d710\u207b\u2076", "50e-6"),
+        # rounds to 1e-9, not 1e+03 x 10^-12
+        (999.9e-12, "1 \u00d710\u207b\u2079", "1e-9"),
+    ]
+    for value, utf8_out, ascii_out in cases:
+        with mock.patch("sys.stdout", io.TextIOWrapper(StringIO(), encoding="utf-8")):
+            assert execution._format_small_number(value) == utf8_out
+        with mock.patch("sys.stdout", io.TextIOWrapper(StringIO(), encoding="ascii")):
+            assert execution._format_small_number(value) == ascii_out
+
+
+def test_timeit_result_small_stdev():
+    """Ensure a tiny std. dev. is shown with a power of ten in %timeit output"""
+    # mean = 10 ms, std. dev. = 1 ns (1e-6 ms).
+    r = execution.TimeitResult(1, 2, 0, 0, [0.01 - 1e-9, 0.01 + 1e-9], 0, 3)
+    with mock.patch("sys.stdout", io.TextIOWrapper(StringIO(), encoding="utf-8")):
+        assert str(r) == (
+            "10 \u00b1 1 \u00d710\u207b\u2076 ms per loop "
+            "(mean \u00b1 std. dev. of 2 runs, 1 loop each)"
+        )
+    with mock.patch("sys.stdout", io.TextIOWrapper(StringIO(), encoding="ascii")):
+        assert str(r) == (
+            "10 +- 1e-6 ms per loop "
+            "(mean +- std. dev. of 2 runs, 1 loop each)"
+        )
+
+
 # Test %%capture magic. Added to test issue #13926
 def test_capture():
     ip = get_ipython()
