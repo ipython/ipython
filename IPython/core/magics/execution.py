@@ -96,21 +96,29 @@ class TimeitResult:
         return (math.fsum([(x - mean) ** 2 for x in self.timings]) / len(self.timings)) ** 0.5
 
     def __str__(self):
-        pm = '+-'
-        if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:
-            try:
-                "\xb1".encode(sys.stdout.encoding)
-                pm = "\xb1"
-            except (UnicodeEncodeError, LookupError):
-                pass
+        pm = "\xb1" if _stdout_can_encode("\xb1") else "+-"
+        average = self.average
+        stdev = self.stdev
+        if average >= 60.0:
+            # Long timespans use the "1min 2s" style; keep that format.
+            mean_str = _format_time(average, self._precision)
+            std_str = _format_time(stdev, self._precision)
+        else:
+            # Use the unit chosen for the mean for both values (e.g. 1.05 +- 0.05 ms).
+            scale, unit = _time_unit(average)
+            mean_str = "%.*g" % (self._precision, average * scale)
+            std_str = "%s %s" % (
+                _format_small_number(stdev * scale, self._precision),
+                unit,
+            )
         return "{mean} {pm} {std} per loop (mean {pm} std. dev. of {runs} run{run_plural}, {loops:,} loop{loop_plural} each)".format(
             pm=pm,
             runs=self.repeat,
             loops=self.loops,
             loop_plural="" if self.loops == 1 else "s",
             run_plural="" if self.repeat == 1 else "s",
-            mean=_format_time(self.average, self._precision),
-            std=_format_time(self.stdev, self._precision),
+            mean=mean_str,
+            std=std_str,
         )
 
     def _repr_pretty_(self, p , cycle):
@@ -1701,18 +1709,25 @@ def _format_time(timespan, precision=3):
                 break
         return " ".join(time)
 
+    scale, unit = _time_unit(timespan)
+    return "%.*g %s" % (precision, timespan * scale, unit)
+
+
+def _time_unit(timespan):
+    """Choose a display unit for a timespan of less than a minute.
+
+    Returns a ``(scale, unit)`` tuple: multiply the timespan (in seconds)
+    by ``scale`` to express it in ``unit``.
+    """
     # Unfortunately characters outside of range(128) can cause problems in
     # certain terminals.
     # See bug: https://bugs.launchpad.net/ipython/+bug/348466
     # Try to prevent crashes by being more secure than it needs to
     # E.g. eclipse is able to print a µ, but has no sys.stdout.encoding set.
-    units = ["s", "ms", "us", "ns"]  # the safe value
-    if hasattr(sys.stdout, "encoding") and sys.stdout.encoding:
-        try:
-            "μ".encode(sys.stdout.encoding)
-            units = ["s", "ms", "μs", "ns"]
-        except (UnicodeEncodeError, LookupError):
-            pass
+    if _stdout_can_encode("μ"):
+        units = ["s", "ms", "μs", "ns"]
+    else:
+        units = ["s", "ms", "us", "ns"]  # the safe value
     scaling = [1, 1e3, 1e6, 1e9]
 
     if timespan > 0.0:
@@ -1720,4 +1735,41 @@ def _format_time(timespan, precision=3):
         order = min(-int(math.floor(math.log10(timespan)) // 3), 3)
     else:
         order = 3
-    return "%.*g %s" % (precision, timespan * scaling[order], units[order])
+    return scaling[order], units[order]
+
+
+def _format_small_number(value, precision=3):
+    """Format a number, using a power of ten that is a multiple of 3 if small.
+
+    Values below 0.001 are shown as e.g. ``50 ×10⁻⁶``, or ``50e-6`` in ASCII.
+    """
+    # Zero and values of 1e-3 or more are formatted with "%g" as is.
+    # Smaller values would give hard-to-read output such as 0.0005 or 5e-05,
+    # so they use a power of ten.
+    if value == 0 or abs(value) >= 1e-3:
+        return "%.*g" % (precision, value)
+
+    import math
+
+    # Round to the requested precision first,
+    # so that e.g. 999.9e-12 becomes 1 ×10⁻⁹ rather than 1e+03 ×10⁻¹².
+    value = float("%.*g" % (precision, value))
+    exponent = math.floor(math.log10(abs(value)) / 3) * 3
+    mantissa = "%.*g" % (precision, value / 10**exponent)
+
+    superscript = str(exponent).translate(str.maketrans("-0123456789", "⁻⁰¹²³⁴⁵⁶⁷⁸⁹"))
+    pretty = "%s ×10%s" % (mantissa, superscript)
+    if _stdout_can_encode(pretty):
+        return pretty
+    return "%se%d" % (mantissa, exponent)
+
+
+def _stdout_can_encode(text):
+    """Return whether ``text`` can be written to the current ``sys.stdout``."""
+    if not (hasattr(sys.stdout, "encoding") and sys.stdout.encoding):
+        return False
+    try:
+        text.encode(sys.stdout.encoding)
+    except (UnicodeEncodeError, LookupError):
+        return False
+    return True
