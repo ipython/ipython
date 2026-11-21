@@ -454,6 +454,33 @@ def test_jsondecodeerror_message():
     ip.run_cell("%xmode context")
 
 
+def test_tracebackhide_with_non_mapping_locals():
+    """Traceback formatting must not crash when a frame's f_locals is not
+    a dict (gh-13481): a metaclass __prepare__ returning a list makes the
+    class-body frame's f_locals that list, so looking up
+    "__tracebackhide__" with .get raised AttributeError instead of
+    showing the original TypeError.
+    """
+
+    class BadMeta(type):
+        def __prepare__(name, bases, **kwds):
+            return []
+
+    try:
+
+        class Y(metaclass=BadMeta):
+            pass
+
+    except TypeError:
+        etype, evalue, tb = sys.exc_info()
+        out = VerboseTB().structured_traceback(etype, evalue, tb)
+        text = "".join(out)
+        assert "TypeError" in text
+        assert "list indices must be integers" in text
+    else:
+        pytest.fail("expected TypeError from class body with list namespace")
+
+
 # ----------------------------------------------------------------------------
 
 

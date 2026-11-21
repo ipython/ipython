@@ -830,8 +830,13 @@ class VerboseTB(TBTools):
                 not isinstance(record._sd, stack_data.RepeatedFrames)
                 and self.skip_hidden
             ):
+                # f_locals is normally a dict, but a class body whose
+                # metaclass __prepare__ returned a non-mapping has that
+                # object instead (gh-13481); only call .get on a dict.
+                f_locals = record.frame.f_locals
                 if (
-                    record.frame.f_locals.get("__tracebackhide__", 0)
+                    isinstance(f_locals, dict)
+                    and f_locals.get("__tracebackhide__", 0)
                     and i != lastrecord
                 ):
                     skipped += 1
