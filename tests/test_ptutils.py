@@ -4,11 +4,14 @@ import os
 import sys
 
 import pytest
-
-from IPython.testing.decorators import skip_win32
 from unittest.mock import Mock, patch
 
+from IPython import get_ipython
+from IPython.testing.decorators import skip_win32
+
 from prompt_toolkit.document import Document
+from prompt_toolkit.buffer import Buffer
+from prompt_toolkit.completion import CompleteEvent
 
 from IPython.core.completer import provisionalcompleter
 from IPython.terminal.ptutils import (
@@ -260,3 +263,44 @@ def test_lexer_lex_document_returns_callable():
     get_line = lexer.lex_document(Document("print(1)", 0))
     tokens = get_line(0)
     assert "".join(fragment for _, fragment in tokens) == "print(1)"
+
+
+@skip_win32
+def test_pt_completer_escaped_space_directory_traversal(tmp_path):
+    ip = get_ipython()
+    space_dir = tmp_path / "space dir"
+    child_dir = space_dir / "child dir"
+    plain_dir = tmp_path / "plain"
+    plain_leaf = plain_dir / "leaf.txt"
+    ordinary_file = tmp_path / "ordinary file.txt"
+    child_dir.mkdir(parents=True)
+    plain_dir.mkdir()
+    plain_leaf.touch()
+    ordinary_file.touch()
+
+    completer = IPythonPTCompleter(shell=ip)
+
+    def apply_completion(prefix):
+        document = Document(prefix, cursor_position=len(prefix))
+        completions = list(
+            completer.get_completions(
+                document, CompleteEvent(completion_requested=True)
+            )
+        )
+        assert len(completions) == 1
+        buffer = Buffer(document=document)
+        buffer.apply_completion(completions[0])
+        return buffer.text
+
+    escaped_space_dir = str(space_dir).replace(" ", "\\ ")
+    first = apply_completion(f"!ls {tmp_path / 'space'}")
+    assert first == f"!ls {escaped_space_dir}/"
+
+    second = apply_completion(first + "child")
+    escaped_child_dir = str(child_dir).replace(" ", "\\ ")
+    assert second == f"!ls {escaped_child_dir}/"
+
+    assert apply_completion(f"!ls {tmp_path / 'plain'}") == f"!ls {plain_dir}/"
+    escaped_file = str(ordinary_file).replace(" ", "\\ ")
+    assert apply_completion(f"!ls {plain_dir}/lea") == f"!ls {plain_leaf}"
+    assert apply_completion(f"!ls {tmp_path / 'ordinary'}") == f"!ls {escaped_file}"
