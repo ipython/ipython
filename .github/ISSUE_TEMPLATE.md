@@ -1,6 +1,6 @@
 ---
 name: Bug report / Question / Feature
-about: Anything related to IPython itsel
+about: Anything related to IPython itself
 title: ''
 labels: ''
 assignees: ''
