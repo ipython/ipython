@@ -17,20 +17,31 @@ FOR %%L IN (html html_noapi pickle htmlhelp changes linkcheck) DO (
         IF "%P%" == "" (
             ECHO.
             ECHO Error: Sphinx is not available. Please make sure it is correctly installed.
-            GOTO END
+            GOTO ERROR
         )
         MD build\doctrees 2>NUL
-        MD build\%1 || GOTO DIR_EXIST
-        %PYTHON% autogen_config.py && ECHO Created docs for config options
-        %PYTHON% autogen_magics.py && ECHO Created docs for line ^& cell magics
-        %PYTHON% autogen_shortcuts.py && ECHO Created docs for shortcuts
+        IF NOT EXIST "build\%1\" (
+            MD "build\%1"
+            IF ERRORLEVEL 1 GOTO ERROR
+        )
+        %PYTHON% autogen_config.py
+        IF ERRORLEVEL 1 GOTO ERROR
+        ECHO Created docs for config options
+        %PYTHON% autogen_magics.py
+        IF ERRORLEVEL 1 GOTO ERROR
+        ECHO Created docs for line ^& cell magics
+        %PYTHON% autogen_shortcuts.py
+        IF ERRORLEVEL 1 GOTO ERROR
+        ECHO Created docs for shortcuts
         IF NOT "%1" == "html_noapi" (
-            %PYTHON% autogen_api.py && ECHO Build API docs finished
+            %PYTHON% autogen_api.py
+            IF ERRORLEVEL 1 GOTO ERROR
+            ECHO Build API docs finished
             %SPHINXBUILD% -b %1 %ALLSPHINXOPTS% build\%1
         ) ELSE (
             %SPHINXBUILD% -b html %ALLSPHINXOPTS% build\%1
         )
-        IF NOT ERRORLEVEL 0 GOTO ERROR
+        IF ERRORLEVEL 1 GOTO ERROR
         ECHO.
         ECHO Build finished. Results are in build\%1.
         IF "%1" == "pickle" (
@@ -67,13 +78,10 @@ ECHO    changes     to make an overview over all changed/added/deprecated items
 ECHO    linkcheck   to check all external links for integrity
 GOTO END
 
-:DIR_EXIST
-ECHO.
-ECHO Info: Run "make clean" to clean build environment
-
 :ERROR
 ECHO.
 ECHO Error: Build process failed!
+ENDLOCAL & EXIT /B 1
 
 :END
-ENDLOCAL
+ENDLOCAL & EXIT /B 0
