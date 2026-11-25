@@ -15,6 +15,7 @@ Authors
 # -----------------------------------------------------------------------------
 # Imports
 # -----------------------------------------------------------------------------
+import subprocess
 import sys
 
 import pytest
@@ -141,3 +142,52 @@ def test_init_shell_not_implemented():
 
     with pytest.raises(NotImplementedError):
         InteractiveShellApp().init_shell()
+
+
+# -----------------------------------------------------------------------------
+# Exit-code preservation (issue #15132)
+# -----------------------------------------------------------------------------
+
+
+def _ipython_exit_code(*args):
+    """Run ``python -m IPython [args]`` and return the subprocess exit code."""
+    cmd = [sys.executable, "-m", "IPython"] + tt.default_argv() + list(args)
+    return subprocess.call(
+        cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
+
+
+def test_sys_exit_preserves_code_zero():
+    assert _ipython_exit_code("-c", "import sys; sys.exit(0)") == 0
+
+
+def test_sys_exit_preserves_code_one():
+    assert _ipython_exit_code("-c", "import sys; sys.exit(1)") == 1
+
+
+def test_sys_exit_preserves_code_two():
+    # Regression test for issue #15132: previously this returned 1.
+    assert _ipython_exit_code("-c", "import sys; sys.exit(2)") == 2
+
+
+def test_sys_exit_preserves_arbitrary_code():
+    assert _ipython_exit_code("-c", "import sys; sys.exit(42)") == 42
+
+
+def test_sys_exit_no_arg_returns_zero():
+    # ``sys.exit()`` with no argument means exit code 0.
+    assert _ipython_exit_code("-c", "import sys; sys.exit()") == 0
+
+
+def test_normal_execution_returns_zero():
+    assert _ipython_exit_code("-c", "print('hello')") == 0
+
+
+def test_sys_exit_in_script_file(tmp_pyfile):
+    fname = tmp_pyfile("import sys; sys.exit(2)\n")
+    assert _ipython_exit_code("--", fname) == 2
+
+
+def test_sys_exit_zero_in_script_file(tmp_pyfile):
+    fname = tmp_pyfile("import sys; sys.exit(0)\n")
+    assert _ipython_exit_code("--", fname) == 0
