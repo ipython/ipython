@@ -167,7 +167,11 @@ def import_submodule(mod, subname, fullname):
     # else: mod.__name__ + "." + subname == fullname
 
     global found_now
-    if fullname in found_now and fullname in sys.modules:
+    # Never reload the standard library: it cannot have changed, and re-executing
+    # it swaps out objects like os.environ and enum.Enum that others hold on to.
+    if fullname in sys.modules and (
+        fullname in found_now or fullname.partition(".")[0] in sys.stdlib_module_names
+    ):
         m = sys.modules[fullname]
     else:
         print('Reloading', fullname)
@@ -297,7 +301,8 @@ def reload(
     takes a list of modules to exclude from reloading.  The default exclude
     list contains modules listed in sys.builtin_module_names with additional
     sys, os.path, builtins and __main__, to prevent, e.g., resetting
-    display, exception, and io hooks.
+    display, exception, and io hooks. Standard-library modules
+    (``sys.stdlib_module_names``) are never reloaded.
     """
     global found_now
     for i in exclude:
