@@ -60,11 +60,11 @@ CLASSIC_PROMPT_L3 = (
 ...     print(a)
 """,
     """\
->>> \"\"\"
-... This code is inside a triple-quoted string.
-... >>> for a in range(5):
-... ...     print(a)
-... \"\"\"
+\"\"\"
+This code is inside a triple-quoted string.
+>>> for a in range(5):
+...     print(a)
+\"\"\"
 for a in range(5):
     print(a)
 """,
