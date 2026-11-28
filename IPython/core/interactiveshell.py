@@ -18,10 +18,12 @@ import functools
 import os
 import re
 import sys
+import threading
 import types
 import warnings
 from ast import stmt
 from contextlib import contextmanager
+from contextvars import ContextVar
 from io import open as io_open
 from pathlib import Path
 from typing import Any as AnyType
@@ -139,6 +141,18 @@ from .async_helpers import (
 
 # compiled regexps for autoindent management
 dedent_re = re.compile(r'^\s+raise|^\s+return|^\s+pass')
+
+# Which execution a stream write belongs to, for the `%notebook` capture.
+# Set by `_tee` while a cell runs, so overlapping executions on different
+# threads (ipykernel subshells) and async cells each attribute their own
+# output. A ContextVar (not a thread-local) also covers `await` points.
+_capture_execution_count: ContextVar[int | None] = ContextVar(
+    "ipython_capture_execution_count", default=None
+)
+
+# Guards installing and uninstalling the `_tee` stream wrappers, so
+# overlapping captures cannot restore each other's wrapper.
+_tee_install_lock = threading.Lock()
 
 #-----------------------------------------------------------------------------
 # Utilities
@@ -686,6 +700,12 @@ class InteractiveShell(SingletonConfigurable):
         # `ipykernel.kernelapp`.
         self.trio_runner = None
         self.showing_traceback = False
+
+        # Active `_tee` stream wrappers, keyed by id(stream). Each entry
+        # holds the stream, the write it replaced, the wrapper and a
+        # reference count, so the original write is only restored once
+        # the last overlapping capture has exited.
+        self._tee_states: dict[int, dict] = {}
 
     _db = None
 
@@ -3155,49 +3175,86 @@ class InteractiveShell(SingletonConfigurable):
             warn('Unknown failure executing module: <%s>' % mod_name)
 
     @contextmanager
-    def _tee(self, channel: Literal["stdout", "stderr"]):
+    def _tee(self, channel: Literal["stdout", "stderr"], execution_count=None):
         """Capture output of a given standard stream and store it in history.
 
         Uses patching of write method for maximal compatibility,
         because ipykernel checks for instances of the stream class,
         and stream classes in ipykernel implement more complex logic.
+
+        One wrapper per stream dispatches each write to the execution
+        that is current in the writing thread (tracked with a ContextVar),
+        and the original write is restored only once the last overlapping
+        capture exits. Swapping the write per capture leaked when a
+        subshell request outlived the cell it overlapped: the cell
+        restored the original write, then the subshell restored the
+        cell's wrapper, capturing every later print into the cell's
+        history entry for the rest of the session.
         """
         stream = getattr(sys, channel)
-        original_write = stream.write
-        execution_count = self.execution_count
+        if execution_count is None:
+            execution_count = self.execution_count
 
-        def write(data, *args, **kwargs):
-            """Write data to both the original destination and the capture dictionary."""
-            result = original_write(data, *args, **kwargs)
-            if any(
-                [
-                    self.display_pub.is_publishing,
-                    self.displayhook.is_active,
-                    self.showing_traceback,
-                ]
-            ):
-                return result
-            if not data:
-                return result
-            output_stream = None
-            outputs_by_counter = self.history_manager.outputs
-            output_type = "out_stream" if channel == "stdout" else "err_stream"
-            if execution_count in outputs_by_counter:
-                outputs = outputs_by_counter[execution_count]
-                if outputs[-1].output_type == output_type:
-                    output_stream = outputs[-1]
-            if output_stream is None:
-                output_stream = HistoryOutput(
-                    output_type=output_type, bundle={"stream": []}
-                )
-                outputs_by_counter[execution_count].append(output_stream)
+        with _tee_install_lock:
+            state = self._tee_states.get(id(stream))
+            if state is None:
+                original_write = stream.write
 
-            output_stream.bundle["stream"].append(data)  # Append to existing stream
-            return result
+                def write(data, *args, **kwargs):
+                    """Write data to both the original destination and the capture dictionary."""
+                    result = original_write(data, *args, **kwargs)
+                    count = _capture_execution_count.get()
+                    if count is None:
+                        return result
+                    if any(
+                        [
+                            self.display_pub.is_publishing,
+                            self.displayhook.is_active,
+                            self.showing_traceback,
+                        ]
+                    ):
+                        return result
+                    if not data:
+                        return result
+                    output_stream = None
+                    outputs_by_counter = self.history_manager.outputs
+                    output_type = "out_stream" if channel == "stdout" else "err_stream"
+                    if count in outputs_by_counter:
+                        outputs = outputs_by_counter[count]
+                        if outputs[-1].output_type == output_type:
+                            output_stream = outputs[-1]
+                    if output_stream is None:
+                        output_stream = HistoryOutput(
+                            output_type=output_type, bundle={"stream": []}
+                        )
+                        outputs_by_counter[count].append(output_stream)
 
-        stream.write = write
-        yield
-        stream.write = original_write
+                    output_stream.bundle["stream"].append(data)  # Append to existing stream
+                    return result
+
+                state = {
+                    "stream": stream,
+                    "original_write": original_write,
+                    "write": write,
+                    "refcount": 0,
+                }
+                stream.write = write
+                self._tee_states[id(stream)] = state
+            state["refcount"] += 1
+
+        token = _capture_execution_count.set(execution_count)
+        try:
+            yield
+        finally:
+            _capture_execution_count.reset(token)
+            with _tee_install_lock:
+                state["refcount"] -= 1
+                if state["refcount"] == 0:
+                    del self._tee_states[id(stream)]
+                    # Only restore if our wrapper is still on top; another
+                    # shell may have wrapped it in the meantime.
+                    if getattr(stream, "write", None) is state["write"]:
+                        stream.write = state["original_write"]
 
     def run_cell(
         self,
@@ -3481,7 +3538,14 @@ class InteractiveShell(SingletonConfigurable):
         # compiler
         compiler = self.compile if shell_futures else self.compiler_class()
 
-        with self.builtin_trap:
+        # Capture here as well as in `run_cell`: ipykernel runs cells with
+        # top-level `await` through `run_cell_async` directly, bypassing
+        # `run_cell`, so without this their output never reaches history.
+        with (
+            self._tee("stdout", execution_count),
+            self._tee("stderr", execution_count),
+            self.builtin_trap,
+        ):
             cell_name = compiler.cache(cell, execution_count, raw_code=raw_cell)
 
             with self.display_trap:
