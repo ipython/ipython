@@ -17,6 +17,7 @@ import signal
 import shutil
 import sys
 import tempfile
+import threading
 import time
 import pytest
 from unittest import mock
@@ -117,6 +118,95 @@ def test_run_empty_cell():
     res = ip.run_cell("")
     assert ip.execution_count == old_xc
     assert res.execution_count is None
+
+
+def _stream_text(outputs, count):
+    """Join the ``out_stream`` text recorded for one execution count."""
+    return "".join(
+        "".join(map(str, o.bundle.get("stream", [])))
+        for o in outputs.get(count, [])
+        if o.output_type == "out_stream"
+    )
+
+
+def test_tee_overlapping_executions_do_not_leak():
+    """Overlapping captures must not leak into each other or stay installed.
+
+    Regression test for #15490: with ipykernel subshells, a cell and a
+    subshell request can run concurrently on two threads. The cell ends
+    first and restores the original ``write``; the subshell then restores
+    the cell's wrapper, so every later print is appended to the cell's
+    history entry for the rest of the session.
+    """
+    outputs = ip.history_manager.outputs
+    orig_outputs = outputs.copy()
+    orig_count = ip.execution_count
+    cell_count = orig_count + 1
+    sub_count = orig_count + 2
+    original_write = sys.stdout.write
+
+    entered_cell = threading.Event()
+    entered_sub = threading.Event()
+    exit_cell = threading.Event()
+    exited_cell = threading.Event()
+
+    def cell_thread():
+        ip.execution_count = cell_count
+        with ip._tee("stdout"):
+            entered_cell.set()
+            assert entered_sub.wait(timeout=10)
+            print("cell", flush=True)
+            assert exit_cell.wait(timeout=10)
+        exited_cell.set()
+
+    def sub_thread():
+        assert entered_cell.wait(timeout=10)
+        ip.execution_count = sub_count
+        with ip._tee("stdout"):
+            entered_sub.set()
+            print("subshell", flush=True)
+            exit_cell.set()
+            assert exited_cell.wait(timeout=10)
+
+    try:
+        t_cell = threading.Thread(target=cell_thread)
+        t_sub = threading.Thread(target=sub_thread)
+        t_cell.start()
+        t_sub.start()
+        t_cell.join(timeout=15)
+        t_sub.join(timeout=15)
+        assert not t_cell.is_alive() and not t_sub.is_alive()
+
+        # Each thread's output went to its own execution's entry only.
+        assert _stream_text(outputs, cell_count) == "cell\n"
+        assert _stream_text(outputs, sub_count) == "subshell\n"
+        # The capture is fully uninstalled: later output is not recorded.
+        sys.stdout.write("after\n")
+        assert _stream_text(outputs, cell_count) == "cell\n"
+        assert _stream_text(outputs, sub_count) == "subshell\n"
+        assert sys.stdout.write == original_write
+    finally:
+        ip.history_manager.outputs = orig_outputs
+        ip.execution_count = orig_count
+
+
+def test_run_cell_async_captures_top_level_await():
+    """Cells with top-level ``await`` must be captured via ``run_cell_async``.
+
+    Regression test for #15490: ipykernel runs such cells through
+    ``shell.run_cell_async`` (``ipykernel/ipkernel.py``, ``do_execute``),
+    while ``_tee`` only wrapped ``run_cell``, so their output never
+    reached ``history_manager.outputs``.
+    """
+    code = "import asyncio\nawait asyncio.sleep(0)\nprint('async cell')"
+    transformed = ip.transform_cell(code)
+    result = asyncio.run(
+        ip.run_cell_async(code, store_history=True, transformed_cell=transformed)
+    )
+    assert result.success
+    count = result.execution_count
+    assert count is not None
+    assert _stream_text(ip.history_manager.outputs, count) == "async cell\n"
 
 
 def test_run_cell_multiline():
